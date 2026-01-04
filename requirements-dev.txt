@@ -1,0 +1,8 @@
+pytest>=6.0
+pytest-cov>=2.0
+tox>=3.0
+flake8>=4.0
+black>=22.0
+mypy>=0.900
+build>=0.7
+twine>=3.0
