@@ -5,6 +5,7 @@ This module automatically adds the repository root to the Python path,
 making it easier to import modules from anywhere within the repository.
 """
 
+import inspect
 import os
 import sys
 from pathlib import Path
@@ -27,8 +28,16 @@ def find_repo_root(start_path=None, markers=None):
     """
     if start_path is None:
         # Start from the caller's directory
-        frame = sys._getframe(1)
-        start_path = os.path.dirname(os.path.abspath(frame.f_code.co_filename))
+        frame = inspect.currentframe()
+        if frame is None:
+            # Fallback if currentframe() returns None
+            start_path = os.getcwd()
+        else:
+            caller_frame = frame.f_back
+            if caller_frame:
+                start_path = os.path.dirname(os.path.abspath(caller_frame.f_code.co_filename))
+            else:
+                start_path = os.getcwd()
     
     if markers is None:
         markers = ['.git', 'setup.py', 'pyproject.toml', 'tox.ini']

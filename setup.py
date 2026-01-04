@@ -1,23 +1,25 @@
 """Setup configuration for autopypath."""
 
-from setuptools import setup, find_packages
+import re
 from pathlib import Path
+from setuptools import setup, find_packages
 
 # Read the README file
 this_directory = Path(__file__).parent
 long_description = (this_directory / "README.md").read_text(encoding="utf-8")
 
-# Read version from the package
-version = {}
-with open("autopypath/__init__.py") as f:
-    for line in f:
-        if line.startswith("__version__"):
-            exec(line, version)
-            break
+# Read version from the package using regex
+version = "0.1.0"  # default
+init_file = this_directory / "autopypath" / "__init__.py"
+if init_file.exists():
+    content = init_file.read_text(encoding="utf-8")
+    match = re.search(r'^__version__\s*=\s*[\'"]([^\'"]*)[\'"]', content, re.MULTILINE)
+    if match:
+        version = match.group(1)
 
 setup(
     name="autopypath",
-    version=version.get("__version__", "0.1.0"),
+    version=version,
     author="Jerilyn Franz",
     author_email="",
     description="A small library to automatically configure the Python path for a script in a repo",
