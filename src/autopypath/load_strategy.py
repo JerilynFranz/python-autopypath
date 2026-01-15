@@ -3,11 +3,13 @@
 from enum import Enum
 from types import MappingProxyType
 
+from ._doc_utils import enum_docstrings
 from ._typing import Literal, TypeAlias, Final, TypeGuard
 
 __all__ = ['LoadStrategy']
 
 
+@enum_docstrings
 class LoadStrategy(str, Enum):
     """Defines the strategy for loading :func:`sys.path` from multiple sources.
 
@@ -32,8 +34,11 @@ class LoadStrategy(str, Enum):
     """
 
     MERGE = 'merge'
-    OVERRIDE = 'override'
+    """Use paths from all sources, combining them in priority order."""
+    USE_HIGHEST_PRIORITY = 'override'
+    """Use paths from the highest priority source only."""
     REPLACE = 'replace'
+    """Replace sys.path entirely with the merged paths from all sources."""
 
 
 LoadStrategyLiteral: TypeAlias = Literal['merge', 'override', 'replace']

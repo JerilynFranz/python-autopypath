@@ -24,8 +24,11 @@ class PathResolution(str, Enum):
     """
 
     MANUAL = 'manual'
+    """Paths provided directly via the `paths` parameter to `configure_pypath()`."""
     PYPROJECT = 'pyproject'
+    """Paths specified in the [tool.autopypath] section of the `pyproject.toml` file in the repository root."""
     DOTENV = 'dotenv'
+    """Paths specified in a `.env` file in the repository root."""
 
 
 PathResolutionLiteral: TypeAlias = Literal['env', 'manual', 'pyproject', 'dotenv']

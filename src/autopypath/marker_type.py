@@ -4,11 +4,13 @@ from enum import Enum
 
 from types import MappingProxyType
 
+from ._doc_utils import enum_docstrings
 from ._typing import Literal, TypeAlias, Final, TypeGuard
 
 __all__ = ['MarkerType']
 
 
+@enum_docstrings
 class MarkerType(str, Enum):
     """Types of repository markers used to identify the repository root.
 
@@ -25,7 +27,9 @@ class MarkerType(str, Enum):
     """
 
     FILE = 'file'
+    """A file that must exist in the repository root."""
     DIR = 'dir'
+    """A directory that must exist in the repository root."""
 
 
 MarkerTypeLiteral: TypeAlias = Literal['file', 'dir']

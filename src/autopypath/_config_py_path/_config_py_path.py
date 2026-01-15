@@ -1,28 +1,23 @@
 """ "Module to configure Python path"""
 
 from collections.abc import Mapping, Sequence
-import os
 from pathlib import Path
-from posixpath import sep as posix_sep
-from ntpath import sep as nt_sep
 import sys
 from typing import Union, Optional
-
-from dotenv import load_dotenv
 
 from .. import _validate
 from .._log import log
 from ..marker_type import MarkerType
 from ..path_resolution import PathResolution
 from ..load_strategy import LoadStrategy
-from ._config import DefaultConfig, ManualConfig, PyProjectConfig, DotEnvConfig, Config
+from ._config import DefaultConfig, ManualConfig, PyProjectConfig, DotEnvConfig
 from ._conf_source import ConfSource
 
 __all__ = []
 
 
 class ConfigPyPath:
-    """Configures :var:`sys.path` based on manual settings, .env files, and pyproject.toml."""
+    """Configures :var:`sys.path` based on manual settings, pyproject.toml, and .env files."""
 
     def __init__(
         self,
@@ -112,8 +107,127 @@ class ConfigPyPath:
         self._path_resolution_order: tuple[PathResolution, ...] = self._determine_path_resolution_order()
         """The order in which to resolve :var:`sys.path` sources."""
 
+        self._load_strategy: LoadStrategy = self._determine_load_strategy()
+        """The strategy for handling multiple :var:`sys.path` sources."""
+
+        self._paths: tuple[Path, ...] = self._determine_paths()
+        """The final resolved paths to be added to :var:`sys.path`."""
+
+    def _determine_paths(self) -> tuple[Path, ...]:
+        """Determines the final resolved paths to be added to :var:`sys.path`.
+
+        It follows the configured path resolution order and load strategy to
+        combine paths from manual settings, pyproject.toml, and .env files.
+
+        Paths that are already in :var:`sys.path` are not duplicated.
+
+        :return tuple[Path, ...]: The final resolved paths to be added to :var:`sys.path`.
+        """
+
+        existing_paths = sys.path
+        known_paths: set[Path] = set()
+        for p in existing_paths:
+            try:
+                path_obj = Path(p).resolve()
+                if path_obj not in known_paths:
+                    known_paths.add(path_obj)
+            except Exception:
+                log.warning('Could not resolve existing sys.path entry: %s', p)
+
+        raw_paths: list[Path] = []
+        for source in self._path_resolution_order:
+            match source:
+                case PathResolution.MANUAL:
+                    source_paths = self._manual.paths
+                    log.debug('Resolving paths from MANUAL source: %s', source_paths)
+                case PathResolution.PYPROJECT:
+                    source_paths = self._pyproject.paths
+                    log.debug('Resolving paths from PYPROJECT source: %s', source_paths)
+                case PathResolution.DOTENV:
+                    source_paths = self._dotenv.paths
+                    log.debug('Resolving paths from DOTENV source: %s', source_paths)
+                case _:
+                    log.warning('Unknown path resolution source: %s', source)
+                    continue
+
+            if not source_paths:
+                continue
+
+            match self._load_strategy:
+                case LoadStrategy.REPLACE:
+                    raw_paths.extend(source_paths)
+                    log.debug('Load strategy REPLACE: Appending paths %s from %s', source_paths, source)
+                    break
+                case LoadStrategy.USE_HIGHEST_PRIORITY:
+                    log.debug('Load strategy USE_HIGHEST_PRIORITY: Using paths %s from %s', source_paths, source)
+                    raw_paths = list(source_paths)
+                    break
+                case LoadStrategy.MERGE:
+                    log.debug('Load strategy MERGE: Appending paths %s from %s', source_paths, source)
+                    raw_paths.extend(source_paths)
+                case _:  # pragma: no cover  # should never happen due to earlier validation
+                    raise ValueError(f'Unknown load strategy: {self._load_strategy}')
+
+            # Remove duplicates while preserving order
+            unique_paths: list[Path] = []
+            for path in raw_paths:
+                resolved_path = path.resolve()
+                if resolved_path not in known_paths:
+                    unique_paths.append(resolved_path)
+                    known_paths.add(resolved_path)
+
+            match self._load_strategy:
+                case LoadStrategy.REPLACE:
+                    sys.path = [str(p) for p in unique_paths]
+                    log.debug('sys.path replaced with: %s', sys.path)
+                case LoadStrategy.USE_HIGHEST_PRIORITY:
+                    sys.path = [str(p) for p in unique_paths] + sys.path
+                    log.debug('sys.path updated with highest priority paths: %s', sys.path)
+                case LoadStrategy.MERGE:
+                    sys.path = [str(p) for p in unique_paths] + sys.path
+                    log.debug('sys.path updated with merged paths: %s', sys.path)
+
+        # Process default paths if no paths have been set yet
+        if not raw_paths:
+            default_paths = self._default.paths
+            log.debug('Processing default paths: %s', default_paths)
+            for path in default_paths:
+                raw_paths.append(path)
+
+        return tuple(raw_paths)
+
+    def _determine_load_strategy(self) -> LoadStrategy:
+        """Determines the load strategy for handling multiple :var:`sys.path` sources.
+
+        It looks for the strategy in the following precedence:
+        1. Manual configuration provided directly to the function.
+        2. Configuration loaded from pyproject.toml.
+        3. Default autopypath configuration.
+
+        The first source that provides a non-None strategy is used.
+
+        :return LoadStrategy: The strategy for handling multiple :var:`sys.path` sources.
+        """
+        if self._manual.load_strategy is not None:
+            strategy = LoadStrategy(self._manual.load_strategy)
+            log.debug('Using manual load strategy: %s', strategy)
+            return strategy
+        if self._pyproject.load_strategy is not None:
+            strategy = LoadStrategy(self._pyproject.load_strategy)
+            log.debug('Using pyproject.toml load strategy: %s', strategy)
+            return strategy
+        log.debug('Using default load strategy: %s', self._default.load_strategy)
+        return self._default.load_strategy
+
     def _determine_path_resolution_order(self) -> tuple[PathResolution, ...]:
         """Determines the order in which to resolve :var:`sys.path` sources.
+
+        It looks for the order in the following precedence:
+        1. Manual configuration provided directly to the function.
+        2. Configuration loaded from pyproject.toml.
+        3. Default autopypath configuration.
+
+        The first source that provides a non-None order is used.
 
         :return tuple[PathResolution, ...]: The order in which to resolve :var:`sys.path` sources.
         """
