@@ -87,6 +87,9 @@ def repo_markers(value: Any) -> Union[MappingProxyType[str, MarkerType], None]:
         validate_file_or_dir_name(key)
         validated_markers[key] = val
 
+    if len(validated_markers) == 0:
+        return None
+
     return MappingProxyType(validated_markers)
 
 

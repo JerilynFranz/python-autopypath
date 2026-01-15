@@ -45,7 +45,7 @@ class ConfigParameters(NamedTuple):
         PytestAction('MARKER_002',
             name='Create Config with empty repo_markers',
             action=Config, kwargs={'repo_markers': {}},
-            validate_attr='repo_markers', expected={}),
+            validate_attr='repo_markers', expected=None),
         PytestAction('MARKER_003',
             name='Create Config with single repo_marker',
             action=Config, kwargs={'repo_markers': {'setup.py': MarkerType.FILE}},
