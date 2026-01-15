@@ -1,0 +1,94 @@
+"""Resolution order definitions for autopypath."""
+
+from enum import Enum
+from types import MappingProxyType
+from ._typing import Literal, TypeAlias, Final, TypeGuard
+
+
+__all__ = ['PathResolution']
+
+
+class PathResolution(str, Enum):
+    """Defines the order in which :func:`sys.path` sources are resolved.
+
+    - MANUAL: Paths provided directly to the configuration function.
+    - PYPROJECT: Paths specified in `pyproject.toml` in the repository root.
+    - DOTENV: Paths specified in a `.env` file in the repository root.
+
+    Example
+    -------
+    .. code-block:: python
+        from autopypath.path_resolution import PathResolution
+
+        order = PathResolution.ENV
+    """
+
+    MANUAL = 'manual'
+    PYPROJECT = 'pyproject'
+    DOTENV = 'dotenv'
+
+
+PathResolutionLiteral: TypeAlias = Literal['env', 'manual', 'pyproject', 'dotenv']
+"""Literal type for PathResolution values."""
+
+
+PATH_RESOLUTION_MAP: Final[MappingProxyType[PathResolutionLiteral, PathResolution]] = MappingProxyType(
+    {order.value: order for order in PathResolution}
+)
+"""Mapping from literal strings to PathResolution enum members.
+
+Example
+-------
+
+.. code-block:: python
+
+    from autopypath.path_resolution import RESOLUTION_ORDER_MAP, PathResolution
+
+    order = RESOLUTION_ORDER_MAP['env']
+    assert order == PathResolution.ENV
+"""
+
+
+def is_path_resolution_literal(value: str) -> TypeGuard[PathResolutionLiteral]:
+    """Checks if the given string is a valid PathResolution literal.
+
+    Example
+    -------
+
+    .. code-block:: python
+        from autopypath.path_resolution import is_path_resolution_literal
+
+        assert is_path_resolution_literal('env') is True
+        assert is_path_resolution_literal('manual') is True
+        assert is_path_resolution_literal('pyproject') is True
+        assert is_path_resolution_literal('dotenv') is True
+        assert is_path_resolution_literal('invalid') is False
+
+    :param str value: The string to check.
+    :return bool: ``True`` if the string is a valid ``PathResolution`` literal, ``False`` otherwise.
+    """
+    return value in PATH_RESOLUTION_MAP
+
+
+def resolve_path_resolution_literal(value: str) -> PathResolution | None:
+    """Resolves a string literal to its corresponding PathResolution enum member
+    or returns ``None`` if the literal is invalid.
+
+    Example
+    -------
+
+    .. code-block:: python
+        from autopypath.path_resolution import resolve_literal, PathResolution
+
+        assert resolve_path_resolution_literal('env') == PathResolution.ENV
+        assert resolve_path_resolution_literal('manual') == PathResolution.MANUAL
+        assert resolve_path_resolution_literal('pyproject') == PathResolution.PYPROJECT
+        assert resolve_path_resolution_literal('dotenv') == PathResolution.DOTENV
+        assert resolve_path_resolution_literal('invalid') is None
+    :param str value: The string literal to resolve.
+    :return PathResolution | None: The corresponding PathResolution enum member,
+                                    or ``None`` if the literal is invalid.
+    """
+    if is_path_resolution_literal(value):
+        return PATH_RESOLUTION_MAP.get(value)
+    return None
