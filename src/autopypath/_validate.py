@@ -131,7 +131,8 @@ def path_resolution_order(value: Any) -> Union[tuple[PathResolution, ...], None]
     """Validates a sequence of PathResolution values.
 
     :param Any value: A sequence of PathResolution values or strings matching PathResolution values.
-    :return tuple[PathResolution, ...] | None: A validated sequence of PathResolution values or None if the input is None.
+    :return tuple[PathResolution, ...] | None: A validated sequence of PathResolution values or None
+        if the input is None.
     :raises TypeError: If the input is not a sequence or contains non-PathResolution items
     :raises ValueError: If there are duplicate PathResolution values
     """

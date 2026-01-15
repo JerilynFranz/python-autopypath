@@ -216,7 +216,8 @@ reportUnnecessaryIsInstance = false
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-norecursedirs = ".git .tox .vscode venv* .*_cache build dist"
+pythonpath = ["src", "tests"]
+norecursedirs = ".git .tox .vscode venv* .*_cache build dist .venv*"
 
 [tool.coverage.run]
 branch = true
@@ -363,14 +364,14 @@ paths = ['src', 'tests']
 
 # Strategy for handling multiple PYTHONPATH sources.
 # Options:
-#   override: use only the highest priority found source, all others are ignored.
+#   merge_highest_priority: use only the highest priority found source, all others are ignored.
 #   merge:    combine all found sources, with priority based on path_resolution_order.
 #   replace:  replace sys.path entirely with the priority merged PYTHONPATH sources.
 #             This has the effect of removing all existing sys.path entries and
 #             may break standard library and installed package imports.
 # Default is 'merge' if not specified. Additional paths are prepended
 # to the existing sys.path. Duplicate paths are removed, preserving existing order.
-load_strategy = 'merge' # options: 'merge', 'override', 'replace'
+load_strategy = 'merge' # options: 'merge', 'merge_highest_priority', 'replace'
 
 # Order to load PYTHONPATH sources, highest priority first.
 # Only resolution sources listed here will be considered.
@@ -379,12 +380,10 @@ load_strategy = 'merge' # options: 'merge', 'override', 'replace'
 #   manual: paths specified directly in a call to autopypath.custom.configure_pypath() or
 #           autopypath.custom_debug.configure_pypath()
 #
-#   pyproject: paths specified in this pyproject.toml file
+#   pyproject: paths specified in this pyproject.toml file in the [tool.autopypath] section.
 #
 #   dotenv: paths specified in a PYTHONPATH variable in an .env file in the repo root.
+##
+# Default order if not specified is: ['manual', 'pyproject', 'dotenv']
 #
-#   env: paths specified in the PYTHONPATH environment variable
-#
-# Default order if not specified is: ['manual', 'pyproject', 'dotenv', 'env']
-#
-path_resolution_order = ['manual', 'pyproject', 'dotenv', 'env'] # order to load PYTHONPATH sources, highest priority first
+path_resolution_order = ['manual', 'pyproject', 'dotenv'] # order to load PYTHONPATH sources, highest priority first

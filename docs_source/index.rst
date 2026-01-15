@@ -24,7 +24,7 @@ without requiring the entire test suite to be executed even
 if the project is not fully built or installed.
 
 Even if your test script is located deep in a subdirectory, you can still use autopypath
-to ensure that the necessary paths are added to :var:`sys.path`.
+to ensure that the necessary paths are added to :var:`sys.path` without any manual intervention.
 
 Here is an example test script named `my_test_script.py`:
 
@@ -40,7 +40,7 @@ Here is an example test script named `my_test_script.py`:
    ...
 
    if __name__ == '__main__':
-       pytest()
+       pytest.main([__file__])
 
 It can then be run directly *without having to install the package first
 or manually munge :var:`sys.path`, or `PYTHONPATH` to make it work*.
