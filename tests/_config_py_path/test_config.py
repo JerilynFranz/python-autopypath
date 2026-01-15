@@ -9,7 +9,7 @@ from typing import Union, NamedTuple, Iterator
 
 import pytest
 
-from testspec import TestSpec, PytestAction
+from testspec import TestSpec, PytestAction, Assert
 
 from autopypath._config_py_path._config import Config
 from autopypath.load_strategy import LoadStrategy
@@ -118,6 +118,11 @@ class ConfigParameters(NamedTuple):
             name='Create Config with repo_marker key containing null character',
             action=Config, kwargs={'repo_markers': {'setup\0.py': MarkerType.FILE}},
             exception=ValueError),
+        PytestAction('MARKER_021',
+            name='Validate repo_marker attr returns MappingProxyType',
+            action=Config, kwargs={'repo_markers': {'setup.py': MarkerType.FILE}},
+            validate_attr='repo_markers', expected=MappingProxyType,
+            assertion=Assert.ISINSTANCE),
     ]
 )
 def test_repo_markers(testspec: TestSpec) -> None:
@@ -209,6 +214,11 @@ def test_repo_markers(testspec: TestSpec) -> None:
         name='Create config with paths being neither sequence nor None',
         action=Config, kwargs={'paths': 123},
         exception=TypeError),
+    PytestAction('PATHS_022',
+        name='Validate paths attr returns tuple of Path objects',
+        action=Config, kwargs={'paths': ['src', 'lib']},
+        validate_attr='paths', expected=tuple,
+        assertion=Assert.ISINSTANCE),
 ])
 def test_paths(testspec: TestSpec) -> None:
     """Test Config with paths"""
@@ -525,8 +535,5 @@ def test_str() -> None:
         ")"
     )
     assert str(config) == expected_str, "STR_001 Config __str__ output mismatch."
-
-
-
 
 # fmt: on
