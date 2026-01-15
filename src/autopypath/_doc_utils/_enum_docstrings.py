@@ -28,7 +28,7 @@ def enum_docstrings(enum: type[E]) -> type[E]:
     This code is adapted from:
     https://stackoverflow.com/questions/19330460/how-do-i-put-docstrings-on-enums
 
-    .. code-block:: python3
+    .. code-block:: python
       :caption: Example usage of enum_docstrings decorator
       :linenos:
 
@@ -47,8 +47,7 @@ def enum_docstrings(enum: type[E]) -> type[E]:
     """
     try:
         mod = ast.parse(inspect.getsource(enum))
-    except OSError:
-        # no source code available
+    except OSError:  # pragma: no cover  # Fallback case where source code is not available
         return enum
 
     if mod.body and isinstance(class_def := mod.body[0], ast.ClassDef):

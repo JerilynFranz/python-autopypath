@@ -119,20 +119,38 @@ class Config:
         :return str: A string representation of the Config instance.
         """
         cls = self.__class__.__name__
-        return (
-            f'{cls}(repo_markers={self._repo_markers}, '
-            f'paths={self.paths}, load_strategy={self.load_strategy}, '
-            f'path_resolution_order={self.path_resolution_order})'
-        )
 
-    def __str__(self) -> str:
-        """String representation of the Config instance."""
+        paths_list: list[str] = []
+        if self.paths is not None:
+            for path in self.paths:
+                paths_list.append(f'{str(path)!r}')
+            path_repr = '[' + ', '.join(paths_list) + ']'
+        else:
+            path_repr = 'None'
+
+        markers_list: list[str] = []
+        if self.repo_markers is not None:
+            for key, value in self.repo_markers.items():
+                marker_str = f'MarkerType.{value.name}'
+                markers_list.append(f'{key!r}: {marker_str}')
+            markers_repr = '{' + ', '.join(markers_list) + '}'
+        else:
+            markers_repr = 'None'
+
+        path_resolution_list: list[str] = []
+        if self.path_resolution_order is not None:
+            for order in self.path_resolution_order:
+                path_resolution_list.append(f'PathResolution.{order.name}')
+            path_resolution_repr = '[' + ', '.join(path_resolution_list) + ']'
+        else:
+            path_resolution_repr = 'None'
+
+        load_strategy_repr = f'LoadStrategy.{self.load_strategy.name}' if self.load_strategy is not None else 'None'
+
         return (
-            f'{self.__class__.__name__}:\n'
-            f'  repo_markers={self.repo_markers!r}\n'
-            f'  paths={self.paths!r}\n'
-            f'  load_strategy={self.load_strategy!r}\n'
-            f'  path_resolution_order={self.path_resolution_order!r}'
+            f'{cls}(repo_markers={markers_repr}, '
+            f'paths={path_repr}, load_strategy={load_strategy_repr}, '
+            f'path_resolution_order={path_resolution_repr})'
         )
 
     def __eq__(self, other: object) -> bool:

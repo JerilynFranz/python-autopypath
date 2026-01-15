@@ -8,7 +8,6 @@ from typing import Any, Callable, NoReturn, Optional
 
 from .base import TestSpec
 from .constants import NO_OBJ_ASSIGNED
-from .deferred import Deferred, _resolve_deferred_value
 from .helpers import _process_exception
 
 
@@ -69,7 +68,7 @@ class TestSet(TestSpec):
     """Expected exception type (if any) to be raised by setting the attribute."""
     exception_tag: Optional[str | Enum] = None
     """Expected tag (if any) to be found in an exception message raised by setting the attribute."""
-    validate: Optional[Callable[[TestSet, Any], None | NoReturn] | Deferred] = None
+    validate: Optional[Callable[[TestSet, Any], None | NoReturn]] = None
     """Function to validate obj state after setting the attribute. It should raise an exception
     if the object state is unexpected.
 
@@ -136,7 +135,7 @@ class TestSet(TestSpec):
         # Errors found during the test
         errors: list[str] = []
 
-        obj = _resolve_deferred_value(self.obj)
+        obj = self.obj
         if obj is NO_OBJ_ASSIGNED:
             if self.on_fail:
                 self.on_fail(f"{self.name}: obj for test is not assigned")
@@ -145,7 +144,7 @@ class TestSet(TestSpec):
             raise RuntimeError("unreachable code after on_fail call")  # pylint: disable=raise-missing-from
 
         # Set the attribute and check for exceptions as appropriate
-        validate = _resolve_deferred_value(self.validate)
+        validate = self.validate
         if validate is not None and not callable(validate):
             raise TypeError("validate must be callable if provided")
         try:

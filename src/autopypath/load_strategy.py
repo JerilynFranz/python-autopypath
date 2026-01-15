@@ -21,7 +21,8 @@ class LoadStrategy(str, Enum):
             3. `.env` file in repository root
             4. Shell environment (`:func:`sys.path`` environment variable, lowest priority)
 
-    - OVERRIDE: Use only the paths from the highest priority source.
+    - MERGE_HIGHEST_PRIORITY: Use only the paths from the highest priority source.
+
     - REPLACE: Replace `sys.path` entirely with the merged :func:`sys.path` sources.
                This may break standard library and installed package imports.
 

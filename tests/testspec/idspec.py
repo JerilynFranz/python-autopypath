@@ -37,3 +37,4 @@ def idspec(id_base: str, testspec: TestSpec | tuple[Context, TestSpec]) -> Any:
     if not isinstance(id_base, str):
         raise TypeError("id_base must be a str")
     return pytest.param(testspec, id=f"{id_base} {testspec.name}")  # type: ignore[attr-defined]
+

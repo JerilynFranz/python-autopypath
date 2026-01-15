@@ -9,7 +9,6 @@ from typing import Any, Callable, NoReturn, Optional
 from .assertions import Assert, validate_assertion
 from .base import TestSpec
 from .constants import NO_EXPECTED_VALUE, NO_OBJ_ASSIGNED
-from .deferred import _resolve_deferred_value
 from .helpers import _process_exception
 
 
@@ -141,9 +140,9 @@ class TestGet(TestSpec):
         # Errors found during the test
         errors: list[str] = []
 
-        obj = _resolve_deferred_value(self.obj)
-        expected = _resolve_deferred_value(self.expected)
-        validate = _resolve_deferred_value(self.validate)
+        obj = self.obj
+        expected = self.expected
+        validate = self.validate
         if obj is NO_OBJ_ASSIGNED:
             if self.on_fail:
                 self.on_fail(f"{self.name}: obj for test is not assigned")
