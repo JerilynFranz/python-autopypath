@@ -11,13 +11,24 @@ from ..marker_type import MarkerType
 from ..path_resolution import PathResolution
 from ..load_strategy import LoadStrategy
 from ._config import DefaultConfig, ManualConfig, PyProjectConfig, DotEnvConfig
-from ._conf_source import ConfSource
 
 __all__ = []
 
 
 class ConfigPyPath:
     """Configures :var:`sys.path` based on manual settings, pyproject.toml, and .env files."""
+
+    __slots__ = (
+        '_context_file',
+        '_repo_root_path',
+        '_manual',
+        '_pyproject',
+        '_dotenv',
+        '_default',
+        '_path_resolution_order',
+        '_load_strategy',
+        '_paths',
+    )
 
     def __init__(
         self,
@@ -110,18 +121,38 @@ class ConfigPyPath:
         self._load_strategy: LoadStrategy = self._determine_load_strategy()
         """The strategy for handling multiple :var:`sys.path` sources."""
 
-        self._paths: tuple[Path, ...] = self._determine_paths()
-        """The final resolved paths to be added to :var:`sys.path`."""
+        self._paths: tuple[Path, ...] = self._process_paths()
+        """The final resolved paths that will be added to :var:`sys.path`."""
 
-    def _determine_paths(self) -> tuple[Path, ...]:
-        """Determines the final resolved paths to be added to :var:`sys.path`.
+        self._apply_paths(self._paths)
+
+        log.debug('paths added to sys.path: %s', self._paths)
+
+    def _apply_paths(self, paths: Sequence[Path]) -> None:
+        """Applies the resolved paths to :var:`sys.path`.
+
+        Based on the load strategy, it updates :var:`sys.path` accordingly.
+        """
+        match self._load_strategy:
+            case LoadStrategy.REPLACE:
+                sys.path = [str(p) for p in paths]
+                log.debug('sys.path replaced with: %s', sys.path)
+            case LoadStrategy.MERGE_HIGHEST_PRIORITY:
+                sys.path = [str(p) for p in paths] + sys.path
+                log.debug('sys.path updated with highest priority paths: %s', sys.path)
+            case LoadStrategy.MERGE:
+                sys.path = [str(p) for p in paths] + sys.path
+                log.debug('sys.path updated with merged paths: %s', sys.path)
+
+    def _process_paths(self) -> tuple[Path, ...]:
+        """Determines the final resolved paths and adds them to :var:`sys.path`.
 
         It follows the configured path resolution order and load strategy to
         combine paths from manual settings, pyproject.toml, and .env files.
 
         Paths that are already in :var:`sys.path` are not duplicated.
 
-        :return tuple[Path, ...]: The final resolved paths to be added to :var:`sys.path`.
+        :return tuple[Path, ...]: The final paths that were added to :var:`sys.path`.
         """
 
         existing_paths = sys.path
@@ -135,6 +166,8 @@ class ConfigPyPath:
                 log.warning('Could not resolve existing sys.path entry: %s', p)
 
         raw_paths: list[Path] = []
+
+        # collect paths based on resolution order and load strategy
         for source in self._path_resolution_order:
             match source:
                 case PathResolution.MANUAL:
@@ -158,8 +191,8 @@ class ConfigPyPath:
                     raw_paths.extend(source_paths)
                     log.debug('Load strategy REPLACE: Appending paths %s from %s', source_paths, source)
                     break
-                case LoadStrategy.USE_HIGHEST_PRIORITY:
-                    log.debug('Load strategy USE_HIGHEST_PRIORITY: Using paths %s from %s', source_paths, source)
+                case LoadStrategy.MERGE_HIGHEST_PRIORITY:
+                    log.debug('Load strategy MERGE_HIGHEST_PRIORITY: Using paths %s from %s', source_paths, source)
                     raw_paths = list(source_paths)
                     break
                 case LoadStrategy.MERGE:
@@ -168,25 +201,6 @@ class ConfigPyPath:
                 case _:  # pragma: no cover  # should never happen due to earlier validation
                     raise ValueError(f'Unknown load strategy: {self._load_strategy}')
 
-            # Remove duplicates while preserving order
-            unique_paths: list[Path] = []
-            for path in raw_paths:
-                resolved_path = path.resolve()
-                if resolved_path not in known_paths:
-                    unique_paths.append(resolved_path)
-                    known_paths.add(resolved_path)
-
-            match self._load_strategy:
-                case LoadStrategy.REPLACE:
-                    sys.path = [str(p) for p in unique_paths]
-                    log.debug('sys.path replaced with: %s', sys.path)
-                case LoadStrategy.USE_HIGHEST_PRIORITY:
-                    sys.path = [str(p) for p in unique_paths] + sys.path
-                    log.debug('sys.path updated with highest priority paths: %s', sys.path)
-                case LoadStrategy.MERGE:
-                    sys.path = [str(p) for p in unique_paths] + sys.path
-                    log.debug('sys.path updated with merged paths: %s', sys.path)
-
         # Process default paths if no paths have been set yet
         if not raw_paths:
             default_paths = self._default.paths
@@ -194,7 +208,29 @@ class ConfigPyPath:
             for path in default_paths:
                 raw_paths.append(path)
 
-        return tuple(raw_paths)
+        # Remove duplicates while preserving order
+        unique_paths: list[Path] = []
+        resolved_paths_list: list[Path] = []
+        for path in raw_paths:
+            resolved_path = path.resolve()
+            if resolved_path not in known_paths:
+                resolved_paths_list.append(resolved_path)
+                unique_paths.append(resolved_path)
+                known_paths.add(resolved_path)
+
+        # Update sys.path based on load strategy
+        match self._load_strategy:
+            case LoadStrategy.REPLACE:
+                sys.path = [str(p) for p in unique_paths]
+                log.debug('sys.path replaced with: %s', sys.path)
+            case LoadStrategy.MERGE_HIGHEST_PRIORITY:
+                sys.path = [str(p) for p in unique_paths] + sys.path
+                log.debug('sys.path updated with highest priority paths: %s', sys.path)
+            case LoadStrategy.MERGE:
+                sys.path = [str(p) for p in unique_paths] + sys.path
+                log.debug('sys.path updated with merged paths: %s', sys.path)
+
+        return tuple(resolved_paths_list)
 
     def _determine_load_strategy(self) -> LoadStrategy:
         """Determines the load strategy for handling multiple :var:`sys.path` sources.
@@ -266,3 +302,48 @@ class ConfigPyPath:
                 break
             current_path = current_path.parent
         raise RuntimeError('Repository root could not be found.')
+
+    @property
+    def load_strategy(self) -> LoadStrategy:
+        """The strategy for handling multiple :var:`sys.path` sources."""
+        return self._load_strategy
+
+    @property
+    def paths(self) -> tuple[Path, ...]:
+        """The final resolved paths that were added to :var:`sys.path`."""
+        return self._paths
+
+    @property
+    def path_resolution_order(self) -> tuple[PathResolution, ...]:
+        """The order in which to resolve :var:`sys.path` sources."""
+        return self._path_resolution_order
+
+    @property
+    def repo_root_path(self) -> Path:
+        """The repository root path based on the configured repo markers."""
+        return self._repo_root_path
+
+    @property
+    def context_file(self) -> Path:
+        """The file path of the script that is configuring the Python path."""
+        return self._context_file
+
+    @property
+    def manual_config(self) -> ManualConfig:
+        """Manual configuration provided directly to the function."""
+        return self._manual
+
+    @property
+    def pyproject_config(self) -> PyProjectConfig:
+        """Configuration loaded from pyproject.toml."""
+        return self._pyproject
+
+    @property
+    def dotenv_config(self) -> DotEnvConfig:
+        """Configuration loaded from .env file."""
+        return self._dotenv
+
+    @property
+    def default_config(self) -> DefaultConfig:
+        """Default autopypath configuration."""
+        return self._default

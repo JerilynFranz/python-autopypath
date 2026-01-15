@@ -26,7 +26,8 @@ Installation
 ============
 
 You can install the package via pip:
-.. code-block:: bash
+
+.. code-block:: shell
 
     pip install autopypath
 

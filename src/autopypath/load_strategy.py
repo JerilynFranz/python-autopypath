@@ -34,14 +34,14 @@ class LoadStrategy(str, Enum):
     """
 
     MERGE = 'merge'
-    """Use paths from all sources, combining them in priority order."""
-    USE_HIGHEST_PRIORITY = 'override'
+    """Use paths from all sources, merging them in priority order."""
+    MERGE_HIGHEST_PRIORITY = 'merge_highest_priority'
     """Use paths from the highest priority source only."""
     REPLACE = 'replace'
     """Replace sys.path entirely with the merged paths from all sources."""
 
 
-LoadStrategyLiteral: TypeAlias = Literal['merge', 'override', 'replace']
+LoadStrategyLiteral: TypeAlias = Literal['merge', 'merge_highest_priority', 'replace']
 """Literal type for LoadStrategy values."""
 
 
