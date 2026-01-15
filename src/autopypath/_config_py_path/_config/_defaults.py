@@ -43,6 +43,8 @@ class DefaultConfig(Config):
 
         # Override types for slots because they are guaranteed to be non-None/non-empty
         # from the DefaultConfig module because we double check them above.
+        # This let us avoid mypy errors about possible None values when accessing the
+        # the default properties.
         self._load_strategy: LoadStrategy  # type: ignore
         self._paths: tuple[Path, ...]  # type: ignore
         self._repo_markers: MappingProxyType[str, MarkerType]  # type: ignore
