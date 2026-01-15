@@ -496,8 +496,12 @@ def test_hash() -> None:
         f" Expected at least {lower_limit_of_comparisons}.")
 
 
-def test_repr_str() -> None:
-    """Test Config __repr__ and __str__ methods."""
+def test_repr() -> None:
+    """Test Config __repr__ method."""
+    # Note - use of eval on the repr output to reconstitute the Config instance
+    # and compare to the original. This is safe in this controlled test context
+    # where we know the input values and expected output. In general, eval
+    # should be avoided due to security risks. IOW: This is a test-only use of eval.
     config = Config(
         repo_markers={'.git': MarkerType.DIR},
         paths=['src', 'lib'],
@@ -505,35 +509,41 @@ def test_repr_str() -> None:
         path_resolution_order=[PathResolution.MANUAL, PathResolution.PYPROJECT]
     )
 
-    expected_repr = (
-        "Config("
-        "repo_markers={'.git': MarkerType.DIR}, "
-        "paths=['src', 'lib'], "
-        "load_strategy=LoadStrategy.MERGE, "
-        "path_resolution_order=[PathResolution.MANUAL, PathResolution.PYPROJECT]"
-        ")"
+    reconstituted_config = eval(repr(config))
+    assert reconstituted_config == config, (
+        "REPR_001 Reconstituted Config from __repr__ does not match original. "
+        f'Original: {config!r}, Reconstituted: {reconstituted_config!r}'
     )
-    repr_output = repr(config)
-    assert repr_output == expected_repr, (
-        "REPR_001 Config __repr__ output mismatch. "
-        f"Expected: {expected_repr}, Got: {repr_output}"
+
+    config = Config()
+    reconstituted_config = eval(repr(config))
+    assert reconstituted_config == config, (
+        "REPR_002 Reconstituted default Config from __repr__ does not match original. "
+        f'Original: {config!r}, Reconstituted: {reconstituted_config!r}'
     )
+
+    config = Config(
+        repo_markers=None,
+        paths=None,
+        load_strategy=None,
+        path_resolution_order=None
+    )
+    reconstituted_config = eval(repr(config))
+    assert reconstituted_config == config, (
+        "REPR_003 Reconstituted all-None Config from __repr__ does not match original. "
+        f'Original: {config!r}, Reconstituted: {reconstituted_config!r}'
+    )
+
 
 def test_str() -> None:
+    """Test Config __str__ method."""
     config = Config(
         repo_markers={'.git': MarkerType.DIR},
         paths=['src', 'lib'],
         load_strategy=LoadStrategy.MERGE,
         path_resolution_order=[PathResolution.MANUAL, PathResolution.PYPROJECT]
     )
-    expected_str = (
-        "Config("
-        "repo_markers={'.git': MarkerType.DIR}, "
-        "paths=['src', 'lib'], "
-        "load_strategy=LoadStrategy.MERGE, "
-        "path_resolution_order=[PathResolution.MANUAL, PathResolution.PYPROJECT]"
-        ")"
-    )
+    expected_str = repr(config)
     assert str(config) == expected_str, "STR_001 Config __str__ output mismatch."
 
 # fmt: on
