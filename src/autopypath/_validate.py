@@ -8,6 +8,7 @@ is invalid.
 They return the validated and possibly transformed value if valid."""
 
 from collections.abc import Mapping, Sequence
+import os
 from pathlib import Path
 from posixpath import sep as posix_sep
 from ntpath import sep as nt_sep
@@ -214,7 +215,13 @@ def validate_path_or_str(path: Union[Path, str]) -> Path:
     if item_str.replace('/', '') == '':
         raise ValueError('Invalid path item: path cannot be only forward slashes')
     validated_path = Path(item_str) if isinstance(path, str) else path
-    for segment in validated_path.parts:
+    for offset, segment in enumerate(validated_path.parts):
+        if offset == 0 and segment.endswith(':') and os.name == 'nt':
+            # Skip drive letter on Windows
+            continue  # pragma: no cover  # Covered in Windows tests
+        if offset == 0 and segment == os.sep and os.name == 'posix':
+            # Skip root '/' on POSIX
+            continue  # pragma: no cover  # Covered in POSIX tests
         validate_file_or_dir_name(segment)
     return validated_path
 
@@ -237,26 +244,36 @@ def validate_file_or_dir_name(name: str) -> None:
 
     """
     if name.strip() == '':
-        raise ValueError('Invalid file/dir name: cannot be empty or whitespace')
+        raise ValueError(f'Invalid file/dir name: cannot be empty or whitespace: {name!r}')
     if name.lstrip() != name:
-        raise ValueError('Invalid file/dir name: cannot have leading whitespace ')
+        raise ValueError(f'Invalid file/dir name: cannot have leading whitespace: {name!r}')
     if name.rstrip() != name:
-        raise ValueError('Invalid file/dir name: cannot have trailing whitespace')
+        raise ValueError(f'Invalid file/dir name: cannot have trailing whitespace: {name!r}')
     if posix_sep in name or nt_sep in name or path_sep in name:
-        raise ValueError('Invalid file/dir name: cannot contain path separators')
+        raise ValueError(f'Invalid file/dir name: cannot contain path separators: {name!r}')
     if has_forbidden_chars(name) or is_windows_reserved(name):
-        raise ValueError(f'Invalid file/dir name: {name} is not allowed')
+        raise ValueError(f'Invalid file/dir name: {name!r} is not allowed')
     if len(name) > _MAX_FILE_DIR_NAME_LENGTH:
-        message = f'Invalid file/dir name: {name} exceeds maximum length of {_MAX_FILE_DIR_NAME_LENGTH} characters'
+        message = f'Invalid file/dir name: {name!r} exceeds maximum length of {_MAX_FILE_DIR_NAME_LENGTH} characters'
         raise ValueError(message)
 
 
 def has_forbidden_chars(name: str) -> bool:
+    """Check if a given name contains forbidden characters for file or directory names.
+
+    :param str name: The file or directory name to check.
+    :return bool: True if the name contains forbidden characters, False otherwise.
+    """
     forbidden = set('<>:"/\\|?*\0')  # Common forbidden characters on Windows and POSIX
     return any(c in name for c in forbidden)
 
 
 def is_windows_reserved(name: str) -> bool:
+    """Check if a given name is a reserved name on Windows.
+
+    :param str name: The file or directory name to check.
+    :return bool: True if the name is a reserved name on Windows, False otherwise.
+    """
     reserved = {
         'CON',
         'PRN',

@@ -17,6 +17,78 @@ from autopypath import _validate
 
 @pytest.mark.parametrize(
     'testspec', [
+        PytestAction('CONTEXT_001',
+            name='valid context file',
+            action=_validate.context_file, args=[__file__],
+            expected=Path(__file__).resolve()),
+        PytestAction('CONTEXT_002',
+            name='non-existent context file',
+            action=_validate.context_file, args=['non_existent_file.cfg'],
+            exception=ValueError),
+        PytestAction('CONTEXT_003',
+            name='context file as Path',
+            action=_validate.context_file, args=[Path(__file__)],
+            expected=Path(__file__).resolve()),
+        PytestAction('CONTEXT_004',
+            name='Context file is a directory',
+            action=_validate.context_file, args=[Path('.')],
+            exception=ValueError),
+    ])
+def test_context_file(testspec: TestSpec) -> None:
+    """Test Config with context_file."""
+    testspec.run()
+
+
+@pytest.mark.parametrize(
+    'testspec', [
+        PytestAction('ROOT_REPO_001',
+            name='invalid root_repo',
+            action=_validate.root_repo_path, args=['not-my-repo-does-not-exist'],
+            exception=ValueError),
+        PytestAction('ROOT_REPO_002',
+            name='valid root_repo',
+            action=_validate.root_repo_path, args=['.'],
+            expected=Path('.')),
+        PytestAction('ROOT_REPO_003',
+            name='None root_repo',
+            action=_validate.root_repo_path, args=[None],
+            exception=TypeError),
+        PytestAction('ROOT_REPO_004',
+            name='root_repo as Path',
+            action=_validate.root_repo_path, args=[Path('.')],
+            expected=Path('.')),
+        PytestAction('ROOT_REPO_005',
+            name='root_repo as empty string',
+            action=_validate.root_repo_path, args=[''],
+            exception=ValueError),
+        PytestAction('ROOT_REPO_006',
+            name='Non-existent root_repo with multi-level path',
+            action=_validate.root_repo_path, args=[Path('data','more')],
+            exception=ValueError),
+        PytestAction('ROOT_REPO_007',
+            name='root_repo two levels up from current directory',
+            action=_validate.root_repo_path, args=[Path('..','..')],
+            expected=Path('..','..')),
+        PytestAction('ROOT_REPO_008',
+            name='root_repo pointing to a file instead of a directory',
+            action=_validate.root_repo_path, args=[Path('data','not_a_directory')],
+            exception=ValueError),
+        PytestAction('ROOT_REPO_009',
+            name='root_repo pointing to test data directory',
+            action=_validate.root_repo_path, args=[Path(__file__).parent / Path('data')],
+            expected=(Path(__file__).parent / Path('data')).resolve()),
+        PytestAction('ROOT_REPO_010',
+            name='root_repo with path include null byte',
+            action=_validate.root_repo_path, args=[Path('data', 'invalid\0path')],
+            exception=ValueError),
+    ])
+def test_root_repo_path(testspec: TestSpec) -> None:
+    """Test Config with root_repo_path."""
+    testspec.run()
+
+
+@pytest.mark.parametrize(
+    'testspec', [
         PytestAction('MARKER_001',
             name='valid repo_markers',
             action=_validate.repo_markers,
