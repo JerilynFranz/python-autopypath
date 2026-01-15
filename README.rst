@@ -38,9 +38,9 @@ To use autopypath with pytest, simply import it at the beginning of your test sc
 `configure()` function. For example, at the top of your test script, add:
 
 .. code-block:: python
+
     import autopypath
 
-    autopypath.configure()
 
 and add the following at the bottom of the script:
 
