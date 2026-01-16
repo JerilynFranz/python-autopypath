@@ -129,7 +129,7 @@ This order applies prioritization in the following way:
 4. Paths from the shell environment's PYTHONPATH variable (lowest priority)
 """
 
-LOAD_STRATEGY: LoadStrategy = LoadStrategy.MERGE
+LOAD_STRATEGY: LoadStrategy = LoadStrategy.PREPEND
 """Default load strategy for :func:`sys.path` sources.
 
 This is used if there is no specific load strategy provided in pyproject.toml

@@ -148,10 +148,10 @@ class ConfigPyPath:
             case LoadStrategy.REPLACE:
                 sys.path = [str(p) for p in paths]
                 log.debug('sys.path replaced with: %s', sys.path)
-            case LoadStrategy.MERGE_HIGHEST_PRIORITY:
+            case LoadStrategy.PREPEND_HIGHEST_PRIORITY:
                 sys.path = [str(p) for p in paths] + sys.path
                 log.debug('sys.path updated with highest priority paths: %s', sys.path)
-            case LoadStrategy.MERGE:
+            case LoadStrategy.PREPEND:
                 sys.path = [str(p) for p in paths] + sys.path
                 log.debug('sys.path updated with merged paths: %s', sys.path)
 
@@ -202,11 +202,11 @@ class ConfigPyPath:
                     raw_paths.extend(source_paths)
                     log.debug('Load strategy REPLACE: Appending paths %s from %s', source_paths, source)
                     break
-                case LoadStrategy.MERGE_HIGHEST_PRIORITY:
+                case LoadStrategy.PREPEND_HIGHEST_PRIORITY:
                     log.debug('Load strategy MERGE_HIGHEST_PRIORITY: Using paths %s from %s', source_paths, source)
                     raw_paths = list(source_paths)
                     break
-                case LoadStrategy.MERGE:
+                case LoadStrategy.PREPEND:
                     log.debug('Load strategy MERGE: Appending paths %s from %s', source_paths, source)
                     raw_paths.extend(source_paths)
                 case _:  # pragma: no cover  # should never happen due to earlier validation

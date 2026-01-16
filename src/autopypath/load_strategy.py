@@ -13,36 +13,45 @@ __all__ = ['LoadStrategy']
 class LoadStrategy(str, Enum):
     """Defines the strategy for loading :func:`sys.path` from multiple sources.
 
-    - MERGE: Combine paths from all sources in priority order.
+    - PREPEND: Combine paths from all sources in priority order and prepend them to :func:`sys.path`.
 
         Default priority order is:
             1. `manual_paths` (highest priority)
+            2. `autopypath.toml`
             2. `pyproject.toml` in repository root
             3. `.env` file in repository root
-            4. Shell environment (`:func:`sys.path`` environment variable, lowest priority)
 
-    - MERGE_HIGHEST_PRIORITY: Use only the paths from the highest priority source.
+    - PREPEND_HIGHEST_PRIORITY: Use only the paths from the highest priority source
+        and prepend them to :func:`sys.path`.
 
     - REPLACE: Replace `sys.path` entirely with the merged :func:`sys.path` sources.
-               This may break standard library and installed package imports.
+        .. warning:: This may break standard library and installed package imports
+
+            Not recommended unless you understand the implications. This strategy
+            is generally discouraged: It can lead to missing standard library modules
+            and installed packages, causing runtime errors.
+
+            This is only suitable for very advanced use cases where you have
+            full control over the environment. In short, *'if you don't know exactly
+            why you need this, you probably shouldn't use it.'*
 
     Example
     -------
     .. code-block:: python
         from autopypath.load_strategy import LoadStrategy
 
-        strategy = LoadStrategy.MERGE
+        strategy = LoadStrategy.PREPEND
     """
 
-    MERGE = 'merge'
-    """Use paths from all sources, merging them in priority order."""
-    MERGE_HIGHEST_PRIORITY = 'merge_highest_priority'
+    PREPEND = 'prepend'
+    """Use paths from all sources, merging and prepending them in priority order."""
+    PREPEND_HIGHEST_PRIORITY = 'prepend_highest_priority'
     """Use paths from the highest priority source only."""
     REPLACE = 'replace'
     """Replace sys.path entirely with the merged paths from all sources."""
 
 
-LoadStrategyLiteral: TypeAlias = Literal['merge', 'merge_highest_priority', 'replace']
+LoadStrategyLiteral: TypeAlias = Literal['prepend', 'prepend_highest_priority', 'replace']
 """Literal type for LoadStrategy values."""
 
 
@@ -58,7 +67,7 @@ Example
 
     from autopypath.load_strategy import LOAD_STRATEGY_MAP, LoadStrategy
 
-    strategy = LOAD_STRATEGY_MAP['merge']
+    strategy = LOAD_STRATEGY_MAP['prepend']
     assert strategy == LoadStrategy.MERGE
 """
 
@@ -72,7 +81,7 @@ def is_load_strategy_literal(value: str) -> TypeGuard[LoadStrategyLiteral]:
     .. code-block:: python
         from autopypath.load_strategy import is_load_strategy_literal
 
-        assert is_load_strategy_literal('merge') is True
+        assert is_load_strategy_literal('prepend') is True
         assert is_load_strategy_literal('override') is True
         assert is_load_strategy_literal('replace') is True
         assert is_load_strategy_literal('invalid') is False
@@ -93,7 +102,7 @@ def resolve_load_strategy_literal(value: str) -> LoadStrategy | None:
     .. code-block:: python
         from autopypath.path_resolution_order import resolve_load_strategy_literal, LoadStrategy
 
-        assert resolve_load_strategy_literal('merge') == LoadStrategy.MERGE
+        assert resolve_load_strategy_literal('prepend') == LoadStrategy.MERGE
         assert resolve_load_strategy_literal('override') == LoadStrategy.OVERR IDE
         assert resolve_load_strategy_literal('replace') == LoadStrategy.REPLACE
         assert resolve_load_strategy_literal('invalid') is None

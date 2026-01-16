@@ -12,6 +12,7 @@ class PathResolution(str, Enum):
     """Defines the order in which :func:`sys.path` sources are resolved.
 
     - MANUAL: Paths provided directly to the configuration function.
+    - AUTOPYPATH: Paths specified in a `autopypath.toml` file.
     - PYPROJECT: Paths specified in `pyproject.toml` in the repository root.
     - DOTENV: Paths specified in a `.env` file in the repository root.
 
@@ -25,13 +26,15 @@ class PathResolution(str, Enum):
 
     MANUAL = 'manual'
     """Paths provided directly via the `paths` parameter to `configure_pypath()`."""
+    AUTOPYPATH = 'autopypath'
+    """Paths specified in a `autopypath.toml` file."""
     PYPROJECT = 'pyproject'
     """Paths specified in the [tool.autopypath] section of the `pyproject.toml` file in the repository root."""
     DOTENV = 'dotenv'
     """Paths specified in a `.env` file in the repository root."""
 
 
-PathResolutionLiteral: TypeAlias = Literal['env', 'manual', 'pyproject', 'dotenv']
+PathResolutionLiteral: TypeAlias = Literal['manual', 'autopypath', 'pyproject', 'dotenv']
 """Literal type for PathResolution values."""
 
 
@@ -61,8 +64,8 @@ def is_path_resolution_literal(value: str) -> TypeGuard[PathResolutionLiteral]:
     .. code-block:: python
         from autopypath.path_resolution import is_path_resolution_literal
 
-        assert is_path_resolution_literal('env') is True
         assert is_path_resolution_literal('manual') is True
+        assert is_path_resolution_literal('autopypath') is True
         assert is_path_resolution_literal('pyproject') is True
         assert is_path_resolution_literal('dotenv') is True
         assert is_path_resolution_literal('invalid') is False
@@ -83,11 +86,12 @@ def resolve_path_resolution_literal(value: str) -> PathResolution | None:
     .. code-block:: python
         from autopypath.path_resolution import resolve_literal, PathResolution
 
-        assert resolve_path_resolution_literal('env') == PathResolution.ENV
         assert resolve_path_resolution_literal('manual') == PathResolution.MANUAL
+        assert resolve_path_resolution_literal('autopypath') == PathResolution.AUTOPYPATH
         assert resolve_path_resolution_literal('pyproject') == PathResolution.PYPROJECT
         assert resolve_path_resolution_literal('dotenv') == PathResolution.DOTENV
         assert resolve_path_resolution_literal('invalid') is None
+
     :param str value: The string literal to resolve.
     :return PathResolution | None: The corresponding PathResolution enum member,
                                     or ``None`` if the literal is invalid.

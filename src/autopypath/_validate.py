@@ -188,6 +188,8 @@ def path_resolution_order(value: Any) -> Union[tuple[PathResolution, ...], None]
 def validate_path_or_str(path: Union[Path, str]) -> Path:
     """Validate a Path object or a string path.
 
+    It does not check for existence, only validity.
+
     - Cannot contain null bytes.
     - Cannot be empty or whitespace only.
     - Cannot have leading or trailing whitespace.

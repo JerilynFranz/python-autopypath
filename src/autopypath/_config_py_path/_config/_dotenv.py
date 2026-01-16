@@ -21,12 +21,19 @@ class DotEnvConfig(Config):
     def __init__(self, repo_root_path: 'Path') -> None:
         """Configuration for autopypath using dotenv files.
 
-        Because .env files do not natively support repository markers, load strategy,
+        If a ``.env`` file is not found in the provided repository root path,
+        the configuration will have all attributes set to ``None``.
+
+        If the ``.env`` file is found, it will parse the ``PYTHONPATH`` variable
+        if present, and set :property:`paths` accordingly.
+
+        Because ``.env`` files do not natively support repository markers, load strategy,
         or path resolution order, these values are set to ``None``. The only supported
         configuration from ``.env`` files is the list of paths specified in the ``PYTHONPATH``
         environment variable.
 
         :param Path repo_root_path: The root path of the repository containing a .env file.
+        :raises ValueError: If the provided repo_root_path is not a valid directory.
         """
         self._repo_root_path = _validate.root_repo_path(repo_root_path)
 
@@ -91,20 +98,15 @@ class DotEnvConfig(Config):
 
         :return str: A string representation of the DefaultConfig instance.
         """
-        return (
-            f'{self.__class__.__name__}(repo_root_path={self._repo_root_path!r})\n'
-            f'#  repo_markers={self.repo_markers}\n'
-            f'#  paths={self.paths}\n'
-            f'#  load_strategy={self.load_strategy}\n'
-            f'#  path_resolution_order={self.path_resolution_order}'
-        )
+        return f'{self.__class__.__name__}(repo_root_path={str(self._repo_root_path)!r})\n'
 
     def __str__(self) -> str:
         """String representation of the DotEnvConfig instance."""
+        paths_str = ', '.join(f'{str(p)!r}' for p in self.paths) if self.paths else 'None'
         return (
             f'{self.__class__.__name__}:\n'
             f'#  repo_markers={self.repo_markers!r}\n'
-            f'#  paths={self.paths!r}\n'
+            f'#  paths=[{paths_str}]\n'
             f'#  load_strategy={self.load_strategy!r}\n'
             f'#  path_resolution_order={self.path_resolution_order!r}'
         )

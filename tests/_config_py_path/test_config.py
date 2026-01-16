@@ -229,15 +229,15 @@ def test_paths(testspec: TestSpec) -> None:
     PytestAction('LOAD_001',
         name='Create Config with valid load_strategy',
         action=Config,
-        kwargs={'load_strategy': LoadStrategy.MERGE},
+        kwargs={'load_strategy': LoadStrategy.PREPEND},
         validate_attr='load_strategy',
-        expected=LoadStrategy.MERGE),
+        expected=LoadStrategy.PREPEND),
     PytestAction('LOAD_002',
         name='Create Config with load_strategy as string',
         action=Config,
-        kwargs={'load_strategy': 'merge'},
+        kwargs={'load_strategy': 'prepend'},
         validate_attr='load_strategy',
-        expected=LoadStrategy.MERGE),
+        expected=LoadStrategy.PREPEND),
     PytestAction('LOAD_003',
         name='Create Config with invalid load_strategy string',
         action=Config,
@@ -416,9 +416,9 @@ def generate_all_config_combinations() -> tuple[tuple[Config, ConfigParameters],
     )
 
     load_strategies: tuple[Union[LoadStrategy, str, None], ...] = (
-        LoadStrategy.MERGE,
+        LoadStrategy.PREPEND,
         LoadStrategy.REPLACE,
-        LoadStrategy.MERGE_HIGHEST_PRIORITY,
+        LoadStrategy.PREPEND_HIGHEST_PRIORITY,
         None,
     )
 
@@ -505,7 +505,7 @@ def test_repr() -> None:
     config = Config(
         repo_markers={'.git': MarkerType.DIR},
         paths=['src', 'lib'],
-        load_strategy=LoadStrategy.MERGE,
+        load_strategy=LoadStrategy.PREPEND,
         path_resolution_order=[PathResolution.MANUAL, PathResolution.PYPROJECT]
     )
 
@@ -540,7 +540,7 @@ def test_str() -> None:
     config = Config(
         repo_markers={'.git': MarkerType.DIR},
         paths=['src', 'lib'],
-        load_strategy=LoadStrategy.MERGE,
+        load_strategy=LoadStrategy.PREPEND,
         path_resolution_order=[PathResolution.MANUAL, PathResolution.PYPROJECT]
     )
     expected_str = repr(config)

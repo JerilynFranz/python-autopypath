@@ -372,9 +372,9 @@ paths = ['src', 'tests']
 #   replace:  replace sys.path entirely with the priority merged PYTHONPATH sources.
 #             This has the effect of removing all existing sys.path entries and
 #             may break standard library and installed package imports.
-# Default is 'merge' if not specified. Additional paths are prepended
+# Default is 'prepend' if not specified. Additional paths are prepended
 # to the existing sys.path. Duplicate paths are removed, preserving existing order.
-load_strategy = 'merge' # options: 'merge', 'merge_highest_priority', 'replace'
+load_strategy = 'prepend' # options: 'prepend', 'merge_highest_priority', 'replace'
 
 # Order to load PYTHONPATH sources, highest priority first.
 # Only resolution sources listed here will be considered.
