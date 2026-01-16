@@ -48,7 +48,7 @@ def toml_filename(value: Any) -> Path:
     return Path(value)
 
 
-_TOML_SECTION_RE: re.Pattern[str] = re.compile(r'^[A-Za-z0-9](?:[A-Za-z0-9_-.]*[A-Za-z0-9])?$')
+_TOML_SECTION_RE: re.Pattern[str] = re.compile(r'^[A-Za-z0-9](?:[A-Za-z0-9_.-]*[A-Za-z0-9])?$')
 """Regular expression for validating TOML section names.
 - Must start and end with an alphanumeric character.
 - Can contain alphanumeric characters, underscores, dashes,  and dots in between.

@@ -376,7 +376,7 @@ def test_path_resolution_order(testspec: TestSpec) -> None:
         kwargs={
             'repo_markers': {'.svn': MarkerType.DIR},
             'paths': ['another_src'],
-            'load_strategy': 'merge_highest_priority',
+            'load_strategy': 'prepend_highest_priority',
             'path_resolution_order': [PathResolution.PYPROJECT]
         },
         validate_attr='repo_markers',

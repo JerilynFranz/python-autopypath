@@ -44,6 +44,7 @@ class TomlConfig(Config):
         :param str toml_section: The section in the toml file to load (e.g., 'tool.autopypath').
         :raises TypeError: If any configuration value is of an invalid type (ex. string instead of table).
         :raises ValueError: If any configuration value is invalid.
+        :raises FileNotFoundError: If the toml file does not exist.
         """
         self._repo_root_path: Path = _validate.root_repo_path(repo_root_path)
         self._toml_filepath: Path = _validate.toml_filename(toml_filename)
@@ -52,8 +53,7 @@ class TomlConfig(Config):
         # toml data
         toml_data = self._toml_data()
         if not toml_data:
-            super().__init__(repo_markers=None, paths=None, load_strategy=None, path_resolution_order=None)
-            return
+            raise FileNotFoundError(f'TOML_000 No toml file found at {str(self._repo_root_path / self._toml_filepath)}')
 
         # [tool.autopypath]
         autopypath_config = self._toml_autopypath(toml_data)
@@ -181,7 +181,8 @@ class TomlConfig(Config):
                 target_path = self._repo_root_path / p
                 if not target_path.exists():
                     log.warning(
-                        f'Path specified in {self._toml_filepath} configuration does not exist: {target_path} - skipping.'
+                        f'Path specified in {self._toml_filepath} configuration '
+                        f'does not exist: {target_path} - skipping.'
                     )
                 else:
                     filtered_paths.append(target_path)
