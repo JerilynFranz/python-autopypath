@@ -343,3 +343,159 @@ repo_markers = {'.git'='dir', 'setup.py'='file'}
     assert config.repo_markers == {'.git': MarkerType.DIR, 'setup.py': MarkerType.FILE}, (
         f'TOML_034 Expected repo_markers to be correctly parsed, got: {config.repo_markers}'
     )
+
+
+def test_toml_filename_value(tmp_path: Path) -> None:
+    """Test that providing an invalid toml_filename raises ValueError."""
+    repo_root = tmp_path / 'my_repo'
+    repo_root.mkdir()
+    toml_filename = 'toml_file.toml '  # Exists, but invalid name due to trailing space
+    toml_path = repo_root / toml_filename
+    toml_path.write_text("""
+[tool.autopypath]
+paths = ['src', 'lib']
+""")
+
+    toml_section = 'tool.autopypath'
+    try:
+        TomlConfig(repo_root_path=repo_root, toml_filename=toml_filename, toml_section=toml_section)
+    except ValueError:
+        return
+    pytest.fail('TOML_035 Expected ValueError when toml_filename has invalid value')
+
+
+def test_toml_filename_type(tmp_path: Path) -> None:
+    """Test that providing a non-string toml_filename raises TypeError."""
+    toml_section = 'tool.autopypath'
+
+    # Create a temporary TOML file to satisfy the existence check
+    repo_root = tmp_path / 'my_repo'
+    repo_root.mkdir()
+    toml_filename = 'toml_file.toml'
+    toml_path = repo_root / toml_filename
+    toml_path.write_text("""
+[tool.autopypath]
+paths = ['src', 'lib']
+""")
+
+    bad_toml_filename = 123  # Invalid type
+
+    try:
+        TomlConfig(
+            repo_root_path=repo_root,
+            toml_filename=bad_toml_filename,  # type: ignore
+            toml_section=toml_section,
+        )
+    except TypeError:
+        return
+    pytest.fail('TOML_036 Expected TypeError when toml_filename has invalid type')
+
+
+def test_tome_filename_not_toml_suffix(tmp_path: Path) -> None:
+    """Test that providing a toml_filename without .toml suffix raises ValueError."""
+    repo_root = tmp_path / 'my_repo'
+    repo_root.mkdir()
+    toml_filename = 'config.txt'  # Invalid suffix
+    toml_path = repo_root / toml_filename
+    toml_path.write_text("""
+[tool.autopypath]
+paths = ['src', 'lib']
+""")
+    toml_section = 'tool.autopypath'
+
+    try:
+        TomlConfig(repo_root_path=repo_root, toml_filename=toml_filename, toml_section=toml_section)
+    except ValueError:
+        return
+    pytest.fail('TOML_037 Expected ValueError when toml_filename does not have .toml suffix')
+
+
+def test_toml_section_cannot_be_empty_string(tmp_path: Path) -> None:
+    """Test that providing an empty string for toml_section raises ValueError."""
+    repo_root = tmp_path / 'my_repo'
+    repo_root.mkdir()
+    toml_filename = 'toml_file.toml'
+    toml_path = repo_root / toml_filename
+    toml_path.write_text("""
+[tool.autopypath]
+paths = ['src', 'lib']
+""")
+    bad_toml_section = ''  # Invalid empty string for section name
+    try:
+        TomlConfig(repo_root_path=repo_root, toml_filename=toml_filename, toml_section=bad_toml_section)
+    except ValueError:
+        return
+    pytest.fail('TOML_038 Expected ValueError when toml_section is an empty string')
+
+
+def test_toml_section_type(tmp_path: Path) -> None:
+    """Test that providing a non-string toml_section raises TypeError."""
+    repo_root = tmp_path / 'my_repo'
+    repo_root.mkdir()
+    toml_filename = 'toml_file.toml'
+    toml_path = repo_root / toml_filename
+    toml_path.write_text("""
+[tool.autopypath]
+paths = ['src', 'lib']
+""")
+    bad_toml_section = 456  # Invalid type for section name
+    try:
+        TomlConfig(
+            repo_root_path=repo_root,
+            toml_filename=toml_filename,
+            toml_section=bad_toml_section,  # type: ignore
+        )
+    except TypeError:
+        return
+    pytest.fail('TOML_039 Expected TypeError when toml_section has invalid type')
+
+
+def test_toml_section_invalid_adjacent_dots(tmp_path: Path) -> None:
+    """Test that providing a toml_section with adjacent special chars raises ValueError."""
+    repo_root = tmp_path / 'my_repo'
+    repo_root.mkdir()
+    toml_filename = 'toml_file.toml'
+    toml_path = repo_root / toml_filename
+    toml_path.write_text("""
+[tool.autopypath]
+paths = ['src', 'lib']
+""")
+    bad_passed_sections: list[str] = []
+    for bad_toml_section in [
+        'tool..autopypath',
+        'tool.-autopypath',
+        'tool._autopypath',
+        'tool--autopypath',
+        'tool-.autopypath',
+        'tool-_autopypath',
+        'tool__autopypath',
+        'tool_.autopypath',
+        'tool_-autopypath',
+    ]:
+        try:
+            TomlConfig(repo_root_path=repo_root, toml_filename=toml_filename, toml_section=bad_toml_section)
+        except ValueError:
+            continue
+        bad_passed_sections.append(bad_toml_section)
+    if bad_passed_sections:
+        bad_items = f'{bad_passed_sections!r}'
+        pytest.fail(
+            f'TOML_040 Expected ValueError when toml_section is invalid: {bad_items} unexpectedly passed validation.'
+        )
+
+
+def test_toml_section_invalid_start_end_chars(tmp_path: Path) -> None:
+    """Test that providing a toml_section with invalid start/end chars raises ValueError."""
+    repo_root = tmp_path / 'my_repo'
+    repo_root.mkdir()
+    toml_filename = 'toml_file.toml'
+    toml_path = repo_root / toml_filename
+    toml_path.write_text("""[tool.autopypath]
+paths = ['src', 'lib']
+""")
+    try:
+        TomlConfig(repo_root_path=repo_root, toml_filename=toml_filename, toml_section='-tool.autopypath')
+    except ValueError:
+        return
+
+    pytest.fail('TOML_041 Expected ValueError when toml_section starts with invalid character')
