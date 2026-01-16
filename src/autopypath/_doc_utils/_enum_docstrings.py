@@ -1,8 +1,8 @@
-# -*- coding: utf-8 -*-
 """Decorators for enums."""
 
 import ast
 import inspect
+import textwrap
 from enum import Enum
 from functools import partial
 from operator import is_
@@ -45,9 +45,14 @@ def enum_docstrings(enum: type[E]) -> type[E]:
     :param enum: The enum class to process.
     :return: The same enum class with member docstrings attached.
     """
+    if not issubclass(enum, Enum):
+        raise TypeError('enum_docstrings can only be applied to Enum subclasses.')
+
     try:
-        mod = ast.parse(inspect.getsource(enum))
-    except OSError:  # pragma: no cover  # Fallback case where source code is not available
+        source = inspect.getsource(enum)
+        source = textwrap.dedent(source)
+        mod = ast.parse(source)
+    except OSError:  # Fallback case where source code is not available
         return enum
 
     if mod.body and isinstance(class_def := mod.body[0], ast.ClassDef):
