@@ -159,6 +159,16 @@ commands = [
     ["sphinx-build", "-b", "html", "docs_source/", "documentation/"],
 ]
 
+[tool.tox.env.coverage_html]
+description = "Run tests and generate HTML coverage report"
+base_python = ["python3.10", "python3.11", "python3.12", "python3.13", "python3.14"]
+dependency_groups = ["test", "tools"]
+commands = [
+    ["coverage", "run", "-m", "pytest", {replace = "posargs", extend = true}],
+    ["coverage", "html", "-d", "coverage_html_report"],
+    ["coverage", "report"],
+]
+
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"

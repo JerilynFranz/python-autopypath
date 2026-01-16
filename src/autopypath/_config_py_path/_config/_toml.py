@@ -149,10 +149,8 @@ class TomlConfig(Config):
                 if not isinstance(value, str):
                     toml_type = _TOML_TYPES.get(type(raw_repo_markers), 'unknown')
                     raise TypeError(f'Invalid repo_marker value for {key}: expected string, got {toml_type}: {value}')
-                try:
-                    collected_repo_markers[key] = MarkerType(value)
-                except ValueError as e:
-                    raise ValueError(f'Invalid repo_marker type value for {key}: {value}') from e
+                collected_repo_markers[key] = MarkerType(value)
+
         repo_markers = _validate.repo_markers(collected_repo_markers)
         return repo_markers
 
@@ -245,7 +243,9 @@ class TomlConfig(Config):
         :return str: A string representation of the TomlConfig instance.
         """
         return (
-            f'{self.__class__.__name__}(repo_root_path={self._repo_root_path!r})\n'
+            f'{self.__class__.__name__}(repo_root_path={str(self._repo_root_path)!r}, '
+            f'toml_filename={str(self._toml_filepath)!r}, '
+            f'toml_section={self._toml_section!r})\n'
             f'#  repo_markers={self.repo_markers!r}\n'
             f'#  paths={self.paths!r}\n'
             f'#  load_strategy={self.load_strategy!r}\n'
