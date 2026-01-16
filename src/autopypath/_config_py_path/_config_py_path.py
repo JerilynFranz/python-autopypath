@@ -28,6 +28,8 @@ class ConfigPyPath:
         '_path_resolution_order',
         '_load_strategy',
         '_paths',
+        '_original_sys_path',
+        '_updated_paths',
     )
 
     def __init__(
@@ -91,7 +93,13 @@ class ConfigPyPath:
             If ``None``, the default order from :var:`~autopypath.defaults.PATH_RESOLUTION_ORDER` is used.
 
             It can use either the enum values or their string representations.
+        :raises TypeError: If any of the inputs are of incorrect type.
+        :raises ValueError: If any of the inputs have invalid values.
+        :raises RuntimeError: If the repository root cannot be found.
         """
+        self._original_sys_path: list[str] = sys.path.copy()
+        """The original sys.path before any modifications."""
+
         self._context_file: Path = _validate.context_file(context_file)
         """The file path of the script that is configuring the Python path."""
 
@@ -125,6 +133,9 @@ class ConfigPyPath:
         """The final resolved paths that will be added to :var:`sys.path`."""
 
         self._apply_paths(self._paths)
+
+        self._updated_paths: tuple[str, ...] = tuple(sys.path)
+        """The updated sys.path after modifications."""
 
         log.debug('paths added to sys.path: %s', self._paths)
 
@@ -218,18 +229,6 @@ class ConfigPyPath:
                 unique_paths.append(resolved_path)
                 known_paths.add(resolved_path)
 
-        # Update sys.path based on load strategy
-        match self._load_strategy:
-            case LoadStrategy.REPLACE:
-                sys.path = [str(p) for p in unique_paths]
-                log.debug('sys.path replaced with: %s', sys.path)
-            case LoadStrategy.MERGE_HIGHEST_PRIORITY:
-                sys.path = [str(p) for p in unique_paths] + sys.path
-                log.debug('sys.path updated with highest priority paths: %s', sys.path)
-            case LoadStrategy.MERGE:
-                sys.path = [str(p) for p in unique_paths] + sys.path
-                log.debug('sys.path updated with merged paths: %s', sys.path)
-
         return tuple(resolved_paths_list)
 
     def _determine_load_strategy(self) -> LoadStrategy:
@@ -303,6 +302,11 @@ class ConfigPyPath:
             current_path = current_path.parent
         raise RuntimeError('Repository root could not be found.')
 
+    def restore_sys_path(self) -> None:
+        """Restores :var:`sys.path` to its original state before any modifications."""
+        sys.path = self._original_sys_path.copy()
+        log.debug('sys.path restored to original state: %s', sys.path)
+
     @property
     def load_strategy(self) -> LoadStrategy:
         """The strategy for handling multiple :var:`sys.path` sources."""
@@ -347,3 +351,13 @@ class ConfigPyPath:
     def default_config(self) -> DefaultConfig:
         """Default autopypath configuration."""
         return self._default
+
+    @property
+    def original_sys_path(self) -> tuple[str, ...]:
+        """The original sys.path before any modifications."""
+        return tuple(self._original_sys_path)
+
+    @property
+    def updated_sys_path(self) -> tuple[str, ...]:
+        """The updated sys.path after modifications."""
+        return self._updated_paths

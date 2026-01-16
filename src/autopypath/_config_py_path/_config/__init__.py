@@ -8,7 +8,7 @@
 # ruff: noqa F401
 
 from ._config import Config
-from ._defaults import DefaultConfig
+from ._default import DefaultConfig
 from ._dotenv import DotEnvConfig
 from ._manual import ManualConfig
 from ._pyproject import PyProjectConfig

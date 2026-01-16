@@ -25,22 +25,6 @@ class DefaultConfig(Config):
 
         log.debug('Initializing DefaultConfig with default values from autopypath.defaults')
 
-        path_resolution_order = defaults.PATH_RESOLUTION_ORDER
-        if not path_resolution_order:
-            raise ValueError('Default PATH_RESOLUTION_ORDER cannot be None or empty')
-
-        load_strategy = defaults.LOAD_STRATEGY
-        if not load_strategy:
-            raise ValueError('Default LOAD_STRATEGY cannot be None')
-
-        paths = defaults.PATHS
-        if not paths:
-            raise ValueError('Default PATHS cannot be None or empty')
-
-        repo_markers = defaults.REPO_MARKERS
-        if not repo_markers:
-            raise ValueError('Default REPO_MARKERS cannot be None or empty')
-
         # Override types for slots because they are guaranteed to be non-None/non-empty
         # from the DefaultConfig module because we double check them above.
         # This let us avoid mypy errors about possible None values when accessing the
