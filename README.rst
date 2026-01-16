@@ -2,30 +2,41 @@
 autopypath
 ==========
 
-A small library to automatically configure the Python path for a test script in a repo.
+A library to automatically configure the Python path for a test script in a repo.
 
 Overview
 ========
 
-When writing test scripts for Python projects, it's not uncommon to encounter problems preventing
-a testing framework such as pytest from running normally because of errors preventing it from completing
-imports due to broken code in unrelated modules. This can be especially problematic in monorepos or projects
-with complex directory structures.
+When writing test scripts for Python projects, it's common for a test runner like `pytest`
+to fail if it encounters broken code in unrelated modules during its import discovery phase.
+This can be especially problematic in monorepos or projects with complex directory structures.
+While workarounds like manually setting the `PYTHONPATH` environment variable or using IDE-specific
+features exist, they can be cumbersome and are not portable across different environments.
 
-To make it easier to run a specific test script without worrying about import errors, autopypath
-automatically adjusts the Python path to include the necessary directories, allowing tests
-to be run directly from the file without pytest attempting to import unrelated modules.
+To make it easier to run a specific test script without worrying about unrelated import errors, autopypath
+automatically adjusts the Python path to include the necessary directories. This allows tests
+to be run directly from the file, bypassing the test framework's broad import discovery.
 
-By default, autopypath looks for a `src/` and a `tests/` directory in the project repo root and adds
-them to the Python path.
+It works out of the box for common project structures, such as projects with `src/` and `tests/`
+directories that use a version control system (such as Git or Mercurial) and/or have a `pyproject.toml`
+file in the repository root.
 
-This is customizable via configuration files or direct function calls to specify different directories
-or loading strategies. In the simple case, it just works out of the box for common project structures
-(a simple case being a project with `src/` and `tests/` directories using VCS such as Git or Mercurial,
-and/or having a pyproject.toml file in the repo root).
+In such cases, simply import the `autopypath` module at the top of your test script and add
+an `if __name__ == "__main__":` block at the bottom to execute the tests when run directly.
+This setup will automatically adjust the Python path, allowing your tests to run without
+further configuration.
 
-However, it also provides a high degree of customization for more complex scenarios and supports
-a wide range of project structures and configurations.
+It also provides a high degree of customization for more complex scenarios. It supports
+a wide range of project structures and configurations, making it easy to run test scripts directly
+without requiring manual per-file path adjustments.
+
+Even in complex cases, changes to the test scripts are often unnecessary beyond the initial import of `autopypath`
+and addition of the `if __name__ == "__main__":` block.
+
+Instead, configuration files like `autopypath.toml`, `pyproject.toml`, and `.env` can specify
+custom paths and loading strategies without further modifying the test scripts themselves.
+
+This keeps the maintenance burden low and allows test scripts to remain clean and focused on testing logic.
 
 Installation
 ============
@@ -297,9 +308,6 @@ The path is **NOT** adjusted automatically on import; the user must call the
         load_strategy=LoadStrategy.OVERRIDE,
     )
     # sys.path is now adjusted based on custom configuration
-
-
-
 
 Basic usage with pytest
 =======================
