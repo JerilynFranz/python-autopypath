@@ -4,6 +4,8 @@ from pathlib import Path
 
 from ._toml import TomlConfig
 
+__all__ = ['AutopypathConfig']
+
 
 class AutopypathConfig(TomlConfig):
     """Configuration for autopypath using autopypath.toml files."""
@@ -28,3 +30,10 @@ class AutopypathConfig(TomlConfig):
         :return str: A string representation of the AutopypathConfig instance.
         """
         return f'{self.__class__.__name__}(repo_root_path={str(self._repo_root_path)!r})'
+
+    def __str__(self) -> str:
+        """String conversion of the AutopypathConfig object.
+
+        :return str: A string representation of the AutopypathConfig instance.
+        """
+        return self.__repr__()
