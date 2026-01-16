@@ -124,7 +124,10 @@ For easy reference, here are the defaults:
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 - `pyproject.toml` (file)
-- `autopypath.toml` (file - special behavior as described above)
+- `autopypath.toml` (file)
+    Note that there is special behavior for this marker if found. If it changes
+    the repo_markers settings, the repo root is re-evaluated using the new settings
+    and that may result in a different repository root being identified.
 - `.git/` (directory, Git version control)
 - `.hg/` (directory, Mercurial version control)
 - `.svn/` (directory, Subversion version control)
@@ -136,7 +139,7 @@ For easy reference, here are the defaults:
 **Default Paths to Add**
 ~~~~~~~~~~~~~~~~~~~~~~~~
 - `src/`
-- `lib/`
+- `tests/`
 
 **Default Load Strategy**
 ~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -232,7 +235,7 @@ It should be called before any other imports that depend on the adjusted Python 
     configure_pypath(
         repo_markers={'setup.py': MarkerType.FILE, '.git': MarkerType.DIR},
         manual_paths=[Path('src'), Path('lib')],
-        load_strategy=LoadStrategy.MERGE,
+        load_strategy=LoadStrategy.PREPEND,
     )
     # sys.path is now adjusted based on custom configuration
 

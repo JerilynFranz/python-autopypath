@@ -27,6 +27,10 @@ any of these files or directories indicates the root of the project repository.
 
 Default markers are:
 - ``pyproject.toml``: Indicates the repository root by the presence of this file.
+- ``autopypath.toml``: Indicates the repository root by the presence of this file.
+    Note that there is special behavior for this marker if found. If it changes
+    the repo_markers settings, the repo root is re-evaluated using the new settings
+    and that may result in a different repository root being identified.
 - ``.git``: Indicates a Git repository root by the presence of this directory.
 - ``.hg``: Indicates a Mercurial repository root by the presence of this directory.
 - ``.svn``: Indicates a Subversion repository root by the presence of this directory.
@@ -94,6 +98,7 @@ and define a new order for resolving :func:`sys.path` sources.
 
 Overrides can use any combination of the following values.
 - `manual`: Paths provided directly via the `paths` parameter to `configure_pypath()`.
+- `autopypath`: Paths specified in the `autopypath.toml` file in the repository root.
 - `pyproject`: Paths specified in the `pyproject.toml` file in the repository root.
 - `dotenv`: Paths specified in the `.env` file in the repository root.
 - `env`: Paths from the shell environment's `:func:`sys.path`` variable.
@@ -137,7 +142,7 @@ or other configuration.
 
 The available load strategies are defined as follows:
 
-- **merge** (default)
+- **prepend** (default)
 
     Combines paths from all sources.
 
@@ -145,7 +150,7 @@ The available load strategies are defined as follows:
     paths defined in the project's configuration files. Paths are added
     to the front of `sys.path` in the order of priority.
 
-- **override**
+- **prepend_highest_only**
 
     Uses paths from the most specific source found (highest priority) only,
     ignoring others. This ensures a predictable path environment.

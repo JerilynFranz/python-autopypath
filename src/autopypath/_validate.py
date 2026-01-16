@@ -13,6 +13,7 @@ from pathlib import Path
 from posixpath import sep as posix_sep
 from ntpath import sep as nt_sep
 from os import sep as path_sep
+import re
 from types import MappingProxyType
 from typing import Any, Union
 
@@ -28,6 +29,58 @@ _MAX_FILE_DIR_NAME_LENGTH: int = 64
 Deliberately set to 64 to allow for future flexibility and
 avoid issues with filesystems that may have lower limits.
 """
+
+
+def toml_filename(value: Any) -> Path:
+    """Validates the TOML filename.
+
+    :param Any value: The TOML filename to validate.
+    :return Path: A validated TOML Path object.
+    :raises TypeError: If the input is not a string.
+    :raises ValueError: If the filename is invalid.
+    :raises ValueError: If the filename does not end with .toml
+    """
+    if not isinstance(value, str):
+        raise TypeError(f'Invalid toml_filename: expected str, got {type(value)}')
+    validate_file_or_dir_name(value)
+    if not value.lower().endswith('.toml'):
+        raise ValueError(f'Invalid toml_filename: {value!r} does not end with .toml')
+    return Path(value)
+
+
+_TOML_SECTION_RE: re.Pattern[str] = re.compile(r'^[A-Za-z0-9](?:[A-Za-z0-9_-.]*[A-Za-z0-9])?$')
+"""Regular expression for validating TOML section names.
+- Must start and end with an alphanumeric character.
+- Can contain alphanumeric characters, underscores, dashes,  and dots in between.
+- Cannot be empty.
+
+Check for adjecent dots, dashes, or underscores is enforced in a second regex.
+"""
+
+_ADJACENT_INVALID_SEQUENCES_RE: re.Pattern[str] = re.compile(r'[._-]{2,}')
+"""Regular expression for detecting characters that cannot be adjacent in TOML section names.
+
+Does not allow: '.', '-', or '_' to be adjacent to each other or themselves.
+"""
+
+
+def toml_section(value: Any) -> str:
+    """Validates the TOML section name.
+
+    :param Any value: The TOML section name to validate.
+    :return str: A validated TOML section name.
+    :raises TypeError: If the input is not a string.
+    :raises ValueError: If the section name is invalid.
+    """
+    if not isinstance(value, str):
+        raise TypeError(f'Invalid toml_section: expected str, got type {type(value)}')
+    if value.strip() == '':
+        raise ValueError('Invalid toml_section: section name cannot be empty')
+    if not _TOML_SECTION_RE.match(value):
+        raise ValueError(f'Invalid toml_section name: {value!r} does not match required pattern for toml section names')
+    if _ADJACENT_INVALID_SEQUENCES_RE.search(value):
+        raise ValueError(f'Invalid toml_section name: {value!r} cannot have adjacent dots, dashes, or underscores')
+    return value
 
 
 def root_repo_path(value: Any) -> Path:
