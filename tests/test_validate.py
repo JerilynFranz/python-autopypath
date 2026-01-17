@@ -8,9 +8,9 @@ import pytest
 
 from testspec import TestSpec, PytestAction, Assert
 
-from autopypath.load_strategy import LoadStrategy
-from autopypath.marker_type import MarkerType
-from autopypath.path_resolution import PathResolution
+from autopypath._load_strategy import LoadStrategy
+from autopypath._marker_type import MarkerType
+from autopypath._path_resolution import PathResolution
 from autopypath import _validate
 
 # fmt: off
@@ -382,4 +382,27 @@ def test_load_strategy(testspec: TestSpec) -> None:
 ])
 def test_path_resolution_order(testspec: TestSpec) -> None:
     """Test Config with path_resolution_order"""
+    testspec.run()
+
+
+@pytest.mark.parametrize('testspec', [
+    PytestAction('DRY_RUN_001',
+        name='dry_run as True',
+        action=_validate.dry_run, args=[True],
+        expected=True),
+    PytestAction('DRY_RUN_002',
+        name='dry_run as False',
+        action=_validate.dry_run, args=[False],
+        expected=False),
+    PytestAction('DRY_RUN_003',
+        name='dry_run as string',
+        action=_validate.dry_run, args=['true'],
+        exception=TypeError),
+    PytestAction('DRY_RUN_004',
+        name='dry_run as None',
+        action=_validate.dry_run, args=[None],
+        exception=TypeError),
+])
+def test_dry_run(testspec: TestSpec) -> None:
+    """Test Config with dry_run."""
     testspec.run()

@@ -8,9 +8,10 @@ from typing import Union, Any
 import tomli
 
 from ._config import Config
-from ...load_strategy import LoadStrategy
-from ...marker_type import MarkerType
-from ...types._no_path import NoPath
+from ..._load_strategy import LoadStrategy
+from ..._marker_type import MarkerType
+from ..._path_resolution import PathResolution
+from ...types import NoPath
 from ... import _validate
 from ..._log import log
 
@@ -241,7 +242,7 @@ class TomlConfig(Config):
 
         return load_strategy
 
-    def _toml_path_resolution_order(self, autopypath_config: dict[str, Any]) -> Union[tuple[str, ...], None]:
+    def _toml_path_resolution_order(self, autopypath_config: dict[str, Any]) -> Union[tuple[PathResolution, ...], None]:
         """Collects path resolution order from toml configuration.
 
         Example

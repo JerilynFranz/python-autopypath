@@ -12,25 +12,25 @@ import pytest
 from testspec import TestSpec, PytestAction, Assert
 
 from autopypath._config_py_path._config import Config
-from autopypath.load_strategy import LoadStrategy
-from autopypath.marker_type import MarkerType
-from autopypath.path_resolution import PathResolution
+from autopypath._load_strategy import LoadStrategy
+from autopypath._marker_type import MarkerType
+from autopypath._path_resolution import PathResolution
+from autopypath.types import RepoMarkerLiterals, LoadStrategyLiterals, PathResolutionLiterals
 
 
 class ConfigParameters(NamedTuple):
     """Combination of Config parameters for testing.
 
-    :param Union[MappingProxyType[str, MarkerType], None] repo_markers: Repository markers.
-    :param Union[tuple[str, ...], tuple[Path, ...], None] paths: Additional paths.
-    :param Union[LoadStrategy, str, None] load_strategy: Load strategy.
-    :param Union[tuple[Union[PathResolution, str], ...], None] path_resolution_order: Path resolution order.
+    :param MappingProxyType[str, MarkerType | RepoMarkerLiterals] | None repo_markers: Repository markers.
+    :param tuple[str | Path, ...] | None paths: Additional paths.
+    :param LoadStrategy | LoadStrategyLiterals | None load_strategy: Load strategy.
+    :param tuple[PathResolution | PathResolutionLiterals, ...] | None path_resolution_order: Path resolution order.
     """
 
-    repo_markers: Union[MappingProxyType[str, MarkerType], None]
+    repo_markers: Union[MappingProxyType[str, Union[MarkerType, RepoMarkerLiterals]], None]
     paths: Union[tuple[str, ...], tuple[Path, ...], None]
-    load_strategy: Union[LoadStrategy, str, None]
-    path_resolution_order: Union[tuple[Union[PathResolution, str], ...], None]
-
+    load_strategy: Union[LoadStrategy, LoadStrategyLiterals, None]
+    path_resolution_order: Union[tuple[Union[PathResolution, PathResolutionLiterals], ...], None]
 
 # fmt: off
 
@@ -402,7 +402,7 @@ def generate_all_config_combinations() -> tuple[tuple[Config, ConfigParameters],
     :return tuple[tuple[Config, ConfigParameters], ...]: A tuple containing all generated Config instances and
         their corresponding parameter combinations.
     """
-    repo_markers: tuple[Union[MappingProxyType[str, MarkerType], None], ...] = (
+    repo_markers: tuple[Union[MappingProxyType[str, Union[MarkerType, RepoMarkerLiterals]], None], ...] = (
         MappingProxyType({'.git': MarkerType.DIR}),
         MappingProxyType({'pyproject.toml': MarkerType.FILE}),
         MappingProxyType({'.git': MarkerType.DIR, 'pyproject.toml': MarkerType.FILE}),
@@ -415,14 +415,14 @@ def generate_all_config_combinations() -> tuple[tuple[Config, ConfigParameters],
         None
     )
 
-    load_strategies: tuple[Union[LoadStrategy, str, None], ...] = (
+    load_strategies: tuple[Union[LoadStrategy, LoadStrategyLiterals, None], ...] = (
         LoadStrategy.PREPEND,
         LoadStrategy.REPLACE,
         LoadStrategy.PREPEND_HIGHEST_PRIORITY,
         None,
     )
 
-    path_resolution_orders: tuple[Union[tuple[Union[PathResolution, str], ...], None], ...] = (
+    path_resolution_orders: tuple[Union[tuple[Union[PathResolution, PathResolutionLiterals], ...], None], ...] = (
         (PathResolution.MANUAL, PathResolution.PYPROJECT),
         (PathResolution.DOTENV,),
         None,

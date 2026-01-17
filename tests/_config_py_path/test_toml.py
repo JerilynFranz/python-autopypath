@@ -3,7 +3,7 @@ from pathlib import Path
 import pytest
 
 from autopypath._config_py_path._config._toml import TomlConfig
-from autopypath.marker_type import MarkerType
+from autopypath._marker_type import MarkerType
 
 
 def test_toml_config_init(tmp_path: Path) -> None:
@@ -499,3 +499,24 @@ paths = ['src', 'lib']
         return
 
     pytest.fail('TOML_041 Expected ValueError when toml_section starts with invalid character')
+
+
+def test_toml_repo_root_path_is_none() -> None:
+    """Test that providing None for repo_root_path creates special behavior."""
+    toml_filename = 'toml_file.toml'
+    toml_section = 'tool.autopypath'
+
+    config = TomlConfig(repo_root_path=None, toml_filename=toml_filename, toml_section=toml_section)
+
+    assert config.paths is None, 'TOML_042 Expected paths to be None when repo_root_path is None'
+    assert config.repo_markers is None, 'TOML_043 Expected repo_markers to be None when repo_root_path is None'
+    assert config.load_strategy is None, 'TOML_044 Expected load_strategy to be None when repo_root_path is None'
+    assert config.path_resolution_order is None, (
+        'TOML_045 Expected path_resolution_order to be None when repo_root_path is None'
+    )
+    assert str(config.toml_filepath) == '<NoPath>', (
+        'TOML_046 Expected toml_filepath to be <NoPath> when repo_root_path is None'
+    )
+    assert config.toml_section == toml_section, (
+        'TOML_047 Expected toml_section to be set correctly even when repo_root_path is None'
+    )

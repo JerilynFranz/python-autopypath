@@ -5,9 +5,9 @@ from types import MappingProxyType
 
 from ... import defaults
 from ..._log import log
-from ...load_strategy import LoadStrategy
-from ...path_resolution import PathResolution
-from ...marker_type import MarkerType
+from ..._load_strategy import LoadStrategy
+from ..._path_resolution import PathResolution
+from ..._marker_type import MarkerType
 from ._config import Config
 
 

@@ -1,4 +1,5 @@
 """Base class for python path sources"""
+# ruff: noqa: E501
 
 from collections.abc import Mapping, Sequence
 from pathlib import Path
@@ -7,9 +8,10 @@ from typing import Union, Optional
 
 
 from ..._log import log
-from ...load_strategy import LoadStrategy
-from ...marker_type import MarkerType
-from ...path_resolution import PathResolution
+from ..._load_strategy import LoadStrategy
+from ..._marker_type import MarkerType
+from ..._path_resolution import PathResolution
+from ...types import LoadStrategyLiterals, PathResolutionLiterals, RepoMarkerLiterals
 from ... import _validate
 
 __all__ = []
@@ -37,29 +39,29 @@ class Config:
     def __init__(
         self,
         *,
-        repo_markers: Optional[Mapping[str, MarkerType]] = None,
+        repo_markers: Optional[Mapping[str, Union[MarkerType, RepoMarkerLiterals]]] = None,
         paths: Optional[Sequence[Union[Path, str]]] = None,
-        load_strategy: Optional[Union[LoadStrategy, str]] = None,
-        path_resolution_order: Optional[Sequence[Union[PathResolution, str]]] = None,
+        load_strategy: Optional[Union[LoadStrategy, LoadStrategyLiterals]] = None,
+        path_resolution_order: Optional[Sequence[Union[PathResolution, PathResolutionLiterals]]] = None,
     ) -> None:
         """
-        :param Mapping[str, MarkerType] | None repo_markers: Markers to identify the repository root.
+        :param Mapping[str, MarkerType | Literal['dir', 'file']] | None repo_markers: Markers to identify the repository root.
             Mapping of file or directory names to their MarkerType.
 
-        :param Sequence[Path | str] | Nonepaths: Additional paths to include in :var:`sys.path`.
+        :param Sequence[Path | str] | None paths: Additional paths to include in :var:`sys.path`.
             Sequence of paths relative to the repository root to be added to :var:`sys.path`.
 
-        :param LoadStrategy | str | Noneload_strategy: The strategy for loading from :func:`sys.path` sources.
-            The strategy to use when handling multiple sys.path sources.
+        :param LoadStrategy | Literal['prepend', 'prepend_highest_priority', 'replace'] | None load_strategy: The
+            strategy for loading :func:`sys.path` sources.
 
-            It is expected to be one of `merge`, `override`, or `replace` (as defined in :class:`LoadStrategy`).
-            It can use either the enum value or its string representation.
+            It is expected to be one of `prepend`, `prepend_highest_priority`, or `replace` (as defined
+            in :class:`LoadStrategy`). It can use either the enum value or its string representation.
 
-        :param Sequence[PathResolution | str] | None path_resolution_order: The order in which to
+        :param Sequence[PathResolution | Literal['manual', 'autopypath', 'pyproject', 'dotenv']]] | None path_resolution_order: The order in which to
             resolve :func:`sys.path` sources.
 
             It is expected to be a sequence containing any of the following values:
-            `manual`, `pyproject`, `dotenv` as defined in :class:`PathResolution`.
+            `manual`, `autopypath`, `pyproject`, or `dotenv` as defined in :class:`PathResolution`.
             It can use either the enum values or their string representations.
         """
         self._repo_markers: Union[MappingProxyType[str, MarkerType], None] = _validate.repo_markers(repo_markers)
@@ -178,10 +180,12 @@ class Config:
     def replace(
         self,
         *,
-        repo_markers: Union[Mapping[str, MarkerType], None, NotPresent] = NOT_PRESENT,
+        repo_markers: Union[Mapping[str, Union[MarkerType, RepoMarkerLiterals]], None, NotPresent] = NOT_PRESENT,
         paths: Union[Sequence[Union[Path, str]], None, NotPresent] = NOT_PRESENT,
-        load_strategy: Union[LoadStrategy, str, None, NotPresent] = NOT_PRESENT,
-        path_resolution_order: Union[Sequence[Union[PathResolution, str]], None, NotPresent] = NOT_PRESENT,
+        load_strategy: Union[LoadStrategy, LoadStrategyLiterals, None, NotPresent] = NOT_PRESENT,
+        path_resolution_order: Union[
+            Sequence[Union[PathResolution, PathResolutionLiterals]], None, NotPresent
+        ] = NOT_PRESENT,
     ) -> 'Config':
         """Creates a copy of the current Config instance with specified attributes replaced.
 

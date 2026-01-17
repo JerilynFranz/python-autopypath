@@ -7,9 +7,10 @@ from typing import Union, Optional
 
 from .. import _validate
 from .._log import log
-from ..marker_type import MarkerType
-from ..path_resolution import PathResolution
-from ..load_strategy import LoadStrategy
+from .._marker_type import MarkerType
+from .._path_resolution import PathResolution
+from .._load_strategy import LoadStrategy
+from ..types import RepoMarkerLiterals, LoadStrategyLiterals, PathResolutionLiterals
 from ._config import AutopypathConfig, DefaultConfig, ManualConfig, PyProjectConfig, DotEnvConfig
 
 __all__ = []
@@ -38,12 +39,12 @@ class ConfigPyPath:
         self,
         *,
         context_file: Path,
-        repo_markers: Optional[Mapping[str, MarkerType]] = None,
+        repo_markers: Optional[Mapping[str, Union[MarkerType, RepoMarkerLiterals]]] = None,
         paths: Optional[Sequence[Union[Path, str]]] = None,
-        posix_paths: Union[Sequence[Union[Path, str]], None] = None,
-        windows_paths: Union[Sequence[Union[Path, str]], None] = None,
-        load_strategy: Union[LoadStrategy, str, None] = None,
-        path_resolution_order: Optional[Sequence[Union[PathResolution, str]]] = None,
+        posix_paths: Optional[Sequence[Union[Path, str]]] = None,
+        windows_paths: Optional[Sequence[Union[Path, str]]] = None,
+        load_strategy: Optional[Union[LoadStrategy, LoadStrategyLiterals]] = None,
+        path_resolution_order: Optional[Sequence[Union[PathResolution, PathResolutionLiterals]]] = None,
         dry_run: bool = False,
     ) -> None:
         """Configures :var:`sys.path` based on manual settings, .env files, and pyproject.toml.
@@ -59,7 +60,7 @@ class ConfigPyPath:
         `ValueError` if the inputs are invalid.
 
         :param Path context_file: The file path of the script that is configuring the Python path.
-        :param Mapping[str, MarkerType] | None repo_markers: A dictionary where keys are
+        :param Mapping[str, MarkerType | Literal['dir', 'file']] | None repo_markers: A dictionary where keys are
             filenames or directory names that indicate the repository root.
             The values should be `file` or `dir`. It is case-sensitive.
 
@@ -82,22 +83,24 @@ class ConfigPyPath:
 
             If ``None``, the paths in `paths` are used on Windows systems.
 
-        :param LoadStrategy | str | None load_strategy: The strategy for handling multiple :var:`sys.path` sources.
+        :param LoadStrategy | Literal['prepend', 'prepend_highest_priority', 'replace'] | None load_strategy: The
+            strategy for handling multiple :var:`sys.path` sources.
 
-            It is expected to be `merge`, `override`, or `replace` (as defined in :class:`LoadStrategy`).
-            It can use either the enum value or its string representation.
+            It is expected to be `prepend`, `prepend_highest_priority`, or `replace` (as defined
+            in :class:`LoadStrategy`). It can use either the enum value or its string representation.
 
             If ``None``, defaults to :var:`~autopypath.defaults.LOAD_STRATEGY`.
 
-        :param PathResolution | str | None path_resolution_order: The order in which to resolve :var:`sys.path` sources.
+        :param PathResolution | Literal['manual', 'autopypath', 'pyproject', 'dotenv'] | None path_resolution_order: The
+            order in which to resolve :var:`sys.path` sources.
 
             It is expected to be a sequence containing any of the following values:
             ``manual``, ``pyproject``, ``dotenv`` as defined in :class:`PathResolution`.
             If ``None``, the default order from :var:`~autopypath.defaults.PATH_RESOLUTION_ORDER` is used.
 
             It can use either the enum values or their string representations.
-        :param bool dry_run: (default: ``False``) If ``True``, the configuration is processed but :var:`sys.path` is not actually modified.
-            This is useful for testing or inspecting the configuration without making changes.
+        :param bool dry_run: (default: ``False``) If ``True``, the configuration is processed but :var:`sys.path` is
+            not actually modified. This is useful for testing or inspecting the configuration without making changes.
         :raises TypeError: If any of the inputs are of incorrect type.
         :raises ValueError: If any of the inputs have invalid values.
         :raises RuntimeError: If the repository root cannot be found.

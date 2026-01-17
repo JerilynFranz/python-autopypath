@@ -127,10 +127,10 @@ the markers used to identify the project root, it may cause the search to contin
 upwards beyond the directory containing the `autopypath.toml` file even if that directory
 would otherwise be considered the project root based on the original markers.
 
-For example, if the original markers were `pyproject.toml` and `.git`, but the `autopypath.toml` file changes
-the markers to only `.hg`, it will continue searching until it finds a `.hg` directory
-to use as the project root but will ignore any `pyproject.toml` or `.git`
-directories found along the way.
+For example, if the original markers were `pyproject.toml` and `.git`, but
+the `autopypath.toml` file changes the markers to only `.hg`, it will continue
+searching until it finds a `.hg` directory to use as the project root but will
+ignore any `pyproject.toml` or `.git` directories found along the way.
 
 e.g., if `autopypath.toml` specifies the `.git` directory as a marker, but
 the `.git` directory is located in a parent directory, it will continue
@@ -176,8 +176,9 @@ For easy reference, here are the defaults:
 
 - `pyproject.toml` (file)
 - `autopypath.toml` (file)
-    Note that there is special behavior for this marker if found. If it changes
-    the repo_markers settings, the repo root is re-evaluated using the new settings
+    Note that there is special behavior for this marker if found. If the
+    repo_markers settings are changed in the `autopypath.toml` file,
+    the repo root is re-evaluated using the new settings
     and that may result in a different repository root being identified.
 - `.git/` (directory, Git version control)
 - `.hg/` (directory, Mercurial version control)

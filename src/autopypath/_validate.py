@@ -19,9 +19,9 @@ from typing import Any, Union
 
 __all__ = []
 
-from .marker_type import MarkerType, resolve_marker_type_literal
-from .load_strategy import LoadStrategy, resolve_load_strategy_literal
-from .path_resolution import PathResolution, resolve_path_resolution_literal
+from ._marker_type import MarkerType, resolve_marker_type_literal
+from ._load_strategy import LoadStrategy, resolve_load_strategy_literal
+from ._path_resolution import PathResolution, resolve_path_resolution_literal
 
 _MAX_FILE_DIR_NAME_LENGTH: int = 64
 """Maximum length for file or directory names.

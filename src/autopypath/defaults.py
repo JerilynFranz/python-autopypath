@@ -2,15 +2,16 @@
 
 from pathlib import Path
 from types import MappingProxyType
-from typing import Final
+from typing import Final, Union
 
-from .marker_type import MarkerType
-from .path_resolution import PathResolution
-from .load_strategy import LoadStrategy
+from ._marker_type import MarkerType
+from ._path_resolution import PathResolution
+from ._load_strategy import LoadStrategy
+from .types import RepoMarkerLiterals, PathResolutionLiterals, LoadStrategyLiterals
 
 __all__ = []
 
-REPO_MARKERS: Final[MappingProxyType[str, MarkerType]] = MappingProxyType(
+REPO_MARKERS: Final[MappingProxyType[str, Union[MarkerType, RepoMarkerLiterals]]] = MappingProxyType(
     {
         'pyproject.toml': MarkerType.FILE,
         'autopypath.toml': MarkerType.FILE,
@@ -58,16 +59,16 @@ If neither manual repo markers nor `pyproject.toml` defines `repo_markers`, the 
 
 The order is:
 
-manual paths
-------------
+custom markers
+--------------
 .. code-block:: python
-    from autopypath.custom import configure_pypath, MarkerType
+    from autopypath.custom import configure_pypath
     configure_pypath(
-        repo_markers={'custom_marker.txt': MarkerType.FILE}
+        repo_markers={'custom_marker.txt': 'file', 'special_dir': 'dir'}
     )
 
-pyproject.toml
---------------
+pyproject.toml file or .git directory
+-------------------------------------
 
 .. code-block:: toml
     [tool.autopypath]
@@ -80,7 +81,7 @@ The default markers as defined above.
 
 """
 
-PATH_RESOLUTION_ORDER: Final[tuple[PathResolution, ...]] = (
+PATH_RESOLUTION_ORDER: Final[tuple[Union[PathResolution, PathResolutionLiterals], ...]] = (
     PathResolution.MANUAL,
     PathResolution.PYPROJECT,
     PathResolution.DOTENV,
@@ -95,47 +96,47 @@ It be overridden by the `path_resolution_order` parameter to `configure_pypath()
 or by configuring it in `pyproject.toml` under the
 `[tool.autopypath]` section.
 
-If overridden, it should be provided as a sequence of strings or
-:class:`PathResolution` enum members. The overrides will replace the entire default order
-and define a new order for resolving :func:`sys.path` sources.
+If overridden, it should be provided as a sequence of strings.
+The overrides will replace the entire default resolution order
+and define a new prioritization order for resolving :func:`sys.path` sources.
 
 
 Overrides can use any combination of the following values.
 - `manual`: Paths provided directly via the `paths` parameter to `configure_pypath()`.
-- `autopypath`: Paths specified in the `autopypath.toml` file in the repository root.
+- `autopypath`: Paths specified in an `autopypath.toml` file.
 - `pyproject`: Paths specified in the `pyproject.toml` file in the repository root.
-- `dotenv`: Paths specified in the `.env` file in the repository root.
-- `env`: Paths from the shell environment's `:func:`sys.path`` variable.
+- `dotenv`: Paths specified in a `.env` file in the repository root.
 
-Override Examples
------------------
+Override Example
+----------------
 
-Manual
-~~~~~~
+Manual Override
+~~~~~~~~~~~~~~~
 
 .. code-block:: python
     from autopypath.custom import configure_pypath, PathResolution
     configure_pypath(
-        path_resolution_order=[PathResolution.ENV, PathResolution.MANUAL]
+        path_resolution_order=['manual', 'autopypath', 'pyproject', 'dotenv']
     )
 
-pyproject.toml
-~~~~~~~~~~~~~~
+pyproject.toml or autopypath.toml Override
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-You can specify the resolution order in `pyproject.toml` under the `[tool.autopypath]` section
+You can specify the resolution order in `pyproject.toml` or `autopypath.toml`
+in a `[tool.autopypath]` section
 
 Omitted path resolution types will not be used for resolution at runtime.
 
 .. code-block:: toml
     [tool.autopypath]
-    path_resolution_order = ['manual', 'pyproject', 'dotenv', 'env']
+    path_resolution_order = ['manual', 'autopypath', 'pyproject', 'dotenv']
 
-This order applies prioritization in the following way:
+These examples apply the following path prioritization order:
 
-1. `paths` specified in the :func:`~autopypath.custom.configure_pypath` call (highest priority)
-2. Paths specified in `pyproject.toml` in the repository root
-3. Paths from PYTHONPATH specified in `.env` file in the repository root
-4. Paths from the shell environment's PYTHONPATH variable (lowest priority)
+1. `paths` manually specified in a :func:`~autopypath.custom.configure_pypath` call (highest priority)
+2. Paths specified in an `autopypath.toml` file
+3. Paths specified in a `pyproject.toml` file in the repository root
+4. Paths from ``PYTHONPATH`` specified in a `.env` file in the repository root
 """
 
 LOAD_STRATEGY: LoadStrategy = LoadStrategy.PREPEND
@@ -180,20 +181,20 @@ If `load_strategy` is not defined either manually or via `pyproject.toml`, the d
 
 The order is:
 
-manual strategy
----------------
+prepend
+-------
 .. code-block:: python
     from autopypath.custom import configure_pypath, MarkerType
     configure_pypath(
-        load_strategy=LoadStrategy.OVERRIDE
+        load_strategy='prepend'
     )
 
-pyproject.toml
---------------
+prepend highest only
+--------------------
 
 .. code-block:: toml
     [tool.autopypath]
-    load_strategy = "override"
+    load_strategy = 'prepend_highest_priority'
 
 default markers
 -----------------
