@@ -179,7 +179,7 @@ class _ConfigPyPath:
             LoadStrategy.REPLACE,
             LoadStrategy.PREPEND_HIGHEST_PRIORITY,
             LoadStrategy.PREPEND,
-        }:
+        }:  # pragma: no cover  # should never happen due to earlier validation
             raise ValueError(f'Unknown load strategy: {self.load_strategy}')
         if not paths:
             log.debug('No paths to apply to sys.path.')
@@ -243,7 +243,7 @@ class _ConfigPyPath:
             elif source == PathResolution.DOTENV:
                 source_paths = self.dotenv_config.paths
                 log.debug('Resolving paths from DOTENV source: %s', source_paths)
-            else:
+            else:  # pragma: no cover  # should never happen due to earlier validation
                 if self._strict:
                     raise ValueError(f'Unknown path resolution source: {source}')
                 log.warning('Unknown path resolution source: %s', source)

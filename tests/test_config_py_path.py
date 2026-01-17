@@ -76,7 +76,8 @@ paths=["src", "tests"]
     )
     if isinstance(autopypath_config.paths, Sequence):
         assert len(autopypath_config.paths) == 2, (
-            'AUTOPYPATH_CONFIGURED_004 autopypath_config.paths should have length 2 because src and tests were configured'
+            'AUTOPYPATH_CONFIGURED_004 autopypath_config.paths should '
+            'have length 2 because src and tests were configured'
         )
         assert str(autopypath_config.paths[0].name) == 'src', (
             'AUTOPYPATH_CONFIGURED_005 autopypath_config.paths should match the configured paths'
@@ -368,7 +369,8 @@ PYTHONPATH=src:tests
     assert dotenv_config.repo_markers is None, 'DOTENV_CONFIGURED_003 dotenv_config.repo_markers should be None'
     if isinstance(dotenv_config.paths, Sequence):
         assert len(dotenv_config.paths) == 2, (
-            f'DOTENV_CONFIGURED_004 dotenv_config.paths should have length 2 because src and tests were configured: {dotenv_config.paths}'
+            'DOTENV_CONFIGURED_004 dotenv_config.paths should have length 2 '
+            f'because src and tests were configured: {dotenv_config.paths}'
         )
         assert str(dotenv_config.paths[0].name) == 'src', (
             'DOTENV_CONFIGURED_005 dotenv_config.paths should match the configured paths'
