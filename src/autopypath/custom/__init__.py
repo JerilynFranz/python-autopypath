@@ -3,7 +3,6 @@
 This module provides functionality to configure :var:`sys.path`
 using custom repository markers, paths, load strategies, and resolution orders.
 """
-# ruff: noqa: E501
 
 import inspect
 
@@ -42,16 +41,17 @@ def configure_pypath(
     This function allows customization of how the :var:`sys.path` is set up,
     including repository markers, additional paths, load strategy, and resolution order.
 
-    :param Mapping[str, Literal['dir', 'file']] | None repo_markers: A mapping of file or directory names to their MarkerType
-                        used to identify the repository root.
+    :param Mapping[str, Literal['dir', 'file']] | None repo_markers: A mapping of file or directory names to
+        their MarkerType used to identify the repository root.
     :param Sequence[Path | str] | None paths: A sequence of paths to include in the :var:`sys.path`.
     :param Sequence[Path | str] | None posix_paths: A sequence of POSIX-specific paths to include in
                         the :var:`sys.path`.
     :param Sequence[Path | str] | None windows_paths: A sequence of Windows-specific paths to include in
                         the :var:`sys.path`.
-    :param Literal['prepend', 'prepend_highest_priority', 'replace'] | None load_strategy: The strategy for loading :var:`sys.path` entries.
-    :param Sequence[Literal['manual', 'autopypath', 'pyproject', 'dotenv']] | None path_resolution_order: The order in which to
-                        resolve :var:`sys.path` sources.
+    :param Literal['prepend', 'prepend_highest_priority', 'replace'] | None load_strategy: The strategy
+        for loading :var:`sys.path` entries.
+    :param Sequence[Literal['manual', 'autopypath', 'pyproject', 'dotenv']] | None path_resolution_order: The order
+        in which to resolve :var:`sys.path` sources.
     """
     if _context_file is None:
         log.warning('could not determine context file; no sys.path changes will be applied.')
