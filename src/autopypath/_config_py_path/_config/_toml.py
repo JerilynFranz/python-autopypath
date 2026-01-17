@@ -95,8 +95,6 @@ class TomlConfig(Config):
 
         :return Path: The toml file path.
         """
-        if self._toml_filepath is None:
-            return Path('')
         return self._toml_filepath
 
     @property
