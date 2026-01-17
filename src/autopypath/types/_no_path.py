@@ -18,7 +18,7 @@ class _MonkeyWrenchedType:
 
 
 @final
-class NoPath(Path):
+class _NoPath(Path):
     """A custom Path type representing the absence of a path.
 
     This class is used to indicate that no valid path is available or applicable.
@@ -26,7 +26,7 @@ class NoPath(Path):
     but it signifies a 'no path' state and cannot be used to perform actual file system operations.
     """
 
-    def __new__(cls) -> 'NoPath':
+    def __new__(cls) -> '_NoPath':
         """Create a new instance of NoPath.
 
         This method ensures that NoPath behaves like a Path object while
@@ -58,7 +58,7 @@ class NoPath(Path):
         return self.__str__()
 
     def __eq__(self, other: object) -> bool:
-        return isinstance(other, NoPath)
+        return isinstance(other, _NoPath)
 
     # --- IO methods overridden to prevent filesystem access ---
     def exists(self, _disabled: _MonkeyWrenchedType) -> NoReturn:  #  type: ignore[override]

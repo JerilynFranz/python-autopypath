@@ -11,7 +11,7 @@ from ._config import Config
 from ..._load_strategy import LoadStrategy
 from ..._marker_type import MarkerType
 from ..._path_resolution import PathResolution
-from ...types import NoPath
+from ...types import _NoPath
 from ... import _validate
 from ..._log import log
 
@@ -51,8 +51,8 @@ class TomlConfig(Config):
         :raises ValueError: If any configuration value is invalid.
         :raises FileNotFoundError: If the toml file does not exist.
         """
-        self._repo_root_path: Path = NoPath()
-        self._toml_filepath: Path = NoPath()
+        self._repo_root_path: Path = _NoPath()
+        self._toml_filepath: Path = _NoPath()
         self._toml_section: str = _validate.toml_section(toml_section)
 
         if repo_root_path is None:
@@ -269,7 +269,7 @@ class TomlConfig(Config):
 
         :return str: A string representation of the TomlConfig instance.
         """
-        repo_root_str = 'None' if isinstance(self._repo_root_path, NoPath) else f'{str(self._repo_root_path)!r}'
+        repo_root_str = 'None' if isinstance(self._repo_root_path, _NoPath) else f'{str(self._repo_root_path)!r}'
         return (
             f'{self.__class__.__name__}(repo_root_path={repo_root_str}, '
             f'toml_filename={str(self._toml_filepath)!r}, '

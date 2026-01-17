@@ -1,4 +1,4 @@
-"""Public types for autopypath.
+"""Types for autopypath.
 
 This module exposes special types used by autopypath, such as :class:`NoPath`.
 """
@@ -6,7 +6,7 @@ This module exposes special types used by autopypath, such as :class:`NoPath`.
 # ruff: noqa F401
 from typing import TypeAlias, Literal
 
-from ._no_path import NoPath
+from ._no_path import _NoPath
 
 RepoMarkerLiterals: TypeAlias = Literal['dir', 'file']
 """Type alias for repository marker literals."""

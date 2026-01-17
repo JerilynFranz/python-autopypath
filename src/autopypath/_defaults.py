@@ -11,7 +11,7 @@ from .types import RepoMarkerLiterals, PathResolutionLiterals, LoadStrategyLiter
 
 __all__ = []
 
-REPO_MARKERS: Final[MappingProxyType[str, Union[MarkerType, RepoMarkerLiterals]]] = MappingProxyType(
+_REPO_MARKERS: Final[MappingProxyType[str, Union[MarkerType, RepoMarkerLiterals]]] = MappingProxyType(
     {
         'pyproject.toml': MarkerType.FILE,
         'autopypath.toml': MarkerType.FILE,
@@ -77,12 +77,27 @@ pyproject.toml file or .git directory
 default markers
 -----------------
 
-The default markers as defined above.
+The default markers are:
+
+.. code-block:: python
+
+    {
+        'pyproject.toml': 'file',
+        'autopypath.toml': 'file',
+        '.git': 'dir',
+        '.hg': 'dir',
+        '.svn': 'dir',
+        '.bzr': 'dir',
+        '.cvs': 'dir',
+        '_darcs': 'dir',
+        '.fossil': 'dir',
+    }
 
 """
 
-PATH_RESOLUTION_ORDER: Final[tuple[Union[PathResolution, PathResolutionLiterals], ...]] = (
+_PATH_RESOLUTION_ORDER: Final[tuple[Union[PathResolution, PathResolutionLiterals], ...]] = (
     PathResolution.MANUAL,
+    PathResolution.AUTOPYPATH,
     PathResolution.PYPROJECT,
     PathResolution.DOTENV,
 )
@@ -139,7 +154,7 @@ These examples apply the following path prioritization order:
 4. Paths from ``PYTHONPATH`` specified in a `.env` file in the repository root
 """
 
-LOAD_STRATEGY: LoadStrategy = LoadStrategy.PREPEND
+_LOAD_STRATEGY: Union[LoadStrategy, LoadStrategyLiterals] = LoadStrategy.PREPEND
 """Default load strategy for :func:`sys.path` sources.
 
 This is used if there is no specific load strategy provided in pyproject.toml
@@ -163,7 +178,12 @@ The available load strategies are defined as follows:
 - **replace**
     Replaces the entire `sys.path` with the merged paths from all sources.
     This may break standard library and installed package imports,
-    so it should be used with caution.
+    so it should be used with caution. Don't use this unless you really know
+    what you're doing: you will likely need to add back standard library
+    and installed package paths: zeroing out `sys.path` is generally not recommended.
+
+    If you have to ask, you probably shouldn't be using this option. It is
+    intended for very specialized use cases only.
 
 
 These can be overridden by the `load_strategy` parameter to :func:`configure_pypath`.
@@ -203,7 +223,7 @@ The default strategy as defined above.
 
 """
 
-PATHS: Final[tuple[Path, ...]] = (Path('src'), Path('tests'))
+_PATHS: Final[tuple[Path, ...]] = (Path('src'), Path('tests'))
 """Default paths to add to sys.path relative to the repository root.
 
 These directories are added to :var:`sys.path` if they exist in the repository root.

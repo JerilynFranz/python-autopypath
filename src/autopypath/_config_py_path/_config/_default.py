@@ -3,7 +3,7 @@
 from pathlib import Path
 from types import MappingProxyType
 
-from ... import defaults
+from ... import _defaults
 from ..._log import log
 from ..._load_strategy import LoadStrategy
 from ..._path_resolution import PathResolution
@@ -35,10 +35,10 @@ class DefaultConfig(Config):
         self._path_resolution_order: tuple[PathResolution, ...]  # type: ignore
 
         super().__init__(
-            repo_markers=defaults.REPO_MARKERS,
-            paths=defaults.PATHS,
-            load_strategy=defaults.LOAD_STRATEGY,
-            path_resolution_order=defaults.PATH_RESOLUTION_ORDER,
+            repo_markers=_defaults._REPO_MARKERS,
+            paths=_defaults._PATHS,
+            load_strategy=_defaults._LOAD_STRATEGY,
+            path_resolution_order=_defaults._PATH_RESOLUTION_ORDER,
         )
 
     @property
