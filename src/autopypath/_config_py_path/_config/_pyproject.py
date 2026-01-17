@@ -2,12 +2,12 @@
 
 from pathlib import Path
 
-from ._toml import TomlConfig
+from ._toml import _TomlConfig
 
-__all__ = ['PyProjectConfig']
+__all__ = ['_PyProjectConfig']
 
 
-class PyProjectConfig(TomlConfig):
+class _PyProjectConfig(_TomlConfig):
     """Configuration for autopypath using pyproject.toml files."""
 
     def __init__(self, repo_root_path: 'Path') -> None:

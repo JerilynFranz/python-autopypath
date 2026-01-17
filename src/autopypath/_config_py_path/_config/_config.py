@@ -24,7 +24,7 @@ class NotPresent:
 NOT_PRESENT = NotPresent()
 
 
-class Config:
+class _Config:
     """Base configuration class for python path sources.
 
 
@@ -161,7 +161,7 @@ class Config:
         :param object other: Another object to compare with.
         :return bool: True if both Config instances are equal, False otherwise.
         """
-        if not isinstance(other, Config):
+        if not isinstance(other, _Config):
             return NotImplemented
         return (
             self.repo_markers == other.repo_markers
@@ -186,7 +186,7 @@ class Config:
         path_resolution_order: Union[
             Sequence[Union[PathResolution, PathResolutionLiterals]], None, NotPresent
         ] = NOT_PRESENT,
-    ) -> 'Config':
+    ) -> '_Config':
         """Creates a copy of the current Config instance with specified attributes replaced.
 
         If an attribute is not provided, the value from the current instance is used.
@@ -209,7 +209,7 @@ class Config:
         new_path_resolution_order = (
             self.path_resolution_order if isinstance(path_resolution_order, NotPresent) else path_resolution_order
         )
-        return Config(
+        return _Config(
             repo_markers=new_repo_markers,
             paths=new_paths,
             load_strategy=new_load_strategy,

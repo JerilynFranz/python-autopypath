@@ -8,10 +8,10 @@ of Config.
 All the real logic is tested in tests/_config_py_path/test_config.py
 """
 
-from autopypath._config_py_path._config import Config, ManualConfig
+from autopypath._config_py_path._config import _Config, _ManualConfig
 
 
 def test_manual_config_init() -> None:
     """Test that ManualConfig can be instantiated with default parameters."""
-    assert isinstance(ManualConfig(), ManualConfig), 'MANUAL_001 Failed to instantiate ManualConfig'
-    assert issubclass(ManualConfig, Config), 'MANUAL_002 ManualConfig is not a subclass of Config'
+    assert isinstance(_ManualConfig(), _ManualConfig), 'MANUAL_001 Failed to instantiate ManualConfig'
+    assert issubclass(_ManualConfig, _Config), 'MANUAL_002 ManualConfig is not a subclass of Config'

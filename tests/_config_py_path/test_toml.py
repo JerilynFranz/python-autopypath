@@ -3,7 +3,7 @@ from pathlib import Path
 
 import pytest
 
-from autopypath._config_py_path._config._toml import TomlConfig
+from autopypath._config_py_path._config._toml import _TomlConfig
 from autopypath._marker_type import MarkerType
 
 
@@ -24,7 +24,7 @@ load_strategy = 'prepend'
 path_resolution_order = ['manual', 'autopypath', 'pyproject', 'dotenv']
 """)
     try:
-        TomlConfig(repo_root_path=repo_root, toml_filename=toml_filename, toml_section='tool.autopypath')
+        _TomlConfig(repo_root_path=repo_root, toml_filename=toml_filename, toml_section='tool.autopypath')
     except Exception as e:
         pytest.fail(f'TOML_001 Initialization of TomlConfig failed with exception: {e}')
 
@@ -39,7 +39,7 @@ def test_toml_missing_section(tmp_path: Path) -> None:
 paths = ['src', 'lib']
 """)
 
-    config = TomlConfig(repo_root_path=repo_root, toml_filename=toml_filename, toml_section='tool.autopypath')
+    config = _TomlConfig(repo_root_path=repo_root, toml_filename=toml_filename, toml_section='tool.autopypath')
     assert config.load_strategy is None, 'TOML_002 Expected load_strategy to be None when section is missing'
     assert config.paths is None, 'TOML_003 Expected paths to be None when section is missing'
     assert config.path_resolution_order is None, (
@@ -53,7 +53,7 @@ def test_toml_missing_file(tmp_path: Path) -> None:
     repo_root.mkdir()
 
     toml_filename = 'non_existent.toml'
-    config = TomlConfig(repo_root_path=repo_root, toml_filename=toml_filename, toml_section='tool.autopypath')
+    config = _TomlConfig(repo_root_path=repo_root, toml_filename=toml_filename, toml_section='tool.autopypath')
     assert config.no_file_found, 'TOML_MISSING_001 Expected no_file_found to be True when TOML file does not exist'
 
 
@@ -67,7 +67,7 @@ def test_toml_invalid_repo_marker_syntax(tmp_path: Path) -> None:
 repo_markers = 'should_be_a_table_not_a_string'
 """)
     try:
-        TomlConfig(repo_root_path=repo_root, toml_filename=toml_filename, toml_section='tool.autopypath')
+        _TomlConfig(repo_root_path=repo_root, toml_filename=toml_filename, toml_section='tool.autopypath')
     except TypeError:
         return
     pytest.fail('TOML_007 Expected TypeError when repo_markers has invalid syntax')
@@ -83,7 +83,7 @@ def test_toml_invalid_path_resolution_order_value(tmp_path: Path) -> None:
 path_resolution_order = ['invalid_value']
 """)
     try:
-        TomlConfig(repo_root_path=repo_root, toml_filename=toml_filename, toml_section='tool.autopypath')
+        _TomlConfig(repo_root_path=repo_root, toml_filename=toml_filename, toml_section='tool.autopypath')
     except ValueError:
         return
     pytest.fail('TOML_008 Expected ValueError when path_resolution_order has an invalid value')
@@ -99,7 +99,7 @@ def test_toml_invalid_load_strategy_value(tmp_path: Path) -> None:
 load_strategy = 'invalid_strategy'
 """)
     try:
-        TomlConfig(repo_root_path=repo_root, toml_filename=toml_filename, toml_section='tool.autopypath')
+        _TomlConfig(repo_root_path=repo_root, toml_filename=toml_filename, toml_section='tool.autopypath')
     except ValueError:
         return
     pytest.fail('TOML_009 Expected ValueError when load_strategy has an invalid value')
@@ -115,7 +115,7 @@ def test_toml_invalid_load_strategy_syntax(tmp_path: Path) -> None:
 load_strategy = ['should_be_a_string_not_a_list']
 """)
     try:
-        TomlConfig(repo_root_path=repo_root, toml_filename=toml_filename, toml_section='tool.autopypath')
+        _TomlConfig(repo_root_path=repo_root, toml_filename=toml_filename, toml_section='tool.autopypath')
     except TypeError:
         return
     pytest.fail('TOML_010 Expected TypeError when load_strategy has invalid syntax')
@@ -131,7 +131,7 @@ def test_toml_invalid_paths_syntax(tmp_path: Path) -> None:
 paths = 'should_be_a_list_not_a_string'
 """)
     try:
-        TomlConfig(repo_root_path=repo_root, toml_filename=toml_filename, toml_section='tool.autopypath')
+        _TomlConfig(repo_root_path=repo_root, toml_filename=toml_filename, toml_section='tool.autopypath')
     except TypeError:
         return
     pytest.fail('TOML_011 Expected TypeError when paths has invalid syntax')
@@ -147,7 +147,7 @@ def test_toml_invalid_repo_markers_value(tmp_path: Path) -> None:
 repo_markers = {'.git': 'should_be_MarkerType_not_general_string'}
 """)
     try:
-        TomlConfig(repo_root_path=repo_root, toml_filename=toml_filename, toml_section='tool.autopypath')
+        _TomlConfig(repo_root_path=repo_root, toml_filename=toml_filename, toml_section='tool.autopypath')
     except ValueError:
         return
     pytest.fail('TOML_012 Expected ValueError when repo_markers has an invalid value')
@@ -163,7 +163,7 @@ def test_toml_invalid_paths_value(tmp_path: Path) -> None:
 paths = ['src', 123]
 """)
     try:
-        TomlConfig(repo_root_path=repo_root, toml_filename=toml_filename, toml_section='tool.autopypath')
+        _TomlConfig(repo_root_path=repo_root, toml_filename=toml_filename, toml_section='tool.autopypath')
     except TypeError:
         return
     pytest.fail('TOML_013 Expected TypeError when paths has an invalid type of value')
@@ -179,7 +179,7 @@ def test_toml_invalid_path_resolution_order_syntax(tmp_path: Path) -> None:
 path_resolution_order = 'should_be_a_list_not_a_string'
 """)
     try:
-        TomlConfig(repo_root_path=repo_root, toml_filename=toml_filename, toml_section='tool.autopypath')
+        _TomlConfig(repo_root_path=repo_root, toml_filename=toml_filename, toml_section='tool.autopypath')
     except TypeError:
         return
     pytest.fail('TOML_014 Expected TypeError when path_resolution_order has invalid syntax')
@@ -195,7 +195,7 @@ def test_toml_invalid_repo_markers_filename_type(tmp_path: Path) -> None:
 repo_markers = {123='DIR'}
 """)
     try:
-        TomlConfig(repo_root_path=repo_root, toml_filename=toml_filename, toml_section='tool.autopypath')
+        _TomlConfig(repo_root_path=repo_root, toml_filename=toml_filename, toml_section='tool.autopypath')
     except ValueError:
         return
     pytest.fail('TOML_015 Expected ValueError when repo_markers has an invalid type for the filename')
@@ -211,7 +211,7 @@ def test_toml_invalid_repo_markers_filename_value(tmp_path: Path) -> None:
 repo_markers = {'*invalid*': 'DIR'}
 """)
     try:
-        TomlConfig(repo_root_path=repo_root, toml_filename=toml_filename, toml_section='tool.autopypath')
+        _TomlConfig(repo_root_path=repo_root, toml_filename=toml_filename, toml_section='tool.autopypath')
     except ValueError:
         return
     pytest.fail('TOML_016 Expected ValueError when repo_markers has an invalid filename value')
@@ -227,7 +227,7 @@ def test_toml_misconfigured_section_name(tmp_path: Path) -> None:
 paths = ['src', 'lib']
 """)
     try:
-        TomlConfig(repo_root_path=repo_root, toml_filename=toml_filename, toml_section='tool..autopypath')
+        _TomlConfig(repo_root_path=repo_root, toml_filename=toml_filename, toml_section='tool..autopypath')
     except ValueError:
         return
     pytest.fail('TOML_017 Expected ValueError when toml_section has an invalid syntax')
@@ -246,7 +246,7 @@ autopypath = 'hello'
 
 """)
     try:
-        TomlConfig(repo_root_path=repo_root, toml_filename=toml_filename, toml_section='tool.autopypath')
+        _TomlConfig(repo_root_path=repo_root, toml_filename=toml_filename, toml_section='tool.autopypath')
     except TypeError:
         return
     pytest.fail('TOML_018 Expected ValueError when toml_section is misdefined in the TOML file')
@@ -262,7 +262,7 @@ def test_toml_repo_markers_table_syntax(tmp_path: Path) -> None:
 repo_markers = ['.git', 'DIR', 'setup.py', 'FILE']
 """)
     try:
-        TomlConfig(repo_root_path=repo_root, toml_filename=toml_filename, toml_section='tool.autopypath')
+        _TomlConfig(repo_root_path=repo_root, toml_filename=toml_filename, toml_section='tool.autopypath')
     except TypeError:
         return
     pytest.fail('TOML_019 Expected TypeError when repo_markers is not a table/dictionary')
@@ -278,7 +278,7 @@ def test_toml_repo_markers_table_value_type(tmp_path: Path) -> None:
 repo_markers = {'.git'=['should_be_string_not_list']}
 """)
     try:
-        config = TomlConfig(repo_root_path=repo_root, toml_filename=toml_filename, toml_section='tool.autopypath')
+        config = _TomlConfig(repo_root_path=repo_root, toml_filename=toml_filename, toml_section='tool.autopypath')
         pytest.fail(f'TOML_020 Expected TypeError when repo_markers has non-string value type: {config.repo_markers}')
     except TypeError:
         pass
@@ -292,7 +292,7 @@ def test_toml_repr(tmp_path: Path) -> None:
     toml_path.write_text("""[tool.autopypath]
 paths = ['src', 'lib']
 """)
-    config = TomlConfig(repo_root_path=repo_root, toml_filename=toml_filename, toml_section='tool.autopypath')
+    config = _TomlConfig(repo_root_path=repo_root, toml_filename=toml_filename, toml_section='tool.autopypath')
     repr_str = repr(config)
     assert 'TomlConfig' in repr_str, 'TOML_021 Expected __repr__ to contain class name'
     assert 'paths' in repr_str, 'TOML_022 Expected __repr__ to contain paths attribute'
@@ -316,7 +316,7 @@ def test_toml_str(tmp_path: Path) -> None:
     toml_path.write_text("""[tool.autopypath]
 paths = ['src', 'lib']
 """)
-    config = TomlConfig(repo_root_path=repo_root, toml_filename=toml_filename, toml_section='tool.autopypath')
+    config = _TomlConfig(repo_root_path=repo_root, toml_filename=toml_filename, toml_section='tool.autopypath')
     str_repr = str(config)
     assert 'TomlConfig' in str_repr, 'TOML_028 Expected __str__ to contain class name'
     assert 'paths' in str_repr, 'TOML_029 Expected __str__ to contain paths attribute'
@@ -335,7 +335,7 @@ def test_toml_good_repo_markers(tmp_path: Path) -> None:
 repo_markers = {'.git'='dir', 'setup.py'='file'}
 """)
     try:
-        config = TomlConfig(repo_root_path=repo_root, toml_filename=toml_filename, toml_section='tool.autopypath')
+        config = _TomlConfig(repo_root_path=repo_root, toml_filename=toml_filename, toml_section='tool.autopypath')
     except Exception as e:
         pytest.fail(f'TOML_033 Initialization of TomlConfig with valid repo_markers failed with exception: {e}')
     assert config.repo_markers == {'.git': MarkerType.DIR, 'setup.py': MarkerType.FILE}, (
@@ -356,7 +356,7 @@ paths = ['src', 'lib']
 
     toml_section = 'tool.autopypath'
     try:
-        TomlConfig(repo_root_path=repo_root, toml_filename=toml_filename, toml_section=toml_section)
+        _TomlConfig(repo_root_path=repo_root, toml_filename=toml_filename, toml_section=toml_section)
     except ValueError:
         return
     pytest.fail('TOML_035 Expected ValueError when toml_filename has invalid value')
@@ -379,7 +379,7 @@ paths = ['src', 'lib']
     bad_toml_filename = 123  # Invalid type
 
     try:
-        TomlConfig(
+        _TomlConfig(
             repo_root_path=repo_root,
             toml_filename=bad_toml_filename,  # type: ignore
             toml_section=toml_section,
@@ -402,7 +402,7 @@ paths = ['src', 'lib']
     toml_section = 'tool.autopypath'
 
     try:
-        TomlConfig(repo_root_path=repo_root, toml_filename=toml_filename, toml_section=toml_section)
+        _TomlConfig(repo_root_path=repo_root, toml_filename=toml_filename, toml_section=toml_section)
     except ValueError:
         return
     pytest.fail('TOML_037 Expected ValueError when toml_filename does not have .toml suffix')
@@ -420,7 +420,7 @@ paths = ['src', 'lib']
 """)
     bad_toml_section = ''  # Invalid empty string for section name
     try:
-        TomlConfig(repo_root_path=repo_root, toml_filename=toml_filename, toml_section=bad_toml_section)
+        _TomlConfig(repo_root_path=repo_root, toml_filename=toml_filename, toml_section=bad_toml_section)
     except ValueError:
         return
     pytest.fail('TOML_038 Expected ValueError when toml_section is an empty string')
@@ -438,7 +438,7 @@ paths = ['src', 'lib']
 """)
     bad_toml_section = 456  # Invalid type for section name
     try:
-        TomlConfig(
+        _TomlConfig(
             repo_root_path=repo_root,
             toml_filename=toml_filename,
             toml_section=bad_toml_section,  # type: ignore
@@ -471,7 +471,7 @@ paths = ['src', 'lib']
         'tool_-autopypath',
     ]:
         try:
-            TomlConfig(repo_root_path=repo_root, toml_filename=toml_filename, toml_section=bad_toml_section)
+            _TomlConfig(repo_root_path=repo_root, toml_filename=toml_filename, toml_section=bad_toml_section)
         except ValueError:
             continue
         bad_passed_sections.append(bad_toml_section)
@@ -492,7 +492,7 @@ def test_toml_section_invalid_start_end_chars(tmp_path: Path) -> None:
 paths = ['src', 'lib']
 """)
     try:
-        TomlConfig(repo_root_path=repo_root, toml_filename=toml_filename, toml_section='-tool.autopypath')
+        _TomlConfig(repo_root_path=repo_root, toml_filename=toml_filename, toml_section='-tool.autopypath')
     except ValueError:
         return
 
@@ -504,7 +504,7 @@ def test_toml_repo_root_path_is_none() -> None:
     toml_filename = 'toml_file.toml'
     toml_section = 'tool.autopypath'
 
-    config = TomlConfig(repo_root_path=None, toml_filename=toml_filename, toml_section=toml_section)
+    config = _TomlConfig(repo_root_path=None, toml_filename=toml_filename, toml_section=toml_section)
 
     assert config.paths is None, 'TOML_042 Expected paths to be None when repo_root_path is None'
     assert config.repo_markers is None, 'TOML_043 Expected repo_markers to be None when repo_root_path is None'
@@ -529,7 +529,7 @@ def test_toml_config_paths(tmp_path: Path) -> None:
 [tool.autopypath]
 paths = ["src", "tests"]
 """)
-    config = TomlConfig(repo_root_path=tmp_path, toml_filename='config.toml', toml_section='tool.autopypath')
+    config = _TomlConfig(repo_root_path=tmp_path, toml_filename='config.toml', toml_section='tool.autopypath')
     assert isinstance(config.paths, Sequence), 'TOML_048 Expected paths to be a sequence type'
     assert len(config.paths) == 2, 'TOML_049 Expected paths list to have length 2'
     assert str(config.paths[0].name) == 'src', 'TOML_050 Expected first path to be "src"'

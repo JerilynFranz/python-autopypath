@@ -10,9 +10,9 @@ initializes correctly and that __repr__ and __str__ methods work as expected for
 
 from pathlib import Path
 
-from autopypath._config_py_path._config._config import Config
-from autopypath._config_py_path._config._autopypath import AutopypathConfig
-from autopypath._config_py_path._config._toml import TomlConfig
+from autopypath._config_py_path._config._config import _Config
+from autopypath._config_py_path._config._autopypath import _AutopypathConfig
+from autopypath._config_py_path._config._toml import _TomlConfig
 
 
 def test_autopypath_config_init(tmp_path: Path) -> None:
@@ -20,10 +20,10 @@ def test_autopypath_config_init(tmp_path: Path) -> None:
     autopypath_path.write_text("""
 [tool.autopypath]
 """)
-    config = AutopypathConfig(repo_root_path=tmp_path)
-    assert isinstance(config, AutopypathConfig), 'AUTOPYPATH_001 Expected config to be an instance of AutopypathConfig'
-    assert isinstance(config, TomlConfig), 'AUTOPYPATH_002 Expected config to be an instance of TomlConfig'
-    assert isinstance(config, Config), 'AUTOPYPATH_003 Expected config to be an instance of Config'
+    config = _AutopypathConfig(repo_root_path=tmp_path)
+    assert isinstance(config, _AutopypathConfig), 'AUTOPYPATH_001 Expected config to be an instance of AutopypathConfig'
+    assert isinstance(config, _TomlConfig), 'AUTOPYPATH_002 Expected config to be an instance of TomlConfig'
+    assert isinstance(config, _Config), 'AUTOPYPATH_003 Expected config to be an instance of Config'
     assert config.repo_markers is None, 'AUTOPYPATH_004 Expected repo_markers to be None for empty config'
     assert config.paths is None, 'AUTOPYPATH_005 Expected paths to be None for empty config'
     assert config.load_strategy is None, 'AUTOPYPATH_006 Expected load_strategy to be None for empty config'
@@ -37,7 +37,7 @@ def test_autopypath_config_repr(tmp_path: Path) -> None:
     autopypath_path.write_text("""
 [tool.autopypath]
 """)
-    config = AutopypathConfig(repo_root_path=tmp_path)
+    config = _AutopypathConfig(repo_root_path=tmp_path)
     expected_repr = f'AutopypathConfig(repo_root_path={str(tmp_path)!r})'
     assert repr(config) == expected_repr, 'AUTOPYPATH_008 __repr__ output does not match expected format'
 
@@ -50,6 +50,6 @@ def test_autopypath_config_str(tmp_path: Path) -> None:
     autopypath_path.write_text("""
 [tool.autopypath]
 """)
-    config = AutopypathConfig(repo_root_path=tmp_path)
+    config = _AutopypathConfig(repo_root_path=tmp_path)
     expected_str = f'AutopypathConfig(repo_root_path={str(tmp_path)!r})'
     assert str(config) == expected_str, 'AUTOPYPATH_010 __str__ output does not match expected format'

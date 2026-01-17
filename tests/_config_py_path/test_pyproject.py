@@ -11,9 +11,9 @@ initializes correctly and that __repr__ and __str__ methods work as expected for
 from collections.abc import Sequence
 from pathlib import Path
 
-from autopypath._config_py_path._config._config import Config
-from autopypath._config_py_path._config._pyproject import PyProjectConfig
-from autopypath._config_py_path._config._toml import TomlConfig
+from autopypath._config_py_path._config._config import _Config
+from autopypath._config_py_path._config._pyproject import _PyProjectConfig
+from autopypath._config_py_path._config._toml import _TomlConfig
 
 
 def test_pyproject_config_init(tmp_path: Path) -> None:
@@ -21,10 +21,10 @@ def test_pyproject_config_init(tmp_path: Path) -> None:
     pyproject_path.write_text("""
 [tool.autopypath]
 """)
-    config = PyProjectConfig(repo_root_path=tmp_path)
-    assert isinstance(config, PyProjectConfig), 'PYPROJECT_001 Expected config to be an instance of PyProjectConfig'
-    assert isinstance(config, TomlConfig), 'PYPROJECT_002 Expected config to be an instance of TomlConfig'
-    assert isinstance(config, Config), 'PYPROJECT_003 Expected config to be an instance of Config'
+    config = _PyProjectConfig(repo_root_path=tmp_path)
+    assert isinstance(config, _PyProjectConfig), 'PYPROJECT_001 Expected config to be an instance of PyProjectConfig'
+    assert isinstance(config, _TomlConfig), 'PYPROJECT_002 Expected config to be an instance of TomlConfig'
+    assert isinstance(config, _Config), 'PYPROJECT_003 Expected config to be an instance of Config'
     assert config.repo_markers is None, 'PYPROJECT_004 Expected repo_markers to be None for empty config'
     assert config.paths is None, 'PYPROJECT_005 Expected paths to be None for empty config'
     assert config.load_strategy is None, 'PYPROJECT_006 Expected load_strategy to be None for empty config'
@@ -38,7 +38,7 @@ def test_pyproject_config_repr(tmp_path: Path) -> None:
     pyproject_path.write_text("""
 [tool.autopypath]
 """)
-    config = PyProjectConfig(repo_root_path=tmp_path)
+    config = _PyProjectConfig(repo_root_path=tmp_path)
     expected_repr = f'PyProjectConfig(repo_root_path={str(tmp_path)!r})'
     assert repr(config) == expected_repr, 'PYPROJECT_008 __repr__ output does not match expected format'
 
@@ -51,7 +51,7 @@ def test_pyproject_config_str(tmp_path: Path) -> None:
     pyproject_path.write_text("""
 [tool.autopypath]
 """)
-    config = PyProjectConfig(repo_root_path=tmp_path)
+    config = _PyProjectConfig(repo_root_path=tmp_path)
     expected_str = f'PyProjectConfig(repo_root_path={str(tmp_path)!r})'
     assert str(config) == expected_str, 'PYPROJECT_010 __str__ output does not match expected format'
 
@@ -63,7 +63,7 @@ def test_pyproject_config_paths(tmp_path: Path) -> None:
 [tool.autopypath]
 paths = ["src", "tests"]
 """)
-    config = PyProjectConfig(repo_root_path=tmp_path)
+    config = _PyProjectConfig(repo_root_path=tmp_path)
     assert isinstance(config.paths, Sequence), (
         f'PYPROJECT_011 Expected paths to be a sequence type: {type(config.paths)!r}'
     )

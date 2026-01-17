@@ -1,7 +1,7 @@
 """Config for manual configuration of autopypath."""
 
-from ._config import Config
+from ._config import _Config
 
 
-class ManualConfig(Config):
+class _ManualConfig(_Config):
     """Configuration for autopypath using manual parameters."""

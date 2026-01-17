@@ -7,7 +7,7 @@ from typing import Union, Any
 
 import tomli
 
-from ._config import Config
+from ._config import _Config
 from ..._load_strategy import LoadStrategy
 from ..._marker_type import MarkerType
 from ..._path_resolution import PathResolution
@@ -15,7 +15,7 @@ from ...types import _NoPath
 from ... import _validate
 from ..._log import log
 
-__all__ = ['TomlConfig']
+__all__ = ['_TomlConfig']
 
 
 _TOML_TYPES: dict[type, str] = {
@@ -32,7 +32,7 @@ _TOML_TYPES: dict[type, str] = {
 """Mapping of Python types to TOML types for error messages."""
 
 
-class TomlConfig(Config):
+class _TomlConfig(_Config):
     """Configuration for autopypath using toml files."""
 
     __slots__ = ('_repo_root_path', '_toml_filepath', '_toml_section', '_no_file_found')

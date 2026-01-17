@@ -12,11 +12,11 @@ from .._marker_type import MarkerType
 from .._path_resolution import PathResolution
 from .._load_strategy import LoadStrategy
 from ..types import RepoMarkerLiterals, LoadStrategyLiterals, PathResolutionLiterals
-from ._config import AutopypathConfig, DefaultConfig, ManualConfig, PyProjectConfig, DotEnvConfig
+from ._config import _AutopypathConfig, _DefaultConfig, _ManualConfig, _PyProjectConfig, _DotEnvConfig
 
 __all__ = []
 
-_EMPTY_AUTOPYPATH_CONFIG: AutopypathConfig = AutopypathConfig(None)
+_EMPTY_AUTOPYPATH_CONFIG: _AutopypathConfig = _AutopypathConfig(None)
 """An empty AutopypathConfig instance used when no autopypath.toml is found."""
 
 
@@ -130,13 +130,13 @@ class _ConfigPyPath:
         self._context_file: Path = _validate.context_file(context_file)
         """The file path of the script that is configuring the Python path."""
 
-        self._autopypath: Union[AutopypathConfig, None] = None
+        self._autopypath: Union[_AutopypathConfig, None] = None
         """Configuration loaded from autopypath.toml.
 
         It is ``None`` if no autopypath.toml file is found during the repo root search.
         """
 
-        self._manual = ManualConfig(
+        self._manual = _ManualConfig(
             repo_markers=repo_markers,
             paths=paths,
             load_strategy=load_strategy,
@@ -144,16 +144,16 @@ class _ConfigPyPath:
         )
         """Manual configuration provided directly to the function."""
 
-        self._default = DefaultConfig()
+        self._default = _DefaultConfig()
         """Default autopypath configuration."""
 
         self._repo_root_path: Path = self._find_repo_root_path(self.context_file)
         """The repository root path based on the configured repo markers."""
 
-        self._pyproject = PyProjectConfig(self.repo_root_path)
+        self._pyproject = _PyProjectConfig(self.repo_root_path)
         """Configuration loaded from pyproject.toml (if present)."""
 
-        self._dotenv = DotEnvConfig(self.repo_root_path)
+        self._dotenv = _DotEnvConfig(self.repo_root_path)
         """Configuration loaded from .env file (if present)."""
 
         self._path_resolution_order: tuple[PathResolution, ...] = self._determine_path_resolution_order()
@@ -382,7 +382,7 @@ class _ConfigPyPath:
                 # happen because it is defined in the default markers so it can be used
                 # to identify the repo root if wanted).
                 else:
-                    self._autopypath = AutopypathConfig(current_path)
+                    self._autopypath = _AutopypathConfig(current_path)
                     if self.manual_config.repo_markers is None:
                         repo_markers = self.autopypath_config.repo_markers or repo_markers
 
@@ -451,7 +451,7 @@ class _ConfigPyPath:
         return self._context_file
 
     @property
-    def manual_config(self) -> ManualConfig:
+    def manual_config(self) -> _ManualConfig:
         """Manual configuration provided directly to the function.
 
         :return ManualConfig: The manual configuration.
@@ -459,14 +459,14 @@ class _ConfigPyPath:
         return self._manual
 
     @property
-    def autopypath_config(self) -> AutopypathConfig:
+    def autopypath_config(self) -> _AutopypathConfig:
         """Configuration loaded from autopypath.toml."""
         if self._autopypath is None:
             return _EMPTY_AUTOPYPATH_CONFIG  # Special empty config
         return self._autopypath
 
     @property
-    def pyproject_config(self) -> PyProjectConfig:
+    def pyproject_config(self) -> _PyProjectConfig:
         """Configuration loaded from pyproject.toml.
 
         :return PyProjectConfig: The pyproject.toml configuration.
@@ -474,7 +474,7 @@ class _ConfigPyPath:
         return self._pyproject
 
     @property
-    def dotenv_config(self) -> DotEnvConfig:
+    def dotenv_config(self) -> _DotEnvConfig:
         """Configuration loaded from .env file.
 
         :return DotEnvConfig: The .env file configuration.
@@ -482,7 +482,7 @@ class _ConfigPyPath:
         return self._dotenv
 
     @property
-    def default_config(self) -> DefaultConfig:
+    def default_config(self) -> _DefaultConfig:
         """Default autopypath configuration.
 
         :return DefaultConfig: The default configuration.

@@ -15,12 +15,12 @@ The available configuration classes include:
 """
 # ruff: noqa F401
 
-from ._config import Config
-from ._default import DefaultConfig
-from ._dotenv import DotEnvConfig
-from ._manual import ManualConfig
-from ._toml import TomlConfig
-from ._pyproject import PyProjectConfig
-from ._autopypath import AutopypathConfig
+from ._config import _Config
+from ._default import _DefaultConfig
+from ._dotenv import _DotEnvConfig
+from ._manual import _ManualConfig
+from ._toml import _TomlConfig
+from ._pyproject import _PyProjectConfig
+from ._autopypath import _AutopypathConfig
 
 __all__ = []

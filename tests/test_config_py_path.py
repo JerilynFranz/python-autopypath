@@ -202,7 +202,7 @@ def test_configured_pyproject_config(tmp_path: Path) -> None:
     # Note: only "src" exists, "tests" does not exist
     pyproject_path.write_text("""
 [tool.autopypath]
-load_strategy = "replace"
+load_strategy = "prepend_highest_priority"
 path_resolution_order = ["manual", "autopypath", "pyproject", "dotenv"]
 repo_markers = {".git" = "dir", "setup.py" = "file"}
 paths=["src", "tests"]
@@ -212,8 +212,8 @@ paths=["src", "tests"]
         dry_run=True,
     )
     pyproject_config = config.pyproject_config
-    assert pyproject_config.load_strategy == 'replace', (
-        'PYPROJECT_CONFIGURED_001 pyproject_config.load_strategy should be LoadStrategy.REPLACE'
+    assert pyproject_config.load_strategy == 'prepend_highest_priority', (
+        'PYPROJECT_CONFIGURED_001 pyproject_config.load_strategy should be LoadStrategy.PREPEND_HIGHEST_PRIORITY'
     )
     assert pyproject_config.path_resolution_order == (
         'manual',
@@ -386,3 +386,48 @@ PYTHONPATH=src:tests
         )
     else:
         pytest.fail('DOTENV_CONFIGURED_009 dotenv_config.paths should be a list')
+
+
+def test_manual_config(tmp_path: Path) -> None:
+    """Tests that _ConfigPyPath.manual_config returns an empty config when no manual
+    configuration is provided.
+
+    Uses a temporary directory to simulate a repository without any manual configuration.
+    """
+    root_path = tmp_path / 'repo'
+    root_path.mkdir()
+    root_path.joinpath('some_file.txt').write_text('Just a test file.')
+    hg_path = root_path / '.hg'
+    hg_path.mkdir()
+
+    config = _ConfigPyPath(
+        context_file=str(root_path / 'some_file.txt'),
+        dry_run=True,
+        load_strategy='prepend',
+        path_resolution_order=['manual', 'autopypath'],
+        paths=['src', 'tests'],
+        repo_markers={'.hg': 'dir'},
+    )
+
+    manual_config = config.manual_config
+    assert manual_config.load_strategy, 'MANUAL_CONFIG_001 manual_config.load_strategy should not be None'
+    assert manual_config.path_resolution_order, (
+        'MANUAL_CONFIG_002 manual_config.path_resolution_order should not be None'
+    )
+    assert isinstance(manual_config.paths, Sequence), 'MANUAL_CONFIG_003 manual_config.paths should be a Sequence'
+    assert manual_config.repo_markers == {'.hg': 'dir'}, (
+        'MANUAL_CONFIG_004 manual_config.repo_markers should match the provided manual configuration'
+    )
+
+    if isinstance(manual_config.paths, Sequence):
+        assert len(manual_config.paths) == 2, (
+            'MANUAL_CONFIG_005 manual_config.paths should have length 2 because src and tests were provided'
+        )
+        assert str(manual_config.paths[0].name) == 'src', (
+            'MANUAL_CONFIG_006 manual_config.paths should match the provided manual configuration paths'
+        )
+        assert str(manual_config.paths[1].name) == 'tests', (
+            'MANUAL_CONFIG_007 manual_config.paths should match the provided manual configuration paths'
+        )
+    else:
+        pytest.fail('MANUAL_CONFIG_008 manual_config.paths should be a list')

@@ -3,12 +3,12 @@
 from pathlib import Path
 from typing import Union
 
-from ._toml import TomlConfig
+from ._toml import _TomlConfig
 
-__all__ = ['AutopypathConfig']
+__all__ = ['_AutopypathConfig']
 
 
-class AutopypathConfig(TomlConfig):
+class _AutopypathConfig(_TomlConfig):
     """Configuration for autopypath using autopypath.toml files."""
 
     def __init__(self, repo_root_path: Union[Path, None]) -> None:

@@ -8,10 +8,10 @@ from ..._log import log
 from ..._load_strategy import LoadStrategy
 from ..._path_resolution import PathResolution
 from ..._marker_type import MarkerType
-from ._config import Config
+from ._config import _Config
 
 
-class DefaultConfig(Config):
+class _DefaultConfig(_Config):
     """Default configuration for autopypath."""
 
     def __init__(self) -> None:

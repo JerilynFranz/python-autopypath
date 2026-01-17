@@ -10,12 +10,12 @@ import dotenv
 
 from ... import _validate
 from ..._log import log
-from ._config import Config
+from ._config import _Config
 
-__all__ = ['DotEnvConfig']
+__all__ = ['_DotEnvConfig']
 
 
-class DotEnvConfig(Config):
+class _DotEnvConfig(_Config):
     """Configuration for autopypath using dotenv files."""
 
     def __init__(self, repo_root_path: 'Path') -> None:
