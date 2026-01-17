@@ -5,7 +5,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from enum import Enum
 from types import TracebackType
-from typing import Any, Callable, NoReturn, Optional
+from typing import Any, Callable, NoReturn, Optional, Union
 
 from .assertions import Assert, validate_assertion
 from .base import TestSpec
@@ -88,11 +88,11 @@ class TestSetGet(TestSpec):
     """The name of the attribute to be retrieved for 'expected' validation. If None, use the same as `attribute`."""
     set_exception: Optional[type[Exception]] = None
     """Expected exception type (if any) to be raised by setting the attribute."""
-    set_exception_tag: Optional[str | Enum] = None
+    set_exception_tag: Optional[Union[str, Enum]] = None
     """Expected tag (if any) to be found in an exception message raised by setting the attribute."""
     get_exception: Optional[type[Exception]] = None
     """Expected exception type (if any) to be raised by getting the attribute."""
-    get_exception_tag: Optional[str | Enum] = None
+    get_exception_tag: Optional[Union[str, Enum]] = None
     """Expected tag (if any) to be found in an exception message raised by getting the attribute."""
     validate: Optional[Callable[[TestSetGet, Any], None | NoReturn]] = None
     """Function to validate obj state after setting the attribute. It should raise an exception

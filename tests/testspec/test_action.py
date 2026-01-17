@@ -5,7 +5,7 @@ import logging
 from dataclasses import dataclass
 from enum import Enum
 from types import TracebackType
-from typing import Any, NoReturn, Optional
+from typing import Any, NoReturn, Optional, Union
 
 from .assertions import Assert, expected_argument_required, validate_assertion
 from .base import TestSpec
@@ -91,11 +91,11 @@ class TestAction(TestSpec):
     """Validate an attribute of the result instead of the result itself."""
     exception: Optional[type[BaseException]] = None
     """Expected exception type (if any) to be raised by the action."""
-    exception_tag: Optional[str | Enum] = None
+    exception_tag: Optional[Union[str,  Enum]] = None
     """Expected tag (if any) to be found in the exception message."""
-    display_on_fail: str | Callable[[], str] = ''
+    display_on_fail: Union[str, Callable[[], str]] = ''
     """String or function to display additional information on test failure."""
-    on_fail: Callable[[str], NoReturn] | None = None
+    on_fail: Optional[Callable[[str], NoReturn]] = None
     """Function to call on test failure. (default is pytest.fail)
 
     The function must accept a single string argument containing the failure message

@@ -7,7 +7,7 @@ each test case for Pytest.
 """
 
 from collections.abc import Callable
-from typing import Any, NoReturn, Optional
+from typing import Any, NoReturn, Optional, Union
 
 
 from .base import TestSpec
@@ -64,7 +64,7 @@ class PytestAction(TestSpec):
         validate_attr: Optional[str] = None,
         exception: Optional[type[BaseException]] = None,
         exception_tag: Optional[str] = None,
-        display_on_fail: str | Callable[[], str] = '',
+        display_on_fail: Union[str, Callable[[], str]] = '',
         on_fail: Optional[Callable[[str], NoReturn]] = None,
         extra: Any = None,
     ) -> Any:
