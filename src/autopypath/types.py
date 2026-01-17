@@ -4,7 +4,7 @@ from pathlib import PurePath
 
 
 class NoPath(PurePath):
-    """A special Path type representing the absence of a path.
+    """A custom Path type representing the absence of a path.
 
     This class is used to indicate that no valid path is available or applicable.
     It inherits from :class:`~pathlib.PurePath` to maintain compatibility with path operations,
