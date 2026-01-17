@@ -13,6 +13,7 @@ __all__ = []
 REPO_MARKERS: Final[MappingProxyType[str, MarkerType]] = MappingProxyType(
     {
         'pyproject.toml': MarkerType.FILE,
+        'autopypath.toml': MarkerType.FILE,
         '.git': MarkerType.DIR,  # Git repository marker
         '.hg': MarkerType.DIR,  # Mercurial repository marker
         '.svn': MarkerType.DIR,  # Subversion repository marker
@@ -29,8 +30,11 @@ Default markers are:
 - ``pyproject.toml``: Indicates the repository root by the presence of this file.
 - ``autopypath.toml``: Indicates the repository root by the presence of this file.
     Note that there is special behavior for this marker if found. If it changes
-    the repo_markers settings, the repo root is re-evaluated using the new settings
+    the repo_markers settings, the directory it is found in is evaluated using the new settings
     and that may result in a different repository root being identified.
+
+    This allows autopypath.toml to be used to directly identify the repository root
+    OR to customize the repo markers used to actually identify the repository root
 - ``.git``: Indicates a Git repository root by the presence of this directory.
 - ``.hg``: Indicates a Mercurial repository root by the presence of this directory.
 - ``.svn``: Indicates a Subversion repository root by the presence of this directory.

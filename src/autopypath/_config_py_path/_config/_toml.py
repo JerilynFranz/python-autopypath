@@ -10,6 +10,7 @@ import tomli
 from ._config import Config
 from ...load_strategy import LoadStrategy
 from ...marker_type import MarkerType
+from ...types import NoPath
 from ... import _validate
 from ..._log import log
 
@@ -35,20 +36,29 @@ class TomlConfig(Config):
 
     __slots__ = ('_repo_root_path', '_toml_filepath', '_toml_section')
 
-    def __init__(self, repo_root_path: Path, toml_filename: str, toml_section: str) -> None:
+    def __init__(self, repo_root_path: Union[Path, None], toml_filename: str, toml_section: str) -> None:
         """Configuration for autopypath using toml files.
 
-        :param Path repo_root_path: The root path of the repository containing the toml file.
-            resolve :func:`sys.path` sources. Specified as a sequence of :class:`PathResolution` enums.
+        :param Path | None repo_root_path: The root path of the repository containing the toml file.
+            If ``None``, a special empty configuration is created with the :attr:`toml_filepath` property
+            set to a :class:`NoPath` instance (a custom Path subclass representing the absence of a path).
+            The configuration attributes (:attr:`repo_markers`, :attr:`paths`, :attr:`load_strategy`, and
+            :attr:`path_resolution_order`) will all be set to ``None`` in this case.
         :param str toml_filename: The name of the toml file to load (e.g., 'pyproject.toml', 'autopypath.toml').
         :param str toml_section: The section in the toml file to load (e.g., 'tool.autopypath').
         :raises TypeError: If any configuration value is of an invalid type (ex. string instead of table).
         :raises ValueError: If any configuration value is invalid.
         :raises FileNotFoundError: If the toml file does not exist.
         """
-        self._repo_root_path: Path = _validate.root_repo_path(repo_root_path)
-        self._toml_filepath: Path = _validate.toml_filename(toml_filename)
+        self._repo_root_path: Path = NoPath()
+        self._toml_filepath: Path = NoPath()
         self._toml_section: str = _validate.toml_section(toml_section)
+
+        if repo_root_path is None:
+            super().__init__(repo_markers=None, paths=None, load_strategy=None, path_resolution_order=None)
+            return
+        self._repo_root_path = _validate.root_repo_path(repo_root_path)
+        self._toml_filepath = _validate.toml_filename(toml_filename)
 
         # toml data
         toml_data = self._toml_data()
@@ -78,6 +88,24 @@ class TomlConfig(Config):
             load_strategy=load_strategy,
             path_resolution_order=path_resolution_order,
         )
+
+    @property
+    def toml_filepath(self) -> Path:
+        """Returns the toml file path used for this configuration.
+
+        :return Path: The toml file path.
+        """
+        if self._toml_filepath is None:
+            return Path('')
+        return self._toml_filepath
+
+    @property
+    def toml_section(self) -> str:
+        """Returns the toml section used for this configuration.
+
+        :return str: The toml section.
+        """
+        return self._toml_section
 
     def _toml_data(self) -> dict[str, Any]:
         """Loads and returns the toml data as a dictionary.
@@ -242,8 +270,9 @@ class TomlConfig(Config):
 
         :return str: A string representation of the TomlConfig instance.
         """
+        repo_root_str = 'None' if isinstance(self._repo_root_path, NoPath) else f'{str(self._repo_root_path)!r}'
         return (
-            f'{self.__class__.__name__}(repo_root_path={str(self._repo_root_path)!r}, '
+            f'{self.__class__.__name__}(repo_root_path={repo_root_str}, '
             f'toml_filename={str(self._toml_filepath)!r}, '
             f'toml_section={self._toml_section!r})\n'
             f'#  repo_markers={self.repo_markers!r}\n'

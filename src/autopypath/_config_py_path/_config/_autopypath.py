@@ -1,6 +1,7 @@
 """autopypath.toml configuration module for autopypath."""
 
 from pathlib import Path
+from typing import Union
 
 from ._toml import TomlConfig
 
@@ -10,7 +11,7 @@ __all__ = ['AutopypathConfig']
 class AutopypathConfig(TomlConfig):
     """Configuration for autopypath using autopypath.toml files."""
 
-    def __init__(self, repo_root_path: 'Path') -> None:
+    def __init__(self, repo_root_path: Union[Path, None]) -> None:
         """Configuration for autopypath using autopypath.toml files.
 
         If a ``autopypath.toml`` file is not found in the provided repository root path,
@@ -19,7 +20,11 @@ class AutopypathConfig(TomlConfig):
         If the ``autopypath.toml`` file is found, it will parse the relevant
         autopypath configuration under the ``[tool.autopypath]`` section.
 
-        :param Path repo_root_path: The root path of the repository containing a autopypath.toml file.
+        :param Path | None repo_root_path: The root path of the repository containing the toml file.
+            If ``None``, a special empty configuration is created with the :attr:`toml_filepath` property
+            set to a :class:`NoPath` instance (a custom Path subclass representing the absence of a path).
+            The configuration attributes (:attr:`repo_markers`, :attr:`paths`, :attr:`load_strategy`, and
+            :attr:`path_resolution_order`) will all be set to ``None`` in this case.
         :raises ValueError: If the provided repo_root_path is not a valid directory.
         """
         super().__init__(repo_root_path=repo_root_path, toml_filename='autopypath.toml', toml_section='tool.autopypath')

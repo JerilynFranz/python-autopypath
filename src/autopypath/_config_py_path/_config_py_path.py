@@ -10,7 +10,7 @@ from .._log import log
 from ..marker_type import MarkerType
 from ..path_resolution import PathResolution
 from ..load_strategy import LoadStrategy
-from ._config import DefaultConfig, ManualConfig, PyProjectConfig, DotEnvConfig
+from ._config import AutopypathConfig, DefaultConfig, ManualConfig, PyProjectConfig, DotEnvConfig
 
 __all__ = []
 
@@ -21,8 +21,10 @@ class ConfigPyPath:
     __slots__ = (
         '_context_file',
         '_repo_root_path',
+        '_repo_search_autopypath',
         '_manual',
         '_pyproject',
+        '_autopypath',
         '_dotenv',
         '_default',
         '_path_resolution_order',
@@ -58,7 +60,7 @@ class ConfigPyPath:
         :param Path context_file: The file path of the script that is configuring the Python path.
         :param Mapping[str, MarkerType] | None repo_markers: A dictionary where keys are
             filenames or directory names that indicate the repository root.
-            The values should be `file` or `dir`.
+            The values should be `file` or `dir`. It is case-sensitive.
 
             If ``None``, defaults to :var:`~autopypath.defaults.REPO_MARKERS`.
 
@@ -102,6 +104,20 @@ class ConfigPyPath:
 
         self._context_file: Path = _validate.context_file(context_file)
         """The file path of the script that is configuring the Python path."""
+
+        self._repo_search_autopypath: Union[AutopypathConfig, None] = None
+        """Configuration loaded from autopypath.toml.
+
+        This is the config from the autopypath.toml file if it has been
+        seen and parsed, otherwise None. This is used during the process of
+        finding the repo root and loading other configurations but not
+        directly used for path resolution or exposed to the user.
+        """
+        self._autopypath: Union[AutopypathConfig, None] = None
+        """Configuration loaded from autopypath.toml.
+
+        It is ``None`` if no autopypath.toml file is found during the repo root search.
+        """
 
         self._repo_root_path: Path = self._find_repo_root_path()
         """The repository root path based on the configured repo markers."""
@@ -182,18 +198,22 @@ class ConfigPyPath:
         for source in self._path_resolution_order:
             match source:
                 case PathResolution.MANUAL:
-                    source_paths = self._manual.paths
+                    source_paths = self.manual_config.paths
                     log.debug('Resolving paths from MANUAL source: %s', source_paths)
+                case PathResolution.AUTOPYPATH:
+                    source_paths = self.autopypath_config.paths
+                    log.debug('Resolving paths from AUTOPYPATH source: %s', source_paths)
                 case PathResolution.PYPROJECT:
-                    source_paths = self._pyproject.paths
+                    source_paths = self.pyproject_config.paths
                     log.debug('Resolving paths from PYPROJECT source: %s', source_paths)
                 case PathResolution.DOTENV:
-                    source_paths = self._dotenv.paths
+                    source_paths = self.dotenv_config.paths
                     log.debug('Resolving paths from DOTENV source: %s', source_paths)
                 case _:
                     log.warning('Unknown path resolution source: %s', source)
                     continue
 
+            # If this source has no paths, skip it
             if not source_paths:
                 continue
 
@@ -203,11 +223,11 @@ class ConfigPyPath:
                     log.debug('Load strategy REPLACE: Appending paths %s from %s', source_paths, source)
                     break
                 case LoadStrategy.PREPEND_HIGHEST_PRIORITY:
-                    log.debug('Load strategy MERGE_HIGHEST_PRIORITY: Using paths %s from %s', source_paths, source)
+                    log.debug('Load strategy PREPEND_HIGHEST_PRIORITY: Using paths %s from %s', source_paths, source)
                     raw_paths = list(source_paths)
                     break
                 case LoadStrategy.PREPEND:
-                    log.debug('Load strategy MERGE: Appending paths %s from %s', source_paths, source)
+                    log.debug('Load strategy PREPEND: Appending paths %s from %s', source_paths, source)
                     raw_paths.extend(source_paths)
                 case _:  # pragma: no cover  # should never happen due to earlier validation
                     raise ValueError(f'Unknown load strategy: {self._load_strategy}')
@@ -236,46 +256,61 @@ class ConfigPyPath:
 
         It looks for the strategy in the following precedence:
         1. Manual configuration provided directly to the function.
-        2. Configuration loaded from pyproject.toml.
-        3. Default autopypath configuration.
+        2. Configuration loaded from autopypath.toml.
+        3. Configuration loaded from pyproject.toml.
+        4. Default autopypath configuration.
 
         The first source that provides a non-None strategy is used.
 
         :return LoadStrategy: The strategy for handling multiple :var:`sys.path` sources.
         """
-        if self._manual.load_strategy is not None:
-            strategy = LoadStrategy(self._manual.load_strategy)
+        if self.manual_config.load_strategy is not None:
+            strategy = LoadStrategy(self.manual_config.load_strategy)
             log.debug('Using manual load strategy: %s', strategy)
             return strategy
-        if self._pyproject.load_strategy is not None:
-            strategy = LoadStrategy(self._pyproject.load_strategy)
+
+        if self.autopypath_config.load_strategy is not None:
+            strategy = LoadStrategy(self.autopypath_config.load_strategy)
+            log.debug('Using autopypath.toml load strategy: %s', strategy)
+            return strategy
+
+        if self.pyproject_config.load_strategy is not None:
+            strategy = LoadStrategy(self.pyproject_config.load_strategy)
             log.debug('Using pyproject.toml load strategy: %s', strategy)
             return strategy
-        log.debug('Using default load strategy: %s', self._default.load_strategy)
-        return self._default.load_strategy
+
+        log.debug('Using default load strategy: %s', self.default_config.load_strategy)
+        return self.default_config.load_strategy
 
     def _determine_path_resolution_order(self) -> tuple[PathResolution, ...]:
         """Determines the order in which to resolve :var:`sys.path` sources.
 
-        It looks for the order in the following precedence:
+        It looks for the order in the following precedence sequence:
         1. Manual configuration provided directly to the function.
-        2. Configuration loaded from pyproject.toml.
-        3. Default autopypath configuration.
+        2. Configuration loaded from autopypath.toml.
+        3. Configuration loaded from pyproject.toml.
+        4. Default autopypath configuration.
 
         The first source that provides a non-None order is used.
 
         :return tuple[PathResolution, ...]: The order in which to resolve :var:`sys.path` sources.
         """
-        if self._manual.path_resolution_order is not None:
-            order = tuple(PathResolution(item) for item in self._manual.path_resolution_order)
+        if self.manual_config.path_resolution_order is not None:
+            order = tuple(PathResolution(item) for item in self.manual_config.path_resolution_order)
             log.debug('Using manual path resolution order: %s', order)
             return order
-        if self._pyproject.path_resolution_order is not None:
-            order = tuple(PathResolution(item) for item in self._pyproject.path_resolution_order)
+
+        if self.autopypath_config.path_resolution_order is not None:
+            order = tuple(PathResolution(item) for item in self.autopypath_config.path_resolution_order)
+            log.debug('Using autopypath.toml path resolution order: %s', order)
+            return order
+
+        if self.pyproject_config.path_resolution_order is not None:
+            order = tuple(PathResolution(item) for item in self.pyproject_config.path_resolution_order)
             log.debug('Using pyproject.toml path resolution order: %s', order)
             return order
-        log.debug('Using default path resolution order: %s', self._default.path_resolution_order)
-        return self._default.path_resolution_order
+        log.debug('Using default path resolution order: %s', self.default_config.path_resolution_order)
+        return self.default_config.path_resolution_order
 
     def _find_repo_root_path(self) -> Path:
         """Finds the repository root path based on the configured repo markers.
@@ -289,6 +324,24 @@ class ConfigPyPath:
 
         current_path = Path(__file__).parent.resolve()
         while True:
+            autopypath_path = current_path / 'autopypath.toml'
+            # load autopypath.toml if found during repo search (but only once)
+            if self._autopypath is None and autopypath_path.exists():
+                if not autopypath_path.is_file():
+                    log.warning(
+                        'Found autopypath.toml at %s but it is not a file - ignoring', autopypath_path.resolve()
+                    )
+                # load autopypath config for repo searching and update repo markers not set manually
+                # This is done BEFORE checking for repo markers so that autopypath.toml
+                # can redefine the repo markers used to identify the repo root if needed
+                # without accidentally triggering on its own presence first (which could
+                # happen because it is defined in the default markers so it can be used
+                # to identify the repo root if wanted).
+                else:
+                    self._autopypath = AutopypathConfig(current_path)
+                    if self._manual.repo_markers is None:
+                        repo_markers = self._autopypath.repo_markers or repo_markers
+
             for marker, typ in repo_markers.items():
                 test_path = current_path / marker
                 if typ == MarkerType.FILE and test_path.exists() and test_path.is_file():
@@ -336,6 +389,13 @@ class ConfigPyPath:
     def manual_config(self) -> ManualConfig:
         """Manual configuration provided directly to the function."""
         return self._manual
+
+    @property
+    def autopypath_config(self) -> AutopypathConfig:
+        """Configuration loaded from autopypath.toml."""
+        if self._autopypath is None:
+            return AutopypathConfig(None)  # Special empty config
+        return self._autopypath
 
     @property
     def pyproject_config(self) -> PyProjectConfig:
