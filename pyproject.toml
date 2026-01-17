@@ -36,6 +36,7 @@ classifiers = [
     "Operating System :: Microsoft :: Windows",
     "Programming Language :: Python",
     "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
@@ -52,7 +53,7 @@ classifiers = [
 dependencies = [
     "python-dotenv>=1.2.1",
     "tomli",
-    "typing-extensions >= 3.10.0.0"  # for Literal, Final, and TypeGuard in Python < 3.11
+    "typing-extensions >= 3.10.0.0"  # for Literal, Final, and other typing features on older Pythons
 ]
 
 [project.urls]
@@ -100,13 +101,15 @@ tools = [
 requires = ["tox>=4.22"]
 env_list = [ 
     "py31{0-4}",
+    "pypy31{0-1}",
+    "doctest",
     "lint",
 ]
 install_command = ["uv", "pip", "install", "{opts}", "{packages}"]
 
 # labels table for grouping environments
 [tool.tox.labels]
-test = ["py310", "py311", "py312", "py313", "py314", "pypy310", "pypy311", "doctest", "lint"]
+test = ["py39", "py310", "py311", "py312", "py313", "py314", "pypy310", "pypy311", "doctest", "lint"]
 
 # --- Base Test Environment for automation of 'run' from env_list -
 

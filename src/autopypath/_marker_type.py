@@ -3,6 +3,7 @@
 from enum import Enum
 
 from types import MappingProxyType
+from typing import Union
 
 from ._doc_utils import enum_docstrings
 from ._typing import Literal, TypeAlias, Final, TypeGuard
@@ -72,7 +73,7 @@ def is_marker_type_literal(value: str) -> TypeGuard[MarkerTypeLiteral]:
     return value in MARKER_TYPE_MAP
 
 
-def resolve_marker_type_literal(value: str) -> MarkerType | None:
+def resolve_marker_type_literal(value: str) -> Union[MarkerType, None]:
     """Resolves a string literal to its corresponding MarkerType enum member
     or returns ``None`` if the literal is invalid.
 

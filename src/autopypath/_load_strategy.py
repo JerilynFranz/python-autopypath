@@ -2,6 +2,7 @@
 
 from enum import Enum
 from types import MappingProxyType
+from typing import Union
 
 from ._doc_utils import enum_docstrings
 from ._typing import Literal, TypeAlias, Final, TypeGuard
@@ -92,7 +93,7 @@ def is_load_strategy_literal(value: str) -> TypeGuard[LoadStrategyLiteral]:
     return value in LOAD_STRATEGY_MAP
 
 
-def resolve_load_strategy_literal(value: str) -> LoadStrategy | None:
+def resolve_load_strategy_literal(value: str) -> Union[LoadStrategy, None]:
     """Resolves a string literal to its corresponding :class:`LoadStrategy` enum member
     or returns ``None`` if the literal is invalid.
 

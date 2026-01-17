@@ -2,6 +2,7 @@
 
 from enum import Enum
 from types import MappingProxyType
+from typing import Union
 from ._typing import Literal, TypeAlias, Final, TypeGuard
 
 
@@ -76,7 +77,7 @@ def is_path_resolution_literal(value: str) -> TypeGuard[PathResolutionLiteral]:
     return value in PATH_RESOLUTION_MAP
 
 
-def resolve_path_resolution_literal(value: str) -> PathResolution | None:
+def resolve_path_resolution_literal(value: str) -> Union[PathResolution, None]:
     """Resolves a string literal to its corresponding PathResolution enum member
     or returns ``None`` if the literal is invalid.
 

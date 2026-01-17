@@ -19,26 +19,26 @@ __all__ = []
 # This is a 'feature detection' pattern to support multiple Python versions
 # without having to know exactly which versions support which features.
 try:
-    from typing import Literal
+    from typing import Literal  # type: ignore[attr-defined]
 except ImportError:  # pragma: no cover  # Will only occur on very old Python versions
     from typing_extensions import Literal
 
 try:
-    from typing import Final
+    from typing import Final  # type: ignore[attr-defined]
 except ImportError:  # pragma: no cover  # Will only occur on very old Python versions
     from typing_extensions import Final
 
 try:
-    from typing import TypeAlias
+    from typing import TypeAlias  # type: ignore[attr-defined]
 except ImportError:  # pragma: no cover  # Will only occur on very old Python versions
     from typing_extensions import TypeAlias
 
 try:
-    from typing import TypeGuard
+    from typing import TypeGuard  # type: ignore[attr-defined]
 except ImportError:  # pragma: no cover  # Will only occur on very old Python versions
     from typing_extensions import TypeGuard
 
 try:
-    from typing import Never
+    from typing import Never  # type: ignore[attr-defined]
 except ImportError:  # pragma: no cover  # Will only occur on very old Python versions
     from typing_extensions import Never

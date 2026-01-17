@@ -3,8 +3,7 @@
 This module exposes special types used by autopypath.
 """
 
-from typing import Literal, TypeAlias
-
+from .._typing import Literal, TypeAlias
 from ._no_path import _NoPath  # noqa: F401
 
 RepoMarkerLiterals: TypeAlias = Literal['dir', 'file']

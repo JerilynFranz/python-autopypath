@@ -6,7 +6,7 @@ import textwrap
 from enum import Enum
 from functools import partial
 from operator import is_
-from typing import TypeVar
+from typing import TypeVar, Union
 
 E = TypeVar('E', bound=Enum)
 
@@ -60,7 +60,7 @@ def enum_docstrings(enum: type[E]) -> type[E]:
         # as enum.__doc__.
         unassigned = partial(is_, enum.__doc__)
         names = enum.__members__.keys()
-        member: E | None = None
+        member: Union[E, None] = None
         for node in class_def.body:
             if (
                 isinstance(node, ast.Assign)
