@@ -406,3 +406,25 @@ def test_path_resolution_order(testspec: TestSpec) -> None:
 def test_dry_run(testspec: TestSpec) -> None:
     """Test Config with dry_run."""
     testspec.run()
+
+@pytest.mark.parametrize('testspec', [
+    PytestAction('STRICT_001',
+        name='strict as True',
+        action=_validate.strict, args=[True],
+        expected=True),
+    PytestAction('STRICT_002',
+        name='strict as False',
+        action=_validate.strict, args=[False],
+        expected=False),
+    PytestAction('STRICT_003',
+        name='strict as string',
+        action=_validate.strict, args=['false'],
+        exception=TypeError),
+    PytestAction('STRICT_004',
+        name='strict as None',
+        action=_validate.strict, args=[None],
+        exception=TypeError),
+])
+def test_strict(testspec: TestSpec) -> None:
+    """Test Config with strict."""
+    testspec.run()
