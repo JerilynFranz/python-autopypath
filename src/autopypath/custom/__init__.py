@@ -3,6 +3,7 @@
 This module provides functionality to configure :var:`sys.path`
 using custom repository markers, paths, load strategies, and resolution orders.
 """
+# ruff: noqa: E501
 
 import inspect
 

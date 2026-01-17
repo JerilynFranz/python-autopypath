@@ -100,6 +100,7 @@ tools = [
 [tool.tox]
 requires = ["tox>=4.22"]
 env_list = [ 
+    "py39",
     "py31{0-4}",
     "pypy31{0-1}",
     "doctest",
@@ -169,6 +170,29 @@ dependency_groups = ["test", "tools"]
 commands = [
     ["coverage", "run", "-m", "pytest", {replace = "posargs", extend = true}],
     ["coverage", "html", "-d", "coverage_html_report"],
+    ["coverage", "report"],
+]
+
+# mypy excluded from pypy envs due to lack of support
+[tool.tox.env.pypy310]
+description = "Run tests on PyPy 3.10"
+base_python = ["pypy3.10"]
+dependency_groups = ["test", "tools"]  # omit "lint"
+commands = [
+    ["ruff", "check", "tests", "src"],
+    ["pytest"],
+    ["coverage", "run", "-m", "pytest", { replace = "posargs", extend = true }],
+    ["coverage", "report"],
+]
+
+[tool.tox.env.pypy311]
+description = "Run tests on PyPy 3.11"
+base_python = ["pypy3.11"]
+dependency_groups = ["test", "tools"]  # omit "lint"
+commands = [
+    ["ruff", "check", "tests", "src"],
+    ["pytest"],
+    ["coverage", "run", "-m", "pytest", { replace = "posargs", extend = true }],
     ["coverage", "report"],
 ]
 

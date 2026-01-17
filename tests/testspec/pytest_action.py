@@ -92,7 +92,8 @@ class PytestAction(TestSpec):
                           Defaults to Assert.EQUAL.
         :type assertion: Assert, optional
         :param expected: Expected value (if any) for the `action` function or method.
-                         This is used with the `assertion` operator to validate the return value of the function or method.
+                         This is used with the `assertion` operator to validate the return value of the
+                         function or method.
                          If there is no expected value, the special class NoExpectedValue is used to flag it.
                          This is used so that the specific return value of None can be distinguished from no
                          particular value or any value at all is expected to be returned from the function or method.

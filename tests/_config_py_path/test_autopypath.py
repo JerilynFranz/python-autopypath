@@ -12,7 +12,6 @@ from pathlib import Path
 
 from autopypath._config_py_path._config._config import Config
 from autopypath._config_py_path._config._autopypath import AutopypathConfig
-from autopypath._config_py_path._config._pyproject import PyProjectConfig
 from autopypath._config_py_path._config._toml import TomlConfig
 
 
