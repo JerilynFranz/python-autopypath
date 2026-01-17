@@ -1,3 +1,7 @@
+"""Tests for the _NoPath type in autopypath.types._no_path module."""
+# mypy: disable-error-code=operator
+# pyright: reportCallIssue=false
+
 import pytest
 
 from autopypath.types._no_path import _NoPath, _UsagePreventedType
@@ -208,61 +212,61 @@ def test_match_raises(no_path: _NoPath) -> None:
 
 def test_parent_raises(no_path: _NoPath) -> None:
     with pytest.raises(NotImplementedError, match='NoPath does not support IO operations.'):
-        no_path.parent(_UsagePreventedType())
+        _ = no_path.parent
     assert True, 'NOPATH_034: parent should raise NotImplementedError'
 
 
 def test_parents_raises(no_path: _NoPath) -> None:
     with pytest.raises(NotImplementedError, match='NoPath does not support IO operations.'):
-        no_path.parents(_UsagePreventedType())
+        _ = no_path.parents
     assert True, 'NOPATH_035: parents should raise NotImplementedError'
 
 
 def test_parts_raises(no_path: _NoPath) -> None:
     with pytest.raises(NotImplementedError, match='NoPath does not support IO operations.'):
-        no_path.parts(_UsagePreventedType())
+        _ = no_path.parts
     assert True, 'NOPATH_036: parts should raise NotImplementedError'
 
 
 def test_drive_raises(no_path: _NoPath) -> None:
     with pytest.raises(NotImplementedError, match='NoPath does not support IO operations.'):
-        no_path.drive(_UsagePreventedType())
+        _ = no_path.drive
     assert True, 'NOPATH_037: drive should raise NotImplementedError'
 
 
 def test_root_raises(no_path: _NoPath) -> None:
     with pytest.raises(NotImplementedError, match='NoPath does not support IO operations.'):
-        no_path.root(_UsagePreventedType())
+        _ = no_path.root
     assert True, 'NOPATH_038: root should raise NotImplementedError'
 
 
 def test_anchor_raises(no_path: _NoPath) -> None:
     with pytest.raises(NotImplementedError, match='NoPath does not support IO operations.'):
-        no_path.anchor(_UsagePreventedType())
+        _ = no_path.anchor
     assert True, 'NOPATH_039: anchor should raise NotImplementedError'
 
 
 def test_name_raises(no_path: _NoPath) -> None:
     with pytest.raises(NotImplementedError, match='NoPath does not support IO operations.'):
-        no_path.name(_UsagePreventedType())
+        _ = no_path.name
     assert True, 'NOPATH_040: name should raise NotImplementedError'
 
 
 def test_suffix_raises(no_path: _NoPath) -> None:
     with pytest.raises(NotImplementedError, match='NoPath does not support IO operations.'):
-        no_path.suffix(_UsagePreventedType())
+        _ = no_path.suffix
     assert True, 'NOPATH_041: suffix should raise NotImplementedError'
 
 
 def test_suffixes_raises(no_path: _NoPath) -> None:
     with pytest.raises(NotImplementedError, match='NoPath does not support IO operations.'):
-        no_path.suffixes(_UsagePreventedType())
+        _ = no_path.suffixes
     assert True, 'NOPATH_042: suffixes should raise NotImplementedError'
 
 
 def test_stem_raises(no_path: _NoPath) -> None:
     with pytest.raises(NotImplementedError, match='NoPath does not support IO operations.'):
-        no_path.stem(_UsagePreventedType())
+        _ = no_path.stem
     assert True, 'NOPATH_043: stem should raise NotImplementedError'
 
 
@@ -334,13 +338,13 @@ def test_rglob_raises(no_path: _NoPath) -> None:
 
 def test_cwd_raises(no_path: _NoPath) -> None:
     with pytest.raises(NotImplementedError, match='NoPath does not support IO operations.'):
-        no_path.cwd(_UsagePreventedType())
+        no_path.cwd()
     assert True, 'NOPATH_055: cwd should raise NotImplementedError'
 
 
 def test_home_raises(no_path: _NoPath) -> None:
     with pytest.raises(NotImplementedError, match='NoPath does not support IO operations.'):
-        no_path.home(_UsagePreventedType())
+        no_path.home()
     assert True, 'NOPATH_056: home should raise NotImplementedError'
 
 
