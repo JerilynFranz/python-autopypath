@@ -514,8 +514,8 @@ def test_toml_repo_root_path_is_none() -> None:
     assert config.path_resolution_order is None, (
         'TOML_045 Expected path_resolution_order to be None when repo_root_path is None'
     )
-    assert str(config.toml_filepath) == '<NoPath>', (
-        'TOML_046 Expected toml_filepath to be <NoPath> when repo_root_path is None'
+    assert str(config.toml_filepath) == '<_NoPath>', (
+        'TOML_046 Expected toml_filepath to be <_NoPath> when repo_root_path is None'
     )
     assert config.toml_section == toml_section, (
         'TOML_047 Expected toml_section to be set correctly even when repo_root_path is None'
