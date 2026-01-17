@@ -21,7 +21,6 @@ class ConfigPyPath:
     __slots__ = (
         '_context_file',
         '_repo_root_path',
-        '_repo_search_autopypath',
         '_manual',
         '_pyproject',
         '_autopypath',
@@ -32,6 +31,7 @@ class ConfigPyPath:
         '_paths',
         '_original_sys_path',
         '_updated_paths',
+        '_dry_run',
     )
 
     def __init__(
@@ -44,6 +44,7 @@ class ConfigPyPath:
         windows_paths: Union[Sequence[Union[Path, str]], None] = None,
         load_strategy: Union[LoadStrategy, str, None] = None,
         path_resolution_order: Optional[Sequence[Union[PathResolution, str]]] = None,
+        dry_run: bool = False,
     ) -> None:
         """Configures :var:`sys.path` based on manual settings, .env files, and pyproject.toml.
 
@@ -95,24 +96,24 @@ class ConfigPyPath:
             If ``None``, the default order from :var:`~autopypath.defaults.PATH_RESOLUTION_ORDER` is used.
 
             It can use either the enum values or their string representations.
+        :param bool dry_run: (default: ``False``) If ``True``, the configuration is processed but :var:`sys.path` is not actually modified.
+            This is useful for testing or inspecting the configuration without making changes.
         :raises TypeError: If any of the inputs are of incorrect type.
         :raises ValueError: If any of the inputs have invalid values.
         :raises RuntimeError: If the repository root cannot be found.
         """
+        self._dry_run: bool = _validate.dry_run(dry_run)
+        """Indicates whether the configuration was a dry run (no actual sys.path modification)."""
+
+        if self.dry_run:
+            log.info('Dry run enabled - sys.path will not actually be modified.')
+
         self._original_sys_path: list[str] = sys.path.copy()
         """The original sys.path before any modifications."""
 
         self._context_file: Path = _validate.context_file(context_file)
         """The file path of the script that is configuring the Python path."""
 
-        self._repo_search_autopypath: Union[AutopypathConfig, None] = None
-        """Configuration loaded from autopypath.toml.
-
-        This is the config from the autopypath.toml file if it has been
-        seen and parsed, otherwise None. This is used during the process of
-        finding the repo root and loading other configurations but not
-        directly used for path resolution or exposed to the user.
-        """
         self._autopypath: Union[AutopypathConfig, None] = None
         """Configuration loaded from autopypath.toml.
 
@@ -130,10 +131,10 @@ class ConfigPyPath:
         )
         """Manual configuration provided directly to the function."""
 
-        self._pyproject = PyProjectConfig(self._repo_root_path)
+        self._pyproject = PyProjectConfig(self.repo_root_path)
         """Configuration loaded from pyproject.toml."""
 
-        self._dotenv = DotEnvConfig(self._repo_root_path)
+        self._dotenv = DotEnvConfig(self.repo_root_path)
         """Configuration loaded from .env file."""
 
         self._default = DefaultConfig()
@@ -148,28 +149,32 @@ class ConfigPyPath:
         self._paths: tuple[Path, ...] = self._process_paths()
         """The final resolved paths that will be added to :var:`sys.path`."""
 
-        self._apply_paths(self._paths)
+        self._apply_paths(self.paths)
 
         self._updated_paths: tuple[str, ...] = tuple(sys.path)
         """The updated sys.path after modifications."""
 
-        log.debug('paths added to sys.path: %s', self._paths)
+        log.debug('paths added to sys.path: %s', self.paths)
 
     def _apply_paths(self, paths: Sequence[Path]) -> None:
         """Applies the resolved paths to :var:`sys.path`.
 
         Based on the load strategy, it updates :var:`sys.path` accordingly.
         """
-        match self._load_strategy:
-            case LoadStrategy.REPLACE:
+        if self.load_strategy == LoadStrategy.REPLACE:
+            if not self.dry_run:
                 sys.path = [str(p) for p in paths]
-                log.debug('sys.path replaced with: %s', sys.path)
-            case LoadStrategy.PREPEND_HIGHEST_PRIORITY:
+            log.debug('sys.path replaced with: %s', sys.path)
+        elif self.load_strategy == LoadStrategy.PREPEND_HIGHEST_PRIORITY:
+            if not self.dry_run:
                 sys.path = [str(p) for p in paths] + sys.path
-                log.debug('sys.path updated with highest priority paths: %s', sys.path)
-            case LoadStrategy.PREPEND:
+            log.debug('sys.path updated with highest priority paths: %s', sys.path)
+        elif self.load_strategy == LoadStrategy.PREPEND:
+            if not self.dry_run:
                 sys.path = [str(p) for p in paths] + sys.path
-                log.debug('sys.path updated with merged paths: %s', sys.path)
+            log.debug('sys.path updated with merged paths: %s', sys.path)
+        else:  # pragma: no cover  # should never happen due to earlier validation
+            raise ValueError(f'Unknown load strategy: {self.load_strategy}')
 
     def _process_paths(self) -> tuple[Path, ...]:
         """Determines the final resolved paths and adds them to :var:`sys.path`.
@@ -195,46 +200,45 @@ class ConfigPyPath:
         raw_paths: list[Path] = []
 
         # collect paths based on resolution order and load strategy
-        for source in self._path_resolution_order:
-            match source:
-                case PathResolution.MANUAL:
-                    source_paths = self.manual_config.paths
-                    log.debug('Resolving paths from MANUAL source: %s', source_paths)
-                case PathResolution.AUTOPYPATH:
-                    source_paths = self.autopypath_config.paths
-                    log.debug('Resolving paths from AUTOPYPATH source: %s', source_paths)
-                case PathResolution.PYPROJECT:
-                    source_paths = self.pyproject_config.paths
-                    log.debug('Resolving paths from PYPROJECT source: %s', source_paths)
-                case PathResolution.DOTENV:
-                    source_paths = self.dotenv_config.paths
-                    log.debug('Resolving paths from DOTENV source: %s', source_paths)
-                case _:
-                    log.warning('Unknown path resolution source: %s', source)
-                    continue
+        for source in self.path_resolution_order:
+            if source == PathResolution.MANUAL:
+                source_paths = self.manual_config.paths
+                log.debug('Resolving paths from MANUAL source: %s', source_paths)
+            elif source == PathResolution.AUTOPYPATH:
+                source_paths = self.autopypath_config.paths
+                log.debug('Resolving paths from AUTOPYPATH source: %s', source_paths)
+            elif source == PathResolution.PYPROJECT:
+                source_paths = self.pyproject_config.paths
+                log.debug('Resolving paths from PYPROJECT source: %s', source_paths)
+            elif source == PathResolution.DOTENV:
+                source_paths = self.dotenv_config.paths
+                log.debug('Resolving paths from DOTENV source: %s', source_paths)
+            else:
+                log.warning('Unknown path resolution source: %s', source)
+                continue
 
             # If this source has no paths, skip it
             if not source_paths:
                 continue
 
-            match self._load_strategy:
-                case LoadStrategy.REPLACE:
-                    raw_paths.extend(source_paths)
-                    log.debug('Load strategy REPLACE: Appending paths %s from %s', source_paths, source)
-                    break
-                case LoadStrategy.PREPEND_HIGHEST_PRIORITY:
-                    log.debug('Load strategy PREPEND_HIGHEST_PRIORITY: Using paths %s from %s', source_paths, source)
-                    raw_paths = list(source_paths)
-                    break
-                case LoadStrategy.PREPEND:
-                    log.debug('Load strategy PREPEND: Appending paths %s from %s', source_paths, source)
-                    raw_paths.extend(source_paths)
-                case _:  # pragma: no cover  # should never happen due to earlier validation
-                    raise ValueError(f'Unknown load strategy: {self._load_strategy}')
+            # Identify load strategy behavior
+            if self.load_strategy == LoadStrategy.REPLACE:
+                raw_paths.extend(source_paths)
+                log.debug('Load strategy REPLACE: Appending paths %s from %s', source_paths, source)
+                break
+            elif self.load_strategy == LoadStrategy.PREPEND_HIGHEST_PRIORITY:
+                log.debug('Load strategy PREPEND_HIGHEST_PRIORITY: Using paths %s from %s', source_paths, source)
+                raw_paths = list(source_paths)
+                break
+            elif self.load_strategy == LoadStrategy.PREPEND:
+                log.debug('Load strategy PREPEND: Appending paths %s from %s', source_paths, source)
+                raw_paths.extend(source_paths)
+            else:  # pragma: no cover  # should never happen due to earlier validation
+                raise ValueError(f'Unknown load strategy: {self.load_strategy}')
 
         # Process default paths if no paths have been set yet
         if not raw_paths:
-            default_paths = self._default.paths
+            default_paths = self.default_config.paths
             log.debug('Processing default paths: %s', default_paths)
             for path in default_paths:
                 raw_paths.append(path)
@@ -318,7 +322,7 @@ class ConfigPyPath:
         :return Path: The path to the repository root.
         :raises RuntimeError: If the repository root cannot be found.
         """
-        repo_markers = self._manual.repo_markers or self._default.repo_markers
+        repo_markers = self.manual_config.repo_markers or self.default_config.repo_markers
         if repo_markers is None:
             raise RuntimeError('No repository markers defined to find the repo root.')
 
@@ -339,8 +343,8 @@ class ConfigPyPath:
                 # to identify the repo root if wanted).
                 else:
                     self._autopypath = AutopypathConfig(current_path)
-                    if self._manual.repo_markers is None:
-                        repo_markers = self._autopypath.repo_markers or repo_markers
+                    if self.manual_config.repo_markers is None:
+                        repo_markers = self.autopypath_config.repo_markers or repo_markers
 
             for marker, typ in repo_markers.items():
                 test_path = current_path / marker
@@ -357,7 +361,8 @@ class ConfigPyPath:
 
     def restore_sys_path(self) -> None:
         """Restores :var:`sys.path` to its original state before any modifications."""
-        sys.path = self._original_sys_path.copy()
+        if not self.dry_run:
+            sys.path = list(self.original_sys_path)
         log.debug('sys.path restored to original state: %s', sys.path)
 
     @property
@@ -421,3 +426,8 @@ class ConfigPyPath:
     def updated_sys_path(self) -> tuple[str, ...]:
         """The updated sys.path after modifications."""
         return self._updated_paths
+
+    @property
+    def dry_run(self) -> bool:
+        """Indicates whether the configuration was a dry run (no actual sys.path modification)."""
+        return self._dry_run

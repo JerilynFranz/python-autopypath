@@ -340,3 +340,15 @@ def is_windows_reserved(name: str) -> bool:
     # Windows ignores case and extension for reserved names
     base = name.split('.')[0].upper()
     return base in reserved
+
+
+def dry_run(value: Any) -> bool:
+    """Validates the dry_run parameter.
+
+    :param Any value: The dry_run value to validate.
+    :return bool: A validated boolean value for dry_run.
+    :raises TypeError: If the input is not a boolean.
+    """
+    if not isinstance(value, bool):
+        raise TypeError(f'Invalid dry_run: expected bool, got {type(value)}')
+    return value

@@ -62,18 +62,28 @@ def enum_docstrings(enum: type[E]) -> type[E]:
         names = enum.__members__.keys()
         member: E | None = None
         for node in class_def.body:
-            match node:
-                case ast.Assign(targets=[ast.Name(id=name)]) if name in names:
-                    # Enum member assignment, look for a docstring next
-                    member = enum[name]
-                    continue
+            if (
+                isinstance(node, ast.Assign)
+                and len(node.targets) == 1
+                and isinstance(node.targets[0], ast.Name)
+                and (name := node.targets[0].id) in names
+            ):
+                # Enum member assignment, look for a docstring next
+                member = enum[name]
+                continue
 
-                case ast.Expr(value=ast.Constant(value=str(docstring))) if member and unassigned(member.__doc__):
-                    # docstring immediately following a member assignment
-                    member.__doc__ = docstring
+            elif (
+                isinstance(node, ast.Expr)
+                and isinstance(node.value, ast.Constant)
+                and isinstance(node.value.value, str)
+                and member
+                and unassigned(member.__doc__)
+            ):
+                # docstring immediately following a member assignment
+                member.__doc__ = node.value.value
 
-                case _:
-                    pass
+            else:
+                pass
 
             member = None
 
