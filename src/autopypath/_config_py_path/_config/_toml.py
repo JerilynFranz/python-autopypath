@@ -10,7 +10,7 @@ import tomli
 from ._config import Config
 from ...load_strategy import LoadStrategy
 from ...marker_type import MarkerType
-from ...types import NoPath
+from ...types._no_path import NoPath
 from ... import _validate
 from ..._log import log
 
