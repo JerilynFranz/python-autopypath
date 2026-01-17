@@ -1,4 +1,5 @@
 """Module to configure Python path."""
+# ruff: noqa: E501
 
 from collections.abc import Mapping, Sequence
 from pathlib import Path
@@ -42,7 +43,7 @@ class _ConfigPyPath:
     def __init__(
         self,
         *,
-        context_file: Path,
+        context_file: Union[Path, str],
         repo_markers: Optional[Mapping[str, Union[MarkerType, RepoMarkerLiterals]]] = None,
         paths: Optional[Sequence[Union[Path, str]]] = None,
         posix_paths: Optional[Sequence[Union[Path, str]]] = None,
@@ -64,40 +65,40 @@ class _ConfigPyPath:
         It is very liberal in what it accepts, but will raise `TypeError` or
         `ValueError` if the inputs are invalid.
 
-        :param Path context_file: The file path of the script that is configuring the Python path.
-        :param Mapping[str, MarkerType | Literal['dir', 'file']] | None repo_markers: A dictionary where keys are
-            filenames or directory names that indicate the repository root.
+        :param Path | str context_file: The file path of the script that is configuring the Python path.
+        :param Mapping[str, MarkerType | Literal['dir', 'file']] | None repo_markers: (default: ``None``) A
+            dictionary where keys are filenames or directory names that indicate the repository root.
             The values should be `file` or `dir`. It is case-sensitive.
 
             If ``None``, defaults to :var:`~autopypath.defaults.REPO_MARKERS`.
 
-        :param Sequence[Path | str] | None paths: A list of Path objects or strings relative to
+        :param Sequence[Path | str] | None paths: (default: ``None``) A list of Path objects or strings relative to
             the repo root to add to :var:`sys.path`.
 
             If ``None``, defaults to :var:`~autopypath.defaults.PATHS`.
 
-        :param Sequence[Path | str] | None posix_paths: A list of Path objects or strings
+        :param Sequence[Path | str] | None posix_paths: (default: ``None``) A list of Path objects or strings
             relative to the repo root to add to :var:`sys.path` only on POSIX systems.
             These override the paths in `paths` (only on POSIX systems) if provided.
 
             If ``None``, the paths in `paths` are used on POSIX systems.
 
-        :param Sequence[Path | str] | None windows_paths: A list of Path objects or strings
+        :param Sequence[Path | str] | None windows_paths: (default: ``None``) A list of Path objects or strings
             relative to the repo root to add to :var:`sys.path` only on Windows systems.
             These override the paths in `paths` (only on Windows systems) if provided.
 
             If ``None``, the paths in `paths` are used on Windows systems.
 
-        :param LoadStrategy | Literal['prepend', 'prepend_highest_priority', 'replace'] | None load_strategy: The
-            strategy for handling multiple :var:`sys.path` sources.
+        :param LoadStrategy | Literal['prepend', 'prepend_highest_priority', 'replace'] | None load_strategy: (default:
+            ``None``) The strategy for handling multiple :var:`sys.path` sources.
 
             It is expected to be `prepend`, `prepend_highest_priority`, or `replace` (as defined
             in :class:`LoadStrategy`). It can use either the enum value or its string representation.
 
             If ``None``, defaults to :var:`~autopypath.defaults.LOAD_STRATEGY`.
 
-        :param PathResolution | Literal['manual', 'autopypath', 'pyproject', 'dotenv'] | None path_resolution_order: The
-            order in which to resolve :var:`sys.path` sources.
+        :param PathResolution | Literal['manual', 'autopypath', 'pyproject', 'dotenv'] | None path_resolution_order: (default:
+            ``None``) The order in which to resolve :var:`sys.path` sources.
 
             It is expected to be a sequence containing any of the following values:
             ``manual``, ``autopypath``, ``pyproject``, ``dotenv`` as defined in :class:`PathResolution`.
@@ -135,9 +136,6 @@ class _ConfigPyPath:
         It is ``None`` if no autopypath.toml file is found during the repo root search.
         """
 
-        self._repo_root_path: Path = self._find_repo_root_path(self.context_file)
-        """The repository root path based on the configured repo markers."""
-
         self._manual = ManualConfig(
             repo_markers=repo_markers,
             paths=paths,
@@ -146,14 +144,17 @@ class _ConfigPyPath:
         )
         """Manual configuration provided directly to the function."""
 
-        self._pyproject = PyProjectConfig(self.repo_root_path)
-        """Configuration loaded from pyproject.toml."""
-
-        self._dotenv = DotEnvConfig(self.repo_root_path)
-        """Configuration loaded from .env file."""
-
         self._default = DefaultConfig()
         """Default autopypath configuration."""
+
+        self._repo_root_path: Path = self._find_repo_root_path(self.context_file)
+        """The repository root path based on the configured repo markers."""
+
+        self._pyproject = PyProjectConfig(self.repo_root_path)
+        """Configuration loaded from pyproject.toml (if present)."""
+
+        self._dotenv = DotEnvConfig(self.repo_root_path)
+        """Configuration loaded from .env file (if present)."""
 
         self._path_resolution_order: tuple[PathResolution, ...] = self._determine_path_resolution_order()
         """The order in which to resolve :var:`sys.path` sources."""

@@ -8,6 +8,7 @@ Since the main logic is in TomlConfig, these tests just ensure that PyProjectCon
 initializes correctly and that __repr__ and __str__ methods work as expected for the subclass.
 """
 
+from collections.abc import Sequence
 from pathlib import Path
 
 from autopypath._config_py_path._config._config import Config
@@ -53,3 +54,21 @@ def test_pyproject_config_str(tmp_path: Path) -> None:
     config = PyProjectConfig(repo_root_path=tmp_path)
     expected_str = f'PyProjectConfig(repo_root_path={str(tmp_path)!r})'
     assert str(config) == expected_str, 'PYPROJECT_010 __str__ output does not match expected format'
+
+
+def test_pyproject_config_paths(tmp_path: Path) -> None:
+    # Create pyproject.toml with autopypath configuration
+    pyproject_path = tmp_path / 'pyproject.toml'
+    pyproject_path.write_text("""
+[tool.autopypath]
+paths = ["src", "tests"]
+""")
+    config = PyProjectConfig(repo_root_path=tmp_path)
+    assert isinstance(config.paths, Sequence), (
+        f'PYPROJECT_011 Expected paths to be a sequence type: {type(config.paths)!r}'
+    )
+    assert len(config.paths) == 2, f'PYPROJECT_012 Expected paths list to have length 2: {config.paths!r}'
+    assert str(config.paths[0].name) == 'src', 'PYPROJECT_013 Expected first path to be "src"'
+    assert str(config.paths[1].name) == 'tests', 'PYPROJECT_014 Expected second path to be "tests"'
+    assert config.paths[0] == tmp_path / 'src', 'PYPROJECT_015 First path does not resolve correctly'
+    assert config.paths[1] == tmp_path / 'tests', 'PYPROJECT_016 Second path does not resolve correctly'

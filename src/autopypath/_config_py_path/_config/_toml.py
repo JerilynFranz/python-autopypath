@@ -35,7 +35,7 @@ _TOML_TYPES: dict[type, str] = {
 class TomlConfig(Config):
     """Configuration for autopypath using toml files."""
 
-    __slots__ = ('_repo_root_path', '_toml_filepath', '_toml_section')
+    __slots__ = ('_repo_root_path', '_toml_filepath', '_toml_section', '_no_file_found')
 
     def __init__(self, repo_root_path: Union[Path, None], toml_filename: str, toml_section: str) -> None:
         """Configuration for autopypath using toml files.
@@ -53,6 +53,7 @@ class TomlConfig(Config):
         """
         self._repo_root_path: Path = _NoPath()
         self._toml_filepath: Path = _NoPath()
+        self._no_file_found: bool = False  # Indicates if the toml file was not found
         self._toml_section: str = _validate.toml_section(toml_section)
 
         if repo_root_path is None:
@@ -64,7 +65,8 @@ class TomlConfig(Config):
         # toml data
         toml_data = self._toml_data()
         if not toml_data:
-            raise FileNotFoundError(f'TOML_000 No toml file found at {str(self._repo_root_path / self._toml_filepath)}')
+            super().__init__(repo_markers=None, paths=None, load_strategy=None, path_resolution_order=None)
+            return
 
         # [tool.autopypath]
         autopypath_config = self._toml_autopypath(toml_data)
@@ -106,6 +108,15 @@ class TomlConfig(Config):
         """
         return self._toml_section
 
+    @property
+    def no_file_found(self) -> bool:
+        """Indicates whether the toml file was not found.
+
+        :return bool: ``True`` if the toml file does not exist, ``False`` otherwise.
+        """
+        toml_path = self._repo_root_path / self._toml_filepath
+        return not toml_path.exists() or not toml_path.is_file()
+
     def _toml_data(self) -> dict[str, Any]:
         """Loads and returns the toml data as a dictionary.
 
@@ -113,6 +124,7 @@ class TomlConfig(Config):
         """
         toml_path = self._repo_root_path / self._toml_filepath
         if not toml_path.exists() or not toml_path.is_file():
+            self._no_file_found = True
             log.debug(f'No {self._toml_filepath} file found at {toml_path}.')
             return {}
 
@@ -204,13 +216,7 @@ class TomlConfig(Config):
         if requested_paths is not None:
             for p in requested_paths:
                 target_path = self._repo_root_path / p
-                if not target_path.exists():
-                    log.warning(
-                        f'Path specified in {self._toml_filepath} configuration '
-                        f'does not exist: {target_path} - skipping.'
-                    )
-                else:
-                    filtered_paths.append(target_path)
+                filtered_paths.append(target_path)
         paths = tuple(filtered_paths) if filtered_paths else None
         return paths
 

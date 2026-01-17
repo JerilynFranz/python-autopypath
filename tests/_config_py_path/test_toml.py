@@ -1,3 +1,4 @@
+from collections.abc import Sequence
 from pathlib import Path
 
 import pytest
@@ -50,13 +51,10 @@ paths = ['src', 'lib']
 def test_toml_missing_file(tmp_path: Path) -> None:
     repo_root = tmp_path / 'my_repo'
     repo_root.mkdir()
-    toml_filename = 'non_existent.toml'
 
-    try:
-        TomlConfig(repo_root_path=repo_root, toml_filename=toml_filename, toml_section='tool.autopypath')
-    except FileNotFoundError:
-        return
-    pytest.fail('TOML_006 Expected FileNotFoundError when TOML file does not exist')
+    toml_filename = 'non_existent.toml'
+    config = TomlConfig(repo_root_path=repo_root, toml_filename=toml_filename, toml_section='tool.autopypath')
+    assert config.no_file_found, 'TOML_MISSING_001 Expected no_file_found to be True when TOML file does not exist'
 
 
 def test_toml_invalid_repo_marker_syntax(tmp_path: Path) -> None:
@@ -520,3 +518,21 @@ def test_toml_repo_root_path_is_none() -> None:
     assert config.toml_section == toml_section, (
         'TOML_047 Expected toml_section to be set correctly even when repo_root_path is None'
     )
+
+
+def test_toml_config_paths(tmp_path: Path) -> None:
+    # Create toml file with autopypath configuration
+    src_path = tmp_path / 'src'
+    tests_path = tmp_path / 'tests'
+    toml_path = tmp_path / 'config.toml'
+    toml_path.write_text("""
+[tool.autopypath]
+paths = ["src", "tests"]
+""")
+    config = TomlConfig(repo_root_path=tmp_path, toml_filename='config.toml', toml_section='tool.autopypath')
+    assert isinstance(config.paths, Sequence), 'TOML_048 Expected paths to be a sequence type'
+    assert len(config.paths) == 2, 'TOML_049 Expected paths list to have length 2'
+    assert str(config.paths[0].name) == 'src', 'TOML_050 Expected first path to be "src"'
+    assert str(config.paths[1].name) == 'tests', 'TOML_051 Expected second path to be "tests"'
+    assert config.paths[0] == src_path, 'TOML_052 Expected first path to be match the path to src directory'
+    assert config.paths[1] == tests_path, 'TOML_053 Expected second path to be match the path to tests directory'
