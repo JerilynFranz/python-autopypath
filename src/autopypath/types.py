@@ -1,18 +1,17 @@
 """These are publically exposed special types used by autopypath."""
 
-from os import PathLike
-from pathlib import Path
+from pathlib import PurePath
 
 
-class NoPath(Path):
+class NoPath(PurePath):
     """A special Path type representing the absence of a path.
 
     This class is used to indicate that no valid path is available or applicable.
-    It inherits from pathlib.Path to maintain compatibility with path operations,
-    but it signifies a 'no path' state.
+    It inherits from :class:`~pathlib.PurePath` to maintain compatibility with path operations,
+    but it signifies a 'no path' state and cannot be used to perform actual file system operations.
     """
 
-    def __new__(cls, *args: PathLike, **kwargs: object) -> 'NoPath':
+    def __new__(cls) -> 'NoPath':
         """Create a new instance of NoPath.
 
         This method ensures that NoPath behaves like a Path object while
@@ -25,7 +24,7 @@ class NoPath(Path):
 
         :return NoPath: An instance of NoPath.
         """
-        return super().__new__(cls, *args, **kwargs)
+        return super().__new__(cls, '')
 
     def __str__(self) -> str:
         """String representation of NoPath.
@@ -40,3 +39,6 @@ class NoPath(Path):
         :return str: A string representation of the NoPath instance.
         """
         return self.__str__()
+
+    def __eq__(self, other: object) -> bool:
+        return isinstance(other, NoPath)
