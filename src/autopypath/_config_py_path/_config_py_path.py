@@ -1,4 +1,4 @@
-""" "Module to configure Python path"""
+"""Module to configure Python path."""
 
 from collections.abc import Mapping, Sequence
 from pathlib import Path
@@ -15,8 +15,11 @@ from ._config import AutopypathConfig, DefaultConfig, ManualConfig, PyProjectCon
 
 __all__ = []
 
+_EMPTY_AUTOPYPATH_CONFIG: AutopypathConfig = AutopypathConfig(None)
+"""An empty AutopypathConfig instance used when no autopypath.toml is found."""
 
-class ConfigPyPath:
+
+class _ConfigPyPath:
     """Configures :var:`sys.path` based on manual settings, pyproject.toml, and .env files."""
 
     __slots__ = (
@@ -33,6 +36,7 @@ class ConfigPyPath:
         '_original_sys_path',
         '_updated_paths',
         '_dry_run',
+        '_strict',
     )
 
     def __init__(
@@ -46,6 +50,7 @@ class ConfigPyPath:
         load_strategy: Optional[Union[LoadStrategy, LoadStrategyLiterals]] = None,
         path_resolution_order: Optional[Sequence[Union[PathResolution, PathResolutionLiterals]]] = None,
         dry_run: bool = False,
+        strict: bool = False,
     ) -> None:
         """Configures :var:`sys.path` based on manual settings, .env files, and pyproject.toml.
 
@@ -95,18 +100,25 @@ class ConfigPyPath:
             order in which to resolve :var:`sys.path` sources.
 
             It is expected to be a sequence containing any of the following values:
-            ``manual``, ``pyproject``, ``dotenv`` as defined in :class:`PathResolution`.
+            ``manual``, ``autopypath``, ``pyproject``, ``dotenv`` as defined in :class:`PathResolution`.
             If ``None``, the default order from :var:`~autopypath.defaults.PATH_RESOLUTION_ORDER` is used.
 
             It can use either the enum values or their string representations.
         :param bool dry_run: (default: ``False``) If ``True``, the configuration is processed but :var:`sys.path` is
             not actually modified. This is useful for testing or inspecting the configuration without making changes.
+        :param bool strict: (default: ``False``) If ``True``, raises exceptions on errors during configuration.
+            If ``False``, errors are logged as warnings and the configuration continues where possible.
         :raises TypeError: If any of the inputs are of incorrect type.
-        :raises ValueError: If any of the inputs have invalid values.
-        :raises RuntimeError: If the repository root cannot be found.
+        :raises ValueError: If any of the inputs have invalid values or strict mode is enabled
+            and an unknown path resolution source is encountered.
+        :raises RuntimeError: If the repository root cannot be found or if strict mode is enabled
+            and a configured path cannot be resolved.
         """
         self._dry_run: bool = _validate.dry_run(dry_run)
         """Indicates whether the configuration was a dry run (no actual sys.path modification)."""
+
+        self._strict: bool = _validate.strict(strict)
+        """Indicates whether strict mode is enabled for error handling."""
 
         if self.dry_run:
             log.info('Dry run enabled - sys.path will not actually be modified.')
@@ -123,7 +135,7 @@ class ConfigPyPath:
         It is ``None`` if no autopypath.toml file is found during the repo root search.
         """
 
-        self._repo_root_path: Path = self._find_repo_root_path()
+        self._repo_root_path: Path = self._find_repo_root_path(self.context_file)
         """The repository root path based on the configured repo markers."""
 
         self._manual = ManualConfig(
@@ -157,37 +169,51 @@ class ConfigPyPath:
         self._updated_paths: tuple[str, ...] = tuple(sys.path)
         """The updated sys.path after modifications."""
 
-        log.debug('paths added to sys.path: %s', self.paths)
-
     def _apply_paths(self, paths: Sequence[Path]) -> None:
         """Applies the resolved paths to :var:`sys.path`.
 
         Based on the load strategy, it updates :var:`sys.path` accordingly.
         """
+        if self.load_strategy not in {
+            LoadStrategy.REPLACE,
+            LoadStrategy.PREPEND_HIGHEST_PRIORITY,
+            LoadStrategy.PREPEND,
+        }:
+            raise ValueError(f'Unknown load strategy: {self.load_strategy}')
+        if not paths:
+            log.debug('No paths to apply to sys.path.')
+            return
+
+        # Note: paths are already resolved and ordered for load strategy in _process_paths
+        stringified_paths = [str(p) for p in paths]
         if self.load_strategy == LoadStrategy.REPLACE:
             if not self.dry_run:
-                sys.path = [str(p) for p in paths]
-            log.debug('sys.path replaced with: %s', sys.path)
-        elif self.load_strategy == LoadStrategy.PREPEND_HIGHEST_PRIORITY:
+                sys.path = stringified_paths
+                log.debug('sys.path replaced all paths with: %s', stringified_paths)
+            else:
+                log.debug('Dry run - sys.path would be replaced with: %s', stringified_paths)
+        else:
             if not self.dry_run:
-                sys.path = [str(p) for p in paths] + sys.path
-            log.debug('sys.path updated with highest priority paths: %s', sys.path)
-        elif self.load_strategy == LoadStrategy.PREPEND:
-            if not self.dry_run:
-                sys.path = [str(p) for p in paths] + sys.path
-            log.debug('sys.path updated with merged paths: %s', sys.path)
-        else:  # pragma: no cover  # should never happen due to earlier validation
-            raise ValueError(f'Unknown load strategy: {self.load_strategy}')
+                sys.path = stringified_paths + sys.path
+                log.debug('sys.path updated with strategy %s paths: %s', str(self.load_strategy), stringified_paths)
+            else:
+                log.debug(
+                    'Dry run - sys.path would be updated with strategy %s paths: %s',
+                    str(self.load_strategy),
+                    stringified_paths,
+                )
 
     def _process_paths(self) -> tuple[Path, ...]:
-        """Determines the final resolved paths and adds them to :var:`sys.path`.
+        """Determines the final resolved paths and returns them.
 
         It follows the configured path resolution order and load strategy to
         combine paths from manual settings, pyproject.toml, and .env files.
 
         Paths that are already in :var:`sys.path` are not duplicated.
 
-        :return tuple[Path, ...]: The final paths that were added to :var:`sys.path`.
+        :return tuple[Path, ...]: The paths to be added to :var:`sys.path`.
+        :raises RuntimeError: If a configured path cannot be resolved and strict mode is enabled.
+        :raises ValueError: If an unknown path resolution source is encountered and strict mode is enabled.
         """
 
         existing_paths = sys.path
@@ -198,7 +224,7 @@ class ConfigPyPath:
                 if path_obj not in known_paths:
                     known_paths.add(path_obj)
             except Exception:
-                log.warning('Could not resolve existing sys.path entry: %s', p)
+                log.debug('Could not resolve existing sys.path entry: %s', p)
 
         raw_paths: list[Path] = []
 
@@ -217,11 +243,14 @@ class ConfigPyPath:
                 source_paths = self.dotenv_config.paths
                 log.debug('Resolving paths from DOTENV source: %s', source_paths)
             else:
+                if self._strict:
+                    raise ValueError(f'Unknown path resolution source: {source}')
                 log.warning('Unknown path resolution source: %s', source)
                 continue
 
             # If this source has no paths, skip it
             if not source_paths:
+                log.debug('No paths found from source: %s', source)
                 continue
 
             # Identify load strategy behavior
@@ -248,15 +277,19 @@ class ConfigPyPath:
 
         # Remove duplicates while preserving order
         unique_paths: list[Path] = []
-        resolved_paths_list: list[Path] = []
         for path in raw_paths:
-            resolved_path = path.resolve()
+            try:
+                resolved_path = path.resolve()
+            except Exception as exc:
+                if self._strict:
+                    raise RuntimeError(f'Could not resolve configured path: {path}') from exc
+                log.warning('Could not resolve configured path: %s', path)
+                continue
             if resolved_path not in known_paths:
-                resolved_paths_list.append(resolved_path)
                 unique_paths.append(resolved_path)
                 known_paths.add(resolved_path)
 
-        return tuple(resolved_paths_list)
+        return tuple(unique_paths)
 
     def _determine_load_strategy(self) -> LoadStrategy:
         """Determines the load strategy for handling multiple :var:`sys.path` sources.
@@ -319,9 +352,10 @@ class ConfigPyPath:
         log.debug('Using default path resolution order: %s', self.default_config.path_resolution_order)
         return self.default_config.path_resolution_order
 
-    def _find_repo_root_path(self) -> Path:
+    def _find_repo_root_path(self, context_file_path: Path) -> Path:
         """Finds the repository root path based on the configured repo markers.
 
+        :param Path context_file_path: The file path of the script that is configuring the Python path.
         :return Path: The path to the repository root.
         :raises RuntimeError: If the repository root cannot be found.
         """
@@ -329,12 +363,14 @@ class ConfigPyPath:
         if repo_markers is None:
             raise RuntimeError('No repository markers defined to find the repo root.')
 
-        current_path = Path(__file__).parent.resolve()
+        current_path = context_file_path.parent.resolve()
         while True:
             autopypath_path = current_path / 'autopypath.toml'
             # load autopypath.toml if found during repo search (but only once)
             if self._autopypath is None and autopypath_path.exists():
                 if not autopypath_path.is_file():
+                    if self._strict:
+                        raise RuntimeError(f'Found autopypath.toml at {autopypath_path} but it is not a file')
                     log.warning(
                         'Found autopypath.toml at %s but it is not a file - ignoring', autopypath_path.resolve()
                     )
@@ -366,71 +402,112 @@ class ConfigPyPath:
         """Restores :var:`sys.path` to its original state before any modifications."""
         if not self.dry_run:
             sys.path = list(self.original_sys_path)
-        log.debug('sys.path restored to original state: %s', sys.path)
+            log.debug('sys.path restored to original state: %s', sys.path)
+        else:
+            log.debug('Dry run - sys.path would be restored to original state: %s', self.original_sys_path)
 
     @property
     def load_strategy(self) -> LoadStrategy:
-        """The strategy for handling multiple :var:`sys.path` sources."""
+        """The strategy for handling multiple :var:`sys.path` sources.
+
+        :return LoadStrategy: The strategy for handling multiple :var:`sys.path` sources.
+        """
         return self._load_strategy
 
     @property
     def paths(self) -> tuple[Path, ...]:
-        """The final resolved paths that were added to :var:`sys.path`."""
+        """The final resolved paths that were added to :var:`sys.path`.
+
+        :return tuple[Path, ...]: The final resolved paths.
+        """
         return self._paths
 
     @property
     def path_resolution_order(self) -> tuple[PathResolution, ...]:
-        """The order in which to resolve :var:`sys.path` sources."""
+        """The order in which to resolve :var:`sys.path` sources.
+
+        :return tuple[PathResolution, ...]: The order in which to resolve :var:`sys.path` sources.
+        """
         return self._path_resolution_order
 
     @property
     def repo_root_path(self) -> Path:
-        """The repository root path based on the configured repo markers."""
+        """The repository root path based on the configured repo markers.
+
+        :return Path: The repository root path.
+        """
         return self._repo_root_path
 
     @property
     def context_file(self) -> Path:
-        """The file path of the script that is configuring the Python path."""
+        """The file path of the script that is configuring the Python path.
+
+        This is the file that was used as the context for determining the repository root
+        and configuring :var:`sys.path` accordingly. It is typically the script being executed.
+
+        :return Path: The context file path.
+        """
         return self._context_file
 
     @property
     def manual_config(self) -> ManualConfig:
-        """Manual configuration provided directly to the function."""
+        """Manual configuration provided directly to the function.
+
+        :return ManualConfig: The manual configuration.
+        """
         return self._manual
 
     @property
     def autopypath_config(self) -> AutopypathConfig:
         """Configuration loaded from autopypath.toml."""
         if self._autopypath is None:
-            return AutopypathConfig(None)  # Special empty config
+            return _EMPTY_AUTOPYPATH_CONFIG  # Special empty config
         return self._autopypath
 
     @property
     def pyproject_config(self) -> PyProjectConfig:
-        """Configuration loaded from pyproject.toml."""
+        """Configuration loaded from pyproject.toml.
+
+        :return PyProjectConfig: The pyproject.toml configuration.
+        """
         return self._pyproject
 
     @property
     def dotenv_config(self) -> DotEnvConfig:
-        """Configuration loaded from .env file."""
+        """Configuration loaded from .env file.
+
+        :return DotEnvConfig: The .env file configuration.
+        """
         return self._dotenv
 
     @property
     def default_config(self) -> DefaultConfig:
-        """Default autopypath configuration."""
+        """Default autopypath configuration.
+
+        :return DefaultConfig: The default configuration.
+        """
         return self._default
 
     @property
     def original_sys_path(self) -> tuple[str, ...]:
-        """The original sys.path before any modifications."""
+        """The original :var:`sys.path` before any modifications.
+
+        :return tuple[str, ...]: The original :var:`sys.path`.
+        """
         return tuple(self._original_sys_path)
 
     @property
     def updated_sys_path(self) -> tuple[str, ...]:
-        """The updated sys.path after modifications."""
+        """The updated :var:`sys.path` after modifications.
+
+        :return tuple[str, ...]: The updated :var:`sys.path`.
+        """
         return self._updated_paths
 
     @property
     def dry_run(self) -> bool:
-        """Indicates whether the configuration was a dry run (no actual sys.path modification)."""
+        """Indicates whether the configuration was a dry run (no actual sys.path modification).
+
+        :return bool: ``True`` if dry run, ``False`` otherwise.
+        """
         return self._dry_run

@@ -20,7 +20,7 @@ import inspect
 from pathlib import Path
 from typing import Optional
 
-from ._config_py_path import ConfigPyPath
+from ._config_py_path import _ConfigPyPath
 from ._log import log
 
 __all__ = []
@@ -41,5 +41,5 @@ if _current_frame is not None:
 if _context_file is None:
     log.debug('could not determine context file; no sys.path changes will be applied.')
 else:
-    ConfigPyPath(context_file=_context_file)
+    _ConfigPyPath(context_file=_context_file)
     log.debug('sys.path adjusted automatically for %s', _context_file)

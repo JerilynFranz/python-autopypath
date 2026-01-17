@@ -11,7 +11,7 @@ from collections.abc import Mapping, Sequence
 from pathlib import Path
 from typing import Union, Optional
 
-from .._config_py_path import ConfigPyPath
+from .._config_py_path import _ConfigPyPath
 from .._log import log
 from ..types import RepoMarkerLiterals, LoadStrategyLiterals, PathResolutionLiterals
 
@@ -57,7 +57,7 @@ def configure_pypath(
     if _context_file is None:
         log.warning('could not determine context file; no sys.path changes will be applied.')
     else:
-        ConfigPyPath(
+        _ConfigPyPath(
             context_file=_context_file,
             repo_markers=repo_markers,
             paths=paths,

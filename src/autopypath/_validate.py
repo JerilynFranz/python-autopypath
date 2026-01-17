@@ -31,6 +31,18 @@ avoid issues with filesystems that may have lower limits.
 """
 
 
+def strict(value: Any) -> bool:
+    """Validates the strict parameter.
+
+    :param Any value: The strict value to validate.
+    :return bool: A validated boolean value for strict.
+    :raises TypeError: If the input is not a boolean.
+    """
+    if not isinstance(value, bool):
+        raise TypeError(f'Invalid strict: expected bool, got {type(value)}')
+    return value
+
+
 def toml_filename(value: Any) -> Path:
     """Validates the TOML filename.
 
