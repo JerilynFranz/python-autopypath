@@ -40,9 +40,13 @@ class _DotEnvConfig(_Config):
         dotenv_path = self._repo_root_path / '.env'
         if not dotenv_path.exists():
             super().__init__(repo_markers=None, paths=None, load_strategy=None, path_resolution_order=None)
+            return
+
         if not dotenv_path.is_file():
             log.warning('.env path is not a file: %s', dotenv_path)
             super().__init__(repo_markers=None, paths=None, load_strategy=None, path_resolution_order=None)
+            return
+
         self._dotenv_path = dotenv_path
 
         paths = self._dotenv_pythonpaths(repo_root=self._repo_root_path, dotenv_path=self._dotenv_path)

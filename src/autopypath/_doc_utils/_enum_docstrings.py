@@ -55,36 +55,40 @@ def enum_docstrings(enum: type[E]) -> type[E]:
     except OSError:  # Fallback case where source code is not available
         return enum
 
-    if mod.body and isinstance(class_def := mod.body[0], ast.ClassDef):
-        # An enum member docstring is unassigned if it is the exact same object
-        # as enum.__doc__.
-        unassigned = partial(is_, enum.__doc__)
-        names = enum.__members__.keys()
-        member: Union[E, None] = None
-        for node in class_def.body:
-            if (
-                isinstance(node, ast.Assign)
-                and len(node.targets) == 1
-                and isinstance(node.targets[0], ast.Name)
-                and (name := node.targets[0].id) in names
-            ):
-                # Enum member assignment, look for a docstring next
-                member = enum[name]
-                continue
+    # with the source parsed, find the class definition
+    # if there is no class definition, return the enum unmodified
+    if not (mod.body and isinstance(class_def := mod.body[0], ast.ClassDef)):
+        return enum
 
-            elif (
-                isinstance(node, ast.Expr)
-                and isinstance(node.value, ast.Constant)
-                and isinstance(node.value.value, str)
-                and member
-                and unassigned(member.__doc__)
-            ):
-                # docstring immediately following a member assignment
-                member.__doc__ = node.value.value
+    # An enum member docstring is unassigned if it is the exact same object
+    # as enum.__doc__.
+    unassigned = partial(is_, enum.__doc__)
+    names = enum.__members__.keys()
+    member: Union[E, None] = None
+    for node in class_def.body:
+        if (
+            isinstance(node, ast.Assign)
+            and len(node.targets) == 1
+            and isinstance(node.targets[0], ast.Name)
+            and (name := node.targets[0].id) in names
+        ):
+            # Enum member assignment, look for a docstring next
+            member = enum[name]
+            continue
 
-            else:
-                pass
+        elif (
+            isinstance(node, ast.Expr)
+            and isinstance(node.value, ast.Constant)
+            and isinstance(node.value.value, str)
+            and member
+            and unassigned(member.__doc__)
+        ):
+            # docstring immediately following a member assignment
+            member.__doc__ = node.value.value
 
-            member = None
+        else:
+            pass
+
+        member = None
 
     return enum

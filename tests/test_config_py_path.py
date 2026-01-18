@@ -1,13 +1,28 @@
 """Tests for :mod:`autopypath._config_py_path._config_py_path`."""
 
 from collections.abc import Sequence
+import logging
 from pathlib import Path
+import sys
 
 import pytest
 
 from autopypath._config_py_path._config_py_path import _ConfigPyPath, _EMPTY_AUTOPYPATH_CONFIG
 from autopypath.types._no_path import _NoPath
 from autopypath import _defaults as defaults
+
+_ORIGINAL_SYS_PATH: list[str] = sys.path.copy()
+_ORIGINAL_NAME: str = __name__
+
+
+def setup_function() -> None:
+    """Setup function to reset sys.path before each test."""
+    sys.path = _ORIGINAL_SYS_PATH.copy()
+
+
+def teardown_function() -> None:
+    """Teardown function to reset sys.path after each test."""
+    sys.path = _ORIGINAL_SYS_PATH.copy()
 
 
 def test_empty_autopypath_config() -> None:
@@ -431,3 +446,102 @@ def test_manual_config(tmp_path: Path) -> None:
         )
     else:
         pytest.fail('MANUAL_CONFIG_008 manual_config.paths should be a list')
+
+
+def test_replace_strategy_live(tmp_path: Path) -> None:
+    """
+    Performs live tests of the 'replace' load strategy.
+
+    Default sys.path is preserved and restored after the test.
+
+    :param Path tmp_path: Path to a temporary directory for testing.
+    """
+    root_path = tmp_path / 'repo'
+    root_path.mkdir()
+    context_file = root_path / 'some_file.txt'
+    context_file.write_text('Just a test file.')
+    vcs_path = root_path / '.vcs'
+    vcs_path.mkdir()
+
+    # src and tests do not exist - expect RuntimeError
+    sys_path_before: list[str] = sys.path.copy()
+    try:
+        _ConfigPyPath(
+            context_file=str(root_path / 'some_file.txt'),
+            load_strategy='replace',
+            path_resolution_order=['manual'],
+            paths=['src', 'tests'],
+            repo_markers={'.vcs': 'dir'},
+        )
+        pytest.fail('REPLACE_STRATEGY_LIVE_001 Expected RuntimeError because no paths exist to replace sys.path')
+
+    except RuntimeError:
+        pass  # Expected because paths do not exist at all
+    finally:
+        sys.path = sys_path_before
+
+    # Create the 'src' directory so one of the paths exists
+    try:
+        src_path = root_path / 'src'
+        src_path.mkdir()
+
+        _ConfigPyPath(
+            context_file=str(root_path / 'some_file.txt'),
+            load_strategy='replace',
+            path_resolution_order=['manual'],
+            paths=['src', 'tests'],
+            repo_markers={'.vcs': 'dir'},
+        )
+
+        assert len(sys.path) == 1, (
+            'REPLACE_STRATEGY_LIVE_002 sys.path should have length 1 after replace strategy is applied'
+        )
+        assert sys.path[0] == str(src_path.resolve()), (
+            'REPLACE_STRATEGY_LIVE_003 sys.path[0] should be the src directory path'
+        )
+    finally:
+        sys.path = sys_path_before
+
+
+def test_strict(tmp_path: Path, caplog: pytest.LogCaptureFixture) -> None:
+    """Tests that _ConfigPyPath raises RuntimeError in strict mode
+    when no valid paths are found to add to sys.path for non-replace
+    load strategies.
+
+    Uses a temporary directory to simulate a repository with an autopypath.toml file.
+    """
+    root_path = tmp_path / 'repo'
+    root_path.mkdir()
+    root_path.joinpath('some_file.txt').write_text('Just a test file.')
+    git_path = root_path / '.git'
+    git_path.mkdir()
+    autopypath_path = root_path / 'autopypath.toml'
+    # Note: both "src" and "tests" do not exist
+    autopypath_path.write_text("""
+[tool.autopypath]
+load_strategy = "prepend"
+path_resolution_order = ["manual", "autopypath", "pyproject", "dotenv"]
+repo_markers = {".git" = "dir"}
+paths=["src", "tests"]
+""")
+    try:
+        _ConfigPyPath(
+            context_file=str(root_path / 'some_file.txt'),
+            dry_run=True,
+            strict=True,
+        )
+        pytest.fail('STRICT_001 Expected RuntimeError because no paths exist and strict mode is enabled')
+    except RuntimeError:
+        pass  # Expected because paths do not exist
+
+    # Now test that a warning is logged for non-strict mode
+    caplog.clear()
+    _ConfigPyPath(
+        context_file=str(root_path / 'some_file.txt'),
+        dry_run=True,
+        strict=False,
+    )
+    warning_messages = [record.message for record in caplog.records if record.levelno == logging.WARNING]
+    assert any(
+        'autopypath: No valid paths to add to sys.path after processing.' in message for message in warning_messages
+    ), 'STRICT_002 Expected a warning about no valid paths to add to sys.path in non-strict mode'

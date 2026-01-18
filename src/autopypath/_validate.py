@@ -31,6 +31,42 @@ avoid issues with filesystems that may have lower limits.
 """
 
 
+def log_level(value: Any) -> int:
+    """Validates the log level.
+
+    If the input is ``None``, returns ``logging.NOTSET``.
+
+    It verifies that the input is an integer and one of the valid logging levels
+    defined in the `logging` module.
+
+    :param Any value: The log level to validate.
+    :return int: A validated log level.
+    :raises TypeError: If the input is not an integer or None.
+    :raises ValueError: If the log level is not a valid logging level.
+    """
+    import logging
+
+    if value is None:
+        return logging.NOTSET
+
+    if not isinstance(value, int):
+        raise TypeError(f'Invalid log_level: expected int, got {type(value)}')
+
+    valid_levels = {
+        logging.NOTSET,
+        logging.DEBUG,
+        logging.INFO,
+        logging.WARNING,
+        logging.ERROR,
+        logging.CRITICAL,
+    }
+
+    if value not in valid_levels:
+        raise ValueError(f'Invalid log_level: {value} is not a valid logging level')
+
+    return value
+
+
 def strict(value: Any) -> bool:
     """Validates the strict parameter.
 

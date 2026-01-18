@@ -1,5 +1,6 @@
 """Tests for autopypath._validate module."""
 
+import logging
 from pathlib import Path
 from types import MappingProxyType
 
@@ -427,4 +428,50 @@ def test_dry_run(testspec: TestSpec) -> None:
 ])
 def test_strict(testspec: TestSpec) -> None:
     """Test Config with strict."""
+    testspec.run()
+
+@pytest.mark.parametrize('testspec', [
+    PytestAction('LOG_LEVEL_001',
+        name='log_level NOTSET',
+        action=_validate.log_level, args=[logging.NOTSET],
+        expected=logging.NOTSET),
+    PytestAction('LOG_LEVEL_002',
+        name='log_level DEBUG',
+        action=_validate.log_level, args=[logging.DEBUG],
+        expected=logging.DEBUG),
+    PytestAction('LOG_LEVEL_003',
+        name='log_level INFO',
+        action=_validate.log_level, args=[logging.INFO],
+        expected=logging.INFO),
+    PytestAction('LOG_LEVEL_004',
+        name='log_level WARNING',
+        action=_validate.log_level, args=[logging.WARNING],
+        expected=logging.WARNING),
+    PytestAction('LOG_LEVEL_005',
+        name='log_level ERROR',
+        action=_validate.log_level, args=[logging.ERROR],
+        expected=logging.ERROR),
+    PytestAction('LOG_LEVEL_006',
+        name='log_level CRITICAL',
+        action=_validate.log_level, args=[logging.CRITICAL],
+        expected=logging.CRITICAL),
+    PytestAction('LOG_LEVEL_007',
+        name='log_level as None (should return NOTSET)',
+        action=_validate.log_level, args=[None],
+        expected=logging.NOTSET),
+    PytestAction('LOG_LEVEL_008',
+        name='invalid log_level type (string)',
+        action=_validate.log_level, args=['INFO'],
+        exception=TypeError),
+    PytestAction('LOG_LEVEL_009',
+        name='invalid log_level type (float)',
+        action=_validate.log_level, args=[10.5],
+        exception=TypeError),
+    PytestAction('LOG_LEVEL_010',
+        name='invalid log_level value (out of range)',
+        action=_validate.log_level, args=[999],
+        exception=ValueError),
+])
+def test_log_level(testspec: TestSpec) -> None:
+    """Test Config with log_level."""
     testspec.run()

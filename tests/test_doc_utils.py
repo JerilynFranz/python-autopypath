@@ -108,3 +108,16 @@ def test_enum_docstrings_mixed() -> None:
     assert MixedEnum.A.__doc__ == 'Docstring for A', f'Expected docstring for A, got {MixedEnum.A.__doc__!r}'
     assert MixedEnum.B.__doc__ == unassigned, f'Expected {unassigned!r}, got {MixedEnum.B.__doc__!r}'
     assert MixedEnum.C.__doc__ == 'Docstring for C', f'Expected docstring for C, got {MixedEnum.C.__doc__!r}'
+
+
+class DummyEnum(Enum):
+    A = 1
+
+
+def test_enum_docstrings_invalid_ast() -> None:
+    """Test enum_docstrings when AST does not contain a ClassDef."""
+    # Patch inspect.getsource to return a function definition instead of a class
+    fake_source = 'def not_a_class():\n    pass\n'
+    with patch('inspect.getsource', return_value=fake_source):
+        result = enum_docstrings(DummyEnum)
+        assert result is DummyEnum  # Should return the enum unchanged

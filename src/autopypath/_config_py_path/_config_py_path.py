@@ -38,6 +38,7 @@ class _ConfigPyPath:
         '_updated_paths',
         '_dry_run',
         '_strict',
+        '_log_level',
     )
 
     def __init__(
@@ -52,6 +53,7 @@ class _ConfigPyPath:
         path_resolution_order: Optional[Sequence[Union[PathResolution, PathResolutionLiterals]]] = None,
         dry_run: bool = False,
         strict: bool = False,
+        log_level: Optional[int] = None,
     ) -> None:
         """Configures :var:`sys.path` based on manual settings, .env files, and pyproject.toml.
 
@@ -109,66 +111,78 @@ class _ConfigPyPath:
             not actually modified. This is useful for testing or inspecting the configuration without making changes.
         :param bool strict: (default: ``False``) If ``True``, raises exceptions on errors during configuration.
             If ``False``, errors are logged as warnings and the configuration continues where possible.
+        :param int | None log_level: (default: ``None``) The logging level to set for the internal logger during
+            configuration. It will be restored to its original setting afterwards. If ``None``,
+            the current log level is used.
         :raises TypeError: If any of the inputs are of incorrect type.
         :raises ValueError: If any of the inputs have invalid values or strict mode is enabled
             and an unknown path resolution source is encountered.
         :raises RuntimeError: If the repository root cannot be found or if strict mode is enabled
             and a configured path cannot be resolved.
         """
-        self._dry_run: bool = _validate.dry_run(dry_run)
-        """Indicates whether the configuration was a dry run (no actual sys.path modification)."""
+        _existing_log_level: int = log.level
+        """Existing log level to restore later."""
 
-        self._strict: bool = _validate.strict(strict)
-        """Indicates whether strict mode is enabled for error handling."""
+        try:
+            # Set log level temporarily during configuration process if provided
+            log.setLevel(_validate.log_level(log_level))
 
-        if self.dry_run:
-            log.info('Dry run enabled - sys.path will not actually be modified.')
+            self._dry_run: bool = _validate.dry_run(dry_run)
+            """Indicates whether the configuration was a dry run (no actual sys.path modification)."""
 
-        self._original_sys_path: list[str] = sys.path.copy()
-        """The original sys.path before any modifications."""
+            self._strict: bool = _validate.strict(strict)
+            """Indicates whether strict mode is enabled for error handling."""
 
-        self._context_file: Path = _validate.context_file(context_file)
-        """The file path of the script that is configuring the Python path."""
+            if self.dry_run:
+                log.info('Dry run enabled - sys.path will not actually be modified.')
 
-        self._autopypath: Union[_AutopypathConfig, None] = None
-        """Configuration loaded from autopypath.toml.
+            self._original_sys_path: list[str] = sys.path.copy()
+            """The original sys.path before any modifications."""
 
-        It is ``None`` if no autopypath.toml file is found during the repo root search.
-        """
+            self._context_file: Path = _validate.context_file(context_file)
+            """The file path of the script that is configuring the Python path."""
 
-        self._manual = _ManualConfig(
-            repo_markers=repo_markers,
-            paths=paths,
-            load_strategy=load_strategy,
-            path_resolution_order=path_resolution_order,
-        )
-        """Manual configuration provided directly to the function."""
+            self._autopypath: Union[_AutopypathConfig, None] = None
+            """Configuration loaded from autopypath.toml.
 
-        self._default = _DefaultConfig()
-        """Default autopypath configuration."""
+            It is ``None`` if no autopypath.toml file is found during the repo root search.
+            """
 
-        self._repo_root_path: Path = self._find_repo_root_path(self.context_file)
-        """The repository root path based on the configured repo markers."""
+            self._manual = _ManualConfig(
+                repo_markers=repo_markers,
+                paths=paths,
+                load_strategy=load_strategy,
+                path_resolution_order=path_resolution_order,
+            )
+            """Manual configuration provided directly to the function."""
 
-        self._pyproject = _PyProjectConfig(self.repo_root_path)
-        """Configuration loaded from pyproject.toml (if present)."""
+            self._default = _DefaultConfig()
+            """Default autopypath configuration."""
 
-        self._dotenv = _DotEnvConfig(self.repo_root_path)
-        """Configuration loaded from .env file (if present)."""
+            self._repo_root_path: Path = self._find_repo_root_path(self.context_file)
+            """The repository root path based on the configured repo markers."""
 
-        self._path_resolution_order: tuple[PathResolution, ...] = self._determine_path_resolution_order()
-        """The order in which to resolve :var:`sys.path` sources."""
+            self._pyproject = _PyProjectConfig(self.repo_root_path)
+            """Configuration loaded from pyproject.toml (if present)."""
 
-        self._load_strategy: LoadStrategy = self._determine_load_strategy()
-        """The strategy for handling multiple :var:`sys.path` sources."""
+            self._dotenv = _DotEnvConfig(self.repo_root_path)
+            """Configuration loaded from .env file (if present)."""
 
-        self._paths: tuple[Path, ...] = self._process_paths()
-        """The final resolved paths that will be added to :var:`sys.path`."""
+            self._path_resolution_order: tuple[PathResolution, ...] = self._determine_path_resolution_order()
+            """The order in which to resolve :var:`sys.path` sources."""
 
-        self._apply_paths(self.paths)
+            self._load_strategy: LoadStrategy = self._determine_load_strategy()
+            """The strategy for handling multiple :var:`sys.path` sources."""
 
-        self._updated_paths: tuple[str, ...] = tuple(sys.path)
-        """The updated sys.path after modifications."""
+            self._paths: tuple[Path, ...] = self._process_paths()
+            """The final resolved paths that will be added to :var:`sys.path`."""
+
+            self._apply_paths(self.paths)
+
+            self._updated_paths: tuple[str, ...] = tuple(sys.path)
+            """The updated sys.path after modifications."""
+        finally:
+            log.setLevel(_existing_log_level)
 
     def _apply_paths(self, paths: Sequence[Path]) -> None:
         """Applies the resolved paths to :var:`sys.path`.
@@ -217,7 +231,7 @@ class _ConfigPyPath:
         :raises ValueError: If an unknown path resolution source is encountered and strict mode is enabled.
         """
 
-        existing_paths = sys.path
+        existing_paths = sys.path if self.load_strategy != LoadStrategy.REPLACE else []
         known_paths: set[Path] = set()
         for p in existing_paths:
             try:
@@ -257,7 +271,7 @@ class _ConfigPyPath:
             # Identify load strategy behavior
             if self.load_strategy == LoadStrategy.REPLACE:
                 raw_paths.extend(source_paths)
-                log.debug('Load strategy REPLACE: Appending paths %s from %s', source_paths, source)
+                log.debug('Load strategy REPLACE: Using paths %s from %s', source_paths, source)
                 break
             elif self.load_strategy == LoadStrategy.PREPEND_HIGHEST_PRIORITY:
                 log.debug('Load strategy PREPEND_HIGHEST_PRIORITY: Using paths %s from %s', source_paths, source)
@@ -277,10 +291,11 @@ class _ConfigPyPath:
                 raw_paths.append(path)
 
         # Remove duplicates while preserving order
+        # and resolve paths
         unique_paths: list[Path] = []
         for path in raw_paths:
             try:
-                resolved_path = path.resolve()
+                resolved_path = path.resolve() if path.is_absolute() else (self.repo_root_path / path).resolve()
             except Exception as exc:
                 if self._strict:
                     raise RuntimeError(f'Could not resolve configured path: {path}') from exc
@@ -290,7 +305,24 @@ class _ConfigPyPath:
                 unique_paths.append(resolved_path)
                 known_paths.add(resolved_path)
 
-        return tuple(unique_paths)
+        # Remove non-existing paths
+        final_paths: list[Path] = []
+        for path in unique_paths:
+            if path.exists():
+                final_paths.append(path)
+            else:
+                if self._strict:
+                    raise RuntimeError(f'autopypath: Configured path does not exist: {path}')
+                log.warning('autopypath: Configured path does not exist and will be skipped: %s', path)
+
+        # Final check for empty paths
+        if not final_paths:
+            if self.load_strategy == LoadStrategy.REPLACE:
+                raise RuntimeError('autopypath: No valid paths to use as sys.path after processing in "replace" mode.')
+            log.warning('autopypath: No valid paths to add to sys.path after processing.')
+
+        log.debug('Final resolved paths to add to sys.path: %s', final_paths)
+        return tuple(final_paths)
 
     def _determine_load_strategy(self) -> LoadStrategy:
         """Determines the load strategy for handling multiple :var:`sys.path` sources.
