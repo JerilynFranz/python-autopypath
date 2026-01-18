@@ -503,6 +503,170 @@ def test_replace_strategy_live(tmp_path: Path) -> None:
         sys.path = sys_path_before
 
 
+def test_prepend_strategy_live(tmp_path: Path) -> None:
+    """
+    Performs live tests of the 'prepend' load strategy.
+
+    Default sys.path is preserved and restored after the test.
+
+    :param Path tmp_path: Path to a temporary directory for testing.
+    """
+    root_path = tmp_path / 'repo'
+    root_path.mkdir()
+    context_file = root_path / 'some_file.txt'
+    context_file.write_text('Just a test file.')
+    vcs_path = root_path / '.vcs'
+    vcs_path.mkdir()
+
+    # src and tests do not exist - expect no changes to sys.path
+    sys_path_before: list[str] = sys.path.copy()
+    try:
+        _ConfigPyPath(
+            context_file=str(root_path / 'some_file.txt'),
+            load_strategy='prepend',
+            path_resolution_order=['manual'],
+            paths=['src', 'tests'],
+            repo_markers={'.vcs': 'dir'},
+        )
+
+        assert sys.path == sys_path_before, (
+            'PREPEND_STRATEGY_LIVE_001 sys.path should be unchanged because no valid paths exist to prepend'
+        )
+    finally:
+        sys.path = sys_path_before
+
+    # Create the 'src' directory so one of the paths exists
+    try:
+        src_path = root_path / 'src'
+        src_path.mkdir()
+
+        _ConfigPyPath(
+            context_file=str(root_path / 'some_file.txt'),
+            load_strategy='prepend',
+            path_resolution_order=['manual'],
+            paths=['src', 'tests'],
+            repo_markers={'.vcs': 'dir'},
+        )
+
+        assert len(sys.path) == len(sys_path_before) + 1, (
+            'PREPEND_STRATEGY_LIVE_002 sys.path should have one additional entry after prepend strategy is applied'
+        )
+        assert sys.path[0] == str(src_path.resolve()), (
+            'PREPEND_STRATEGY_LIVE_003 sys.path[0] should be the src directory path'
+        )
+        assert sys.path[1:] == sys_path_before, (
+            'PREPEND_STRATEGY_LIVE_004 sys.path entries after the first should be unchanged'
+        )
+    finally:
+        sys.path = sys_path_before
+
+
+def test_prepend_highest_priority_strategy_live(tmp_path: Path) -> None:
+    """
+    Performs live tests of the 'prepend_highest_priority' load strategy.
+
+    Default sys.path is preserved and restored after the test.
+
+    :param Path tmp_path: Path to a temporary directory for testing.
+    """
+    root_path = tmp_path / 'repo'
+    root_path.mkdir()
+    context_file = root_path / 'some_file.txt'
+    context_file.write_text('Just a test file.')
+    vcs_path = root_path / '.vcs'
+    vcs_path.mkdir()
+
+    # src and tests do not exist - expect no changes to sys.path
+    sys_path_before: list[str] = sys.path.copy()
+    try:
+        _ConfigPyPath(
+            context_file=str(root_path / 'some_file.txt'),
+            load_strategy='prepend_highest_priority',
+            path_resolution_order=['manual'],
+            paths=['src', 'tests'],
+            repo_markers={'.vcs': 'dir'},
+        )
+
+        assert sys.path == sys_path_before, (
+            'PREPEND_HIGHEST_PRIORITY_STRATEGY_LIVE_001 sys.path should be '
+            'unchanged because no valid paths exist to prepend'
+        )
+    finally:
+        sys.path = sys_path_before
+
+    assert sys.path == sys_path_before, (
+        'PREPEND_HIGHEST_PRIORITY_STRATEGY_LIVE_002 sys.path should be have been restored to its original state'
+    )
+    # Create the 'src' directory so one of the paths exists
+    try:
+        src_path = root_path / 'src'
+        src_path.mkdir()
+
+        _ConfigPyPath(
+            context_file=str(root_path / 'some_file.txt'),
+            load_strategy='prepend_highest_priority',
+            path_resolution_order=['manual'],
+            paths=['src', 'tests'],
+            repo_markers={'.vcs': 'dir'},
+        )
+
+        assert len(sys.path) == len(sys_path_before) + 1, (
+            'PREPEND_HIGHEST_PRIORITY_STRATEGY_LIVE_003 sys.path should have '
+            'one additional entry after prepend_highest_priority strategy is applied'
+            f': {sys.path}'
+        )
+        assert sys.path[0] == str(src_path.resolve()), (
+            'PREPEND_HIGHEST_PRIORITY_STRATEGY_LIVE_004 sys.path[0] should be the src directory path'
+        )
+        assert sys.path[1:] == sys_path_before, (
+            'PREPEND_HIGHEST_PRIORITY_STRATEGY_LIVE_005 sys.path entries after the first should be unchanged'
+        )
+    finally:
+        sys.path = sys_path_before
+
+    assert sys.path == sys_path_before, (
+        'PREPEND_HIGHEST_PRIORITY_STRATEGY_LIVE_006 sys.path should be have been restored to its original state'
+    )
+
+    # Now create a autopypath.toml file that specifies a lower precedence paths
+    # setting of ['tests'] rather than ['src', 'tests'] from the manual config
+    # and create the 'tests' directory so that path exists
+    try:
+        autopypath_path = root_path / 'autopypath.toml'
+        autopypath_path.write_text("""
+[tool.autopypath]
+load_strategy = "prepend_highest_priority"
+path_resolution_order = ["autopypath", "manual"]
+repo_markers = {".vcs" = "dir"}
+paths=["tests"]
+""")
+        tests_path = root_path / 'tests'
+        tests_path.mkdir()
+
+        _ConfigPyPath(
+            context_file=str(root_path / 'some_file.txt'),
+            load_strategy='prepend_highest_priority',
+            path_resolution_order=['manual', 'autopypath'],
+            paths=['src'],
+            repo_markers={'.vcs': 'dir'},
+        )
+        # autopypath and manual configs both have valid paths, but manual has
+        # the higher priority so only 'src' should be added to sys.path
+        assert len(sys.path) == len(sys_path_before) + 1, (
+            'PREPEND_HIGHEST_PRIORITY_STRATEGY_LIVE_007 sys.path should have one'
+            'additional entry after prepend_highest_priority strategy is applied '
+            'with autopypath.toml '
+        )
+        assert sys.path[0] == str(src_path.resolve()), (
+            'PREPEND_HIGHEST_PRIORITY_STRATEGY_LIVE_008 sys.path[0] should be the src directory path'
+        )
+        assert sys.path[1:] == sys_path_before, (
+            'PREPEND_HIGHEST_PRIORITY_STRATEGY_LIVE_009 sys.path entries after the first should be unchanged'
+        )
+    finally:
+        sys.path = sys_path_before
+
+
 def test_strict(tmp_path: Path, caplog: pytest.LogCaptureFixture) -> None:
     """Tests that _ConfigPyPath raises RuntimeError in strict mode
     when no valid paths are found to add to sys.path for non-replace
