@@ -370,6 +370,13 @@ class _ConfigPyPath:
 
         The first source that provides a non-None order is used.
 
+        Note that the path resolution order determines the order in which
+        paths are collected from the various sources before applying the load strategy
+        not the priority of the sources themselves. The priority of which source's
+        path resolution order is selected follows the precedence sequence above
+        and only one source's order is used. A path resolution order set manually
+        will always take precedence over any other source and so on.
+
         :return tuple[PathResolution, ...]: The order in which to resolve :var:`sys.path` sources.
         """
         if self.manual_config.path_resolution_order is not None:
