@@ -7,7 +7,7 @@ import sys
 
 import pytest
 
-from autopypath._config_py_path._config_py_path import _ConfigPyPath, _EMPTY_AUTOPYPATH_CONFIG
+from autopypath._config_py_path._config_py_path import _ConfigPyPath, _EMPTY_AUTOPYPATH_CONFIG, _NON_RESOLVABLE_SYS_PATH
 from autopypath.types._no_path import _NoPath
 from autopypath import _defaults as defaults
 
@@ -709,3 +709,217 @@ paths=["src", "tests"]
     assert any(
         'autopypath: No valid paths to add to sys.path after processing.' in message for message in warning_messages
     ), 'STRICT_002 Expected a warning about no valid paths to add to sys.path in non-strict mode'
+
+
+def test_symlinked_paths(tmp_path: Path) -> None:
+    """Test Config with symlinked paths."""
+    root_path = tmp_path / 'repo'
+    root_path.mkdir()
+    root_path.joinpath('some_file.txt').write_text('Just a test file.')
+    pyproject_path = root_path / 'pyproject.toml'
+    pyproject_path.write_text("""
+[tool.autopypath]
+paths = ["symlinked_path"]
+""")
+    symlink_target = root_path / 'actual_path'
+    symlink_target.mkdir()
+    symlink_path = root_path / 'symlinked_path'
+    symlink_path.symlink_to(symlink_target, target_is_directory=True)
+
+    try:
+        sys.path = _ORIGINAL_SYS_PATH.copy()
+        _ConfigPyPath(
+            context_file=str(root_path / 'some_file.txt'),
+        )
+        new_path_entry = str((root_path / 'symlinked_path').resolve())
+        assert new_path_entry in sys.path, 'SYMLINKED_PATHS_001 The resolved symlinked path should be in sys.path'
+    finally:
+        sys.path = _ORIGINAL_SYS_PATH.copy()
+
+    # remove the target directory and test that the symlink is ignored
+    symlink_target.rmdir()
+    try:
+        sys.path = _ORIGINAL_SYS_PATH.copy()
+        _ConfigPyPath(
+            context_file=str(root_path / 'some_file.txt'),
+        )
+        new_path_entry = str((root_path / 'symlinked_path').resolve())
+        assert new_path_entry not in sys.path, (
+            'SYMLINKED_PATHS_002 The symlinked path should be ignored since the target does not exist'
+        )
+    finally:
+        sys.path = _ORIGINAL_SYS_PATH.copy()
+
+
+def test_non_resolvable_sys_path_entry(tmp_path: Path, caplog: pytest.LogCaptureFixture) -> None:
+    """Test that non-resolvable sys.path entries are handled gracefully."""
+
+    root_path = tmp_path / 'repo'
+    root_path.mkdir()
+    root_path.joinpath('some_file.txt').write_text('Just a test file.')
+    git_path = root_path / '.git'
+    git_path.mkdir()
+    src_path = root_path / 'src'
+    src_path.mkdir()
+
+    bogus_path = '::nota\0path::'
+    try:
+        sys.path = _ORIGINAL_SYS_PATH.copy() + [bogus_path]
+        caplog.clear()
+        _ConfigPyPath(
+            context_file=str(root_path / 'some_file.txt'),
+            log_level=logging.DEBUG,
+        )
+        messages = [record.message for record in caplog.records]
+        if not any(message.startswith(_NON_RESOLVABLE_SYS_PATH) for message in messages):
+            pytest.fail('NON_RESOLVABLE_SYS_PATH_001 Expected a log message about the non-resolvable sys.path entry')
+
+    finally:
+        sys.path = _ORIGINAL_SYS_PATH.copy()
+
+
+def test_non_file_autopypath_toml(tmp_path: Path) -> None:
+    """Test that a non-file autopypath.toml is handled gracefully."""
+
+    root_path = tmp_path / 'repo'
+    root_path.mkdir()
+    context_file = root_path / 'some_file.txt'
+    context_file.write_text('Just a test file.')
+    git_path = root_path / '.git'
+    git_path.mkdir()
+    autopypath_path = root_path / 'autopypath.toml'
+    autopypath_path.mkdir()  # Create a directory instead of a file
+
+    try:
+        sys.path = _ORIGINAL_SYS_PATH.copy()
+        config = _ConfigPyPath(
+            context_file=str(context_file),
+        )
+        autopypath_config = config.autopypath_config
+        assert autopypath_config == _EMPTY_AUTOPYPATH_CONFIG, (
+            'NON_FILE_AUTOPYPATH_TOML_001 autopypath_config should '
+            'be the empty config when autopypath.toml is not a file'
+        )
+    finally:
+        sys.path = _ORIGINAL_SYS_PATH.copy()
+
+    # Now with strict
+    try:
+        sys.path = _ORIGINAL_SYS_PATH.copy()
+        _ConfigPyPath(
+            context_file=str(context_file),
+            strict=True,
+        )
+        pytest.fail(
+            'NON_FILE_AUTOPYPATH_TOML_002 Expected RuntimeError because autopypath.toml is not a file in strict mode'
+        )
+    except RuntimeError:
+        pass
+    finally:
+        sys.path = _ORIGINAL_SYS_PATH.copy()
+
+
+def test_no_repo(tmp_path: Path) -> None:
+    """Test that a RuntimeError is raised when no repository markers are found."""
+    root_path = tmp_path / 'repo'
+    root_path.mkdir()
+    context_file = root_path / 'some_file.txt'
+    context_file.write_text('Just a test file.')
+
+    try:
+        _ConfigPyPath(
+            context_file=context_file,
+            dry_run=True,
+            repo_markers={'.nonexistent_vcs': 'dir'},
+        )
+        pytest.fail('NO_REPO_001 Expected RuntimeError because no repository markers were found')
+    except RuntimeError:
+        pass  # Expected because no repository markers exist
+
+
+def test_restore_sys_path(tmp_path: Path) -> None:
+    """Test that sys.path is restored on call to _config.restore_sys_path()."""
+    root_path = tmp_path / 'repo'
+    root_path.mkdir()
+    context_file = root_path / 'some_file.txt'
+    context_file.write_text('Just a test file.')
+    git_path = root_path / '.git'
+    git_path.mkdir()
+    src_path = root_path / 'src'
+    src_path.mkdir()
+
+    # dry run - sys.path should not be modified
+    try:
+        sys.path = _ORIGINAL_SYS_PATH.copy()
+        config = _ConfigPyPath(
+            context_file=str(context_file),
+            load_strategy='prepend',
+            path_resolution_order=['manual'],
+            paths=['src'],
+            repo_markers={'.git': 'dir'},
+            dry_run=True,
+        )
+
+        assert sys.path == _ORIGINAL_SYS_PATH, 'RESTORE_SYS_PATH_001 sys.path should be unchanged in dry run mode'
+        config.restore_sys_path()
+        assert sys.path == _ORIGINAL_SYS_PATH, (
+            'RESTORE_SYS_PATH_002 sys.path should be still be unchanged after restore_sys_path() is called'
+        )
+
+    finally:
+        sys.path = _ORIGINAL_SYS_PATH.copy()
+
+    # live - sys.path should be modified and then restored
+    try:
+        sys.path = _ORIGINAL_SYS_PATH.copy()
+        config = _ConfigPyPath(
+            context_file=str(context_file),
+            load_strategy='prepend',
+            path_resolution_order=['manual'],
+            paths=['src'],
+            repo_markers={'.git': 'dir'},
+        )
+
+        assert len(sys.path) == len(_ORIGINAL_SYS_PATH) + 1, (
+            'RESTORE_SYS_PATH_001 sys.path should have one additional entry after prepend strategy is applied'
+        )
+        config.restore_sys_path()
+        assert sys.path == _ORIGINAL_SYS_PATH, (
+            'RESTORE_SYS_PATH_002 sys.path should be restored to its original state after restore_sys_path() is called'
+        )
+
+    finally:
+        sys.path = _ORIGINAL_SYS_PATH.copy()
+
+
+def test_updated_sys_path_property(tmp_path: Path) -> None:
+    """Test that _ConfigPyPath.updated_sys_path property is unchanged in dry run mode.
+    It should return the expected sys.path
+    """
+    root_path = tmp_path / 'repo'
+    root_path.mkdir()
+    context_file = root_path / 'some_file.txt'
+    context_file.write_text('Just a test file.')
+    git_path = root_path / '.git'
+    git_path.mkdir()
+    src_path = root_path / 'src'
+    src_path.mkdir()
+
+    try:
+        sys.path = _ORIGINAL_SYS_PATH.copy()
+        config = _ConfigPyPath(
+            context_file=str(context_file),
+            load_strategy='prepend',
+            path_resolution_order=['manual'],
+            paths=['src'],
+            repo_markers={'.git': 'dir'},
+            dry_run=True,
+        )
+
+        updated_sys_path = config.updated_sys_path
+        assert len(updated_sys_path) == len(_ORIGINAL_SYS_PATH), (
+            'UPDATED_SYS_PATH_001 updated_sys_path should have one additional entry after prepend strategy is applied'
+        )
+
+    finally:
+        sys.path = _ORIGINAL_SYS_PATH.copy()

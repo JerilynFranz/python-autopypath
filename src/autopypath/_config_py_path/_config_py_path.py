@@ -19,6 +19,12 @@ __all__ = []
 _EMPTY_AUTOPYPATH_CONFIG: _AutopypathConfig = _AutopypathConfig(None)
 """An empty AutopypathConfig instance used when no autopypath.toml is found."""
 
+_NON_RESOLVABLE_SYS_PATH: str = 'non-resolvable sys.path entry found'
+"""Log message prefix for non-resolvable sys.path entries."""
+
+_NON_RESOLVABLE_PATH: str = 'non-resolvable configured path found'
+"""Log message prefix for non-resolvable configured paths."""
+
 
 class _ConfigPyPath:
     """Configures :var:`sys.path` based on manual settings, pyproject.toml, and .env files."""
@@ -235,11 +241,12 @@ class _ConfigPyPath:
         known_paths: set[Path] = set()
         for p in existing_paths:
             try:
-                path_obj = Path(p).resolve()
+                log.debug('Resolving existing sys.path entry: %s', p)
+                path_obj = Path(p).resolve(strict=True)
                 if path_obj not in known_paths:
                     known_paths.add(path_obj)
             except Exception:
-                log.debug('Could not resolve existing sys.path entry: %s', p)
+                log.debug(f'{_NON_RESOLVABLE_SYS_PATH}: %s', p)
 
         raw_paths: list[Path] = []
 
@@ -296,7 +303,11 @@ class _ConfigPyPath:
         unique_paths: list[Path] = []
         for path in raw_paths:
             try:
-                resolved_path = path.resolve() if path.is_absolute() else (self.repo_root_path / path).resolve()
+                resolved_path = (
+                    path.resolve(strict=True)
+                    if path.is_absolute()
+                    else (self.repo_root_path / path).resolve(strict=True)
+                )
             except Exception as exc:
                 if self._strict:
                     log.error('Could not resolve configured path: %s', path)
@@ -307,26 +318,15 @@ class _ConfigPyPath:
                 unique_paths.append(resolved_path)
                 known_paths.add(resolved_path)
 
-        # Remove non-existing paths
-        final_paths: list[Path] = []
-        for path in unique_paths:
-            if path.exists():
-                final_paths.append(path)
-            else:
-                if self._strict:
-                    log.error('Configured path does not exist: %s', path)
-                    raise RuntimeError(f'autopypath: Configured path does not exist: {path}')
-                log.warning('autopypath: Configured path does not exist and will be skipped: %s', path)
-
         # Final check for empty paths
-        if not final_paths:
+        if not unique_paths:
             if self.load_strategy == LoadStrategy.REPLACE:
                 log.error('No valid paths to use as sys.path after processing in "replace" mode.')
                 raise RuntimeError('autopypath: No valid paths to use as sys.path after processing in "replace" mode.')
             log.warning('autopypath: No valid paths to add to sys.path after processing.')
 
-        log.debug('Final resolved paths to add to sys.path: %s', final_paths)
-        return tuple(final_paths)
+        log.debug('Final resolved paths to add to sys.path: %s', unique_paths)
+        return tuple(unique_paths)
 
     def _determine_load_strategy(self) -> LoadStrategy:
         """Determines the load strategy for handling multiple :var:`sys.path` sources.
@@ -404,20 +404,20 @@ class _ConfigPyPath:
         :raises RuntimeError: If the repository root cannot be found.
         """
         repo_markers = self.manual_config.repo_markers or self.default_config.repo_markers
-        if repo_markers is None:
-            raise RuntimeError('No repository markers defined to find the repo root.')
-
-        current_path = context_file_path.parent.resolve()
+        current_path = context_file_path.parent.resolve(strict=True)
         while True:
             autopypath_path = current_path / 'autopypath.toml'
             # load autopypath.toml if found during repo search (but only once)
             if self._autopypath is None and autopypath_path.exists():
                 if not autopypath_path.is_file():
                     if self._strict:
-                        log.error('Found autopypath.toml at %s but it is not a file', autopypath_path.resolve())
+                        log.error(
+                            'Found autopypath.toml at %s but it is not a file', autopypath_path.resolve(strict=True)
+                        )
                         raise RuntimeError(f'Found autopypath.toml at {autopypath_path} but it is not a file')
                     log.warning(
-                        'Found autopypath.toml at %s but it is not a file - ignoring', autopypath_path.resolve()
+                        'Found autopypath.toml at %s but it is not a file - ignoring',
+                        autopypath_path.resolve(strict=True),
                     )
                 # load autopypath config for repo searching and update repo markers not set manually
                 # This is done BEFORE checking for repo markers so that autopypath.toml
