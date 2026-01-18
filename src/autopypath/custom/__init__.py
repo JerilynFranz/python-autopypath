@@ -52,6 +52,7 @@ from .._log import log
 from ..types import RepoMarkerLiterals, LoadStrategyLiterals, PathResolutionLiterals
 
 
+_NOT_MAIN_CONTEXT_WARNING = 'autopypath.custom imported from non-__main__ context; no sys.path changes will be applied.'
 _context_file: Optional[Path] = None
 """This is the file path of the script that imported this module, if available."""
 _context_name: Optional[str] = None
@@ -63,7 +64,7 @@ if _context_info is not None:
     _context_file, _context_name = _context_info
     if _context_name != '__main__':
         log.debug(
-            'autopypath.custom imported from non-__main__ context (%s); no sys.path changes will be applied.',
+            _NOT_MAIN_CONTEXT_WARNING,
             _context_name,
         )
 
@@ -121,17 +122,11 @@ def configure_pypath(
         raise RuntimeError('could not determine context file; cannot configure sys.path.')
     elif _context_name != '__main__':
         if strict:
-            log.error(
-                'autopypath.custom imported from non-__main__ context (%s); cannot configure sys.path.',
-                _context_name,
-            )
+            log.error(_NOT_MAIN_CONTEXT_WARNING)
             raise RuntimeError(
                 f'autopypath.custom imported from non-__main__ context ({_context_name}); cannot configure sys.path.'
             )
-        log.warning(
-            'autopypath.custom imported from non-__main__ context (%s); no sys.path changes will be applied.',
-            _context_name,
-        )
+        log.warning(_NOT_MAIN_CONTEXT_WARNING)
     else:
         _ConfigPyPath(
             context_file=_context_file,
