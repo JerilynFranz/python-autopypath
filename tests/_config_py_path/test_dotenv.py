@@ -1,10 +1,14 @@
 """Tests for autopypath._config_py_path._config._dotenv module."""
 
+import logging
+import os
 from pathlib import Path
 
 import pytest
+import unittest.mock
 
 from autopypath._config_py_path._config._dotenv import _DotEnvConfig
+from autopypath._log import log
 
 
 def test_dotenv_config_init_no_file(tmp_path: Path) -> None:
@@ -127,3 +131,100 @@ def test_dotenv_config_with_empty_pythonpath(tmp_path: Path) -> None:
     assert config.path_resolution_order is None, (
         'DOTENV_029 Path resolution order should be None when .env file is present'
     )
+
+
+def test_dotenv_config_with_not_a_file_dotenv(tmp_path: Path, caplog: pytest.LogCaptureFixture) -> None:
+    """Test that DotEnvConfig handles a non-file .env path correctly by logging a warning."""
+    dotenv_path = tmp_path / '.env'
+    dotenv_path.mkdir()  # Create a directory instead of a file
+
+    caplog.clear()
+    _DotEnvConfig(repo_root_path=tmp_path)
+    warning_messages = [record.message for record in caplog.records if record.levelno == logging.WARNING]
+    assert any(message.startswith('.env path is not a file') for message in warning_messages), (
+        'DOTENV_030 Expected a warning about .env path not being a file'
+    )
+
+
+def test_non_platform_path_separators_in_dotenv(tmp_path: Path, caplog: pytest.LogCaptureFixture) -> None:
+    """Test that DotEnvConfig logs appropriate messages for non-native path separators in .env PYTHONPATH."""
+    repo_dir = tmp_path / 'repo'
+    repo_dir.mkdir()
+    dotenv_content = 'PYTHONPATH=src;lib:tests\n'  # Mixed separators
+    dotenv_path = repo_dir / '.env'
+    dotenv_path.write_text(dotenv_content)
+
+    posix_message = _DotEnvConfig._FOUND_POSIX_SEP_MESSAGE
+    windows_message = _DotEnvConfig._FOUND_NT_SEP_MESSAGE
+
+    caplog.clear()
+    log.setLevel(logging.INFO)
+
+    try:
+        # Check for expected log messages for this platform
+
+        _DotEnvConfig(repo_root_path=repo_dir)
+
+        log_messages = [record.message for record in caplog.records if record.levelno == logging.INFO]
+
+        expected_message = ''
+        if os.name == 'nt':
+            expected_message = posix_message
+        elif os.name == 'posix':
+            expected_message = windows_message
+        if expected_message:
+            assert any(message == expected_message for message in log_messages), (
+                f'DOTENV_031 Expected log message about non-native path separators in .env{caplog.records}'
+            )
+    finally:
+        log.setLevel(logging.NOTSET)
+
+
+def test_cross_platform_path_separators_in_dotenv(tmp_path: Path, caplog: pytest.LogCaptureFixture) -> None:
+    """Test that DotEnvConfig logs appropriate messages for non-native path separators in .env PYTHONPATH
+    when os.name is monkeypatched to simulate different platforms.
+    """
+    repo_dir = tmp_path
+    dotenv_content = 'PYTHONPATH=src;lib:tests\n'  # Mixed separators
+    dotenv_path = repo_dir / '.env'
+    dotenv_path.write_text(dotenv_content)
+
+    # force module loads before monkeypatching os.name
+    _DotEnvConfig(repo_root_path=tmp_path)
+
+    os_name = os.name  # Capture the current os.name
+
+    posix_message = _DotEnvConfig._FOUND_POSIX_SEP_MESSAGE
+    windows_message = _DotEnvConfig._FOUND_NT_SEP_MESSAGE
+
+    # Patch os.name to the other platform using unittest.mock.patch
+    other_os_name = 'nt' if os_name != 'nt' else 'posix'
+    try:
+        with unittest.mock.patch('os.name', other_os_name):
+            caplog.clear()
+            log.setLevel(logging.INFO)
+
+            # Test for cross-platform Path support
+            # It is known to fail on CPython < 3.12 and PyPy 3.10 and 3.11
+            # It may fail on other platforms or implementations
+            try:
+                Path('C:\\some\\windows\\path')
+                Path('/some/posix/path')
+            except Exception:
+                pytest.skip('Cross-platform Path creation not supported in this Python version')
+
+            _DotEnvConfig(repo_root_path=tmp_path)
+
+            log_messages = [record.message for record in caplog.records if record.levelno == logging.INFO]
+
+            expected_message = ''
+            if other_os_name == 'nt':
+                expected_message = posix_message
+            elif other_os_name == 'posix':
+                expected_message = windows_message
+            if expected_message:
+                assert any(message == expected_message for message in log_messages), (
+                    'DOTENV_032 Expected log message about non-native path separators in .env after os.name monkeypatch'
+                )
+    finally:
+        log.setLevel(logging.NOTSET)

@@ -1,9 +1,9 @@
 """Config from dotenv files for autopypath."""
 
 import os
-from ntpath import sep as nt_sep
+from ntpath import pathsep as nt_pathsep
 from pathlib import Path
-from posixpath import sep as posix_sep
+from posixpath import pathsep as posix_pathsep
 from typing import Union
 
 import dotenv
@@ -17,6 +17,9 @@ __all__ = ['_DotEnvConfig']
 
 class _DotEnvConfig(_Config):
     """Configuration for autopypath using dotenv files."""
+
+    _FOUND_POSIX_SEP_MESSAGE: str = "Detected POSIX-style path separator ':' in .env PYTHONPATH on Windows platform."
+    _FOUND_NT_SEP_MESSAGE: str = "Detected Windows-style path separator ';' in .env PYTHONPATH on POSIX platform."
 
     def __init__(self, repo_root_path: 'Path') -> None:
         """Configuration for autopypath using dotenv files.
@@ -35,10 +38,14 @@ class _DotEnvConfig(_Config):
         :param Path repo_root_path: The root path of the repository containing a .env file.
         :raises ValueError: If the provided repo_root_path is not a valid directory.
         """
+        log.debug('Initializing DotEnvConfig with repo_root_path: %s', repo_root_path)
         self._repo_root_path = _validate.root_repo_path(repo_root_path)
 
+        log.debug('Looking for .env file in repo_root_path: %s', self._repo_root_path)
         dotenv_path = self._repo_root_path / '.env'
+        log.debug('.env file path resolved to: %s', dotenv_path)
         if not dotenv_path.exists():
+            log.info('No .env file found at path: %s', dotenv_path)
             super().__init__(repo_markers=None, paths=None, load_strategy=None, path_resolution_order=None)
             return
 
@@ -62,28 +69,26 @@ class _DotEnvConfig(_Config):
             in PYTHONPATH, or None if PYTHONPATH is not set in the .env file.
         """
         pythonpath_value = dotenv.get_key(dotenv_path, 'PYTHONPATH', encoding='utf-8')
+        log.info('Read PYTHONPATH from .env file at %s: PYTHONPATH=%s', dotenv_path, pythonpath_value)
         if not pythonpath_value:
             log.info('PYTHONPATH not set in .env file at %s', dotenv_path)
             return None
-
-        has_posix_pathsep: bool = posix_sep in pythonpath_value
-        has_nt_pathsep: bool = nt_sep in pythonpath_value
+        has_posix_pathsep: bool = posix_pathsep in pythonpath_value
+        has_nt_pathsep: bool = nt_pathsep in pythonpath_value
         is_nt: bool = os.name == 'nt'
         is_posix: bool = os.name == 'posix'
 
         if is_nt and has_posix_pathsep:
-            log.info("Detected POSIX-style path separator ':' in .env PYTHONPATH on Windows platform.")
+            log.info(self._FOUND_POSIX_SEP_MESSAGE)
         elif is_posix and has_nt_pathsep:
-            log.info("Detected Windows-style path separator ';' in .env PYTHONPATH on POSIX platform.")
-        elif os.name not in ('nt', 'posix') and (has_posix_pathsep or has_nt_pathsep):
-            log.info('Detected platform-specific path separators in .env PYTHONPATH on unknown platform.')
+            log.info(self._FOUND_NT_SEP_MESSAGE)
 
         python_path_str = pythonpath_value.strip()
 
         subdirs_to_add = []
         if python_path_str:
             log.debug('PYTHONPATH from environment: %s', python_path_str)
-            normalized_path = python_path_str.replace(posix_sep, os.pathsep).replace(nt_sep, os.pathsep)
+            normalized_path = python_path_str.replace(posix_pathsep, os.pathsep).replace(nt_pathsep, os.pathsep)
             subdirs_to_add = [p.strip() for p in normalized_path.split(os.pathsep) if p]
 
         paths: list[Path] = []

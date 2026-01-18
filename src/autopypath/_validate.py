@@ -8,10 +8,9 @@ is invalid.
 They return the validated and possibly transformed value if valid."""
 
 from collections.abc import Mapping, Sequence
-import os
 from pathlib import Path
-from posixpath import sep as posix_sep
-from ntpath import sep as nt_sep
+from posixpath import pathsep as posix_pathsep
+from ntpath import pathsep as nt_pathsep
 from os import sep as path_sep
 import re
 from types import MappingProxyType
@@ -19,6 +18,7 @@ from typing import Any, Union
 
 __all__ = []
 
+from ._log import log
 from ._marker_type import MarkerType, resolve_marker_type_literal
 from ._load_strategy import LoadStrategy, resolve_load_strategy_literal
 from ._path_resolution import PathResolution, resolve_path_resolution_literal
@@ -305,6 +305,7 @@ def validate_path_or_str(path: Union[Path, str]) -> Path:
     if not isinstance(path, (Path, str)):
         raise TypeError(f'Invalid path: expected Path or str, got {type(path)}')
     item_str: str = str(path) if isinstance(path, Path) else path
+    log.debug('Validating path: %s', item_str)
     if '\000' in item_str:
         raise ValueError('Invalid path item: path cannot contain null byte')
     if item_str.strip() == '':
@@ -319,11 +320,11 @@ def validate_path_or_str(path: Union[Path, str]) -> Path:
         raise ValueError('Invalid path item: path cannot be only forward slashes')
     validated_path = Path(item_str) if isinstance(path, str) else path
     for offset, segment in enumerate(validated_path.parts):
-        if offset == 0 and segment.endswith(':') and os.name == 'nt':
-            # Skip drive letter on Windows
+        if offset == 0 and segment.endswith(':'):
+            # Skip drive letter for Windows even on non-Windows platforms
             continue  # pragma: no cover  # Covered in Windows tests
-        if offset == 0 and segment == os.sep and os.name == 'posix':
-            # Skip root '/' on POSIX
+        if offset == 0 and segment == '/':
+            # Skip root '/' for POSIX even on non-POSIX platforms
             continue  # pragma: no cover  # Covered in POSIX tests
         validate_file_or_dir_name(segment)
     return validated_path
@@ -346,13 +347,14 @@ def validate_file_or_dir_name(name: str) -> None:
     :raises ValueError: If the name is invalid.
 
     """
+    log.debug('Validating file or directory name: %s', name)
     if name.strip() == '':
         raise ValueError(f'Invalid file/dir name: cannot be empty or whitespace: {name!r}')
     if name.lstrip() != name:
         raise ValueError(f'Invalid file/dir name: cannot have leading whitespace: {name!r}')
     if name.rstrip() != name:
         raise ValueError(f'Invalid file/dir name: cannot have trailing whitespace: {name!r}')
-    if posix_sep in name or nt_sep in name or path_sep in name:
+    if posix_pathsep in name or nt_pathsep in name or path_sep in name:
         raise ValueError(f'Invalid file/dir name: cannot contain path separators: {name!r}')
     if has_forbidden_chars(name) or is_windows_reserved(name):
         raise ValueError(f'Invalid file/dir name: {name!r} is not allowed')
