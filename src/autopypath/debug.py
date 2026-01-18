@@ -16,30 +16,41 @@ This is useful for troubleshooting and understanding the internal workings of au
 
 """
 
-import inspect
+import logging
 from pathlib import Path
 from typing import Optional
 
 from ._config_py_path import _ConfigPyPath
+from ._context import _context_frameinfo
 from ._log import log
 
 __all__ = []
 
-log.setLevel('DEBUG')
+log.setLevel(logging.DEBUG)
 
-# Only run if imported directly by a script being executed as __main__
 
 _context_file: Optional[Path] = None
 """This is the file path of the script that imported this module, if available."""
+_context_name: Optional[str] = None
+"""This is the __name__ of the script that imported this module, if available."""
+_path_adjusted: bool = False
+"""Indicates whether autopypath adjusted sys.path automatically upon import."""
 
-_current_frame = inspect.currentframe()
-if _current_frame is not None:
-    _parent_frame = _current_frame.f_back
-    if _parent_frame and _parent_frame.f_globals.get('__name__') == '__main__':
-        _context_file = Path(_parent_frame.f_globals.get('__file__', ''))
-
-if _context_file is None:
-    log.debug('could not determine context file; no sys.path changes will be applied.')
-else:
-    _ConfigPyPath(context_file=_context_file)
-    log.debug('sys.path adjusted automatically for %s', _context_file)
+_context_info: Optional[tuple[Path, str]] = _context_frameinfo()
+if _context_info is not None:
+    _context_file, _context_name = _context_info
+    if _context_name != '__main__':
+        log.debug(
+            'autopypath imported from non-__main__ context (%s); no sys.path changes will be applied.',
+            _context_name,
+        )
+        _path_adjusted = False
+    else:  # pragma: no cover  # Untestable branch for coverage: cannot run as __main__ from test frameworks
+        _ConfigPyPath(context_file=_context_file)
+        log.debug('sys.path adjusted automatically for %s', _context_file)
+        _path_adjusted = True
+else:  # pragma: no cover  # Wierd case I don't even know how to trigger: could not determine context file at all
+    _context_file = None
+    _context_name = None
+    _path_adjusted = False
+    log.warning('could not determine context file; no sys.path changes will be applied.')

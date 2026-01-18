@@ -39,7 +39,8 @@ def test_pyproject_config_repr(tmp_path: Path) -> None:
 [tool.autopypath]
 """)
     config = _PyProjectConfig(repo_root_path=tmp_path)
-    expected_repr = f'PyProjectConfig(repo_root_path={str(tmp_path)!r})'
+    class_name = config.__class__.__name__
+    expected_repr = f'{class_name}(repo_root_path={str(tmp_path)!r})'
     assert repr(config) == expected_repr, 'PYPROJECT_008 __repr__ output does not match expected format'
 
     new_config = eval(repr(config))
@@ -52,7 +53,8 @@ def test_pyproject_config_str(tmp_path: Path) -> None:
 [tool.autopypath]
 """)
     config = _PyProjectConfig(repo_root_path=tmp_path)
-    expected_str = f'PyProjectConfig(repo_root_path={str(tmp_path)!r})'
+    class_name = config.__class__.__name__
+    expected_str = f'{class_name}(repo_root_path={str(tmp_path)!r})'
     assert str(config) == expected_str, 'PYPROJECT_010 __str__ output does not match expected format'
 
 

@@ -6,6 +6,7 @@ with debug logging enabled.
 """
 
 import inspect
+import logging
 
 from collections.abc import Mapping, Sequence
 from pathlib import Path
@@ -53,7 +54,7 @@ def configure_pypath(
     :param Sequence[Literal['manual', 'autopypath', 'pyproject', 'dotenv']] | None path_resolution_order: The order
         in which to resolve :var:`sys.path` sources.
     """
-    log.setLevel('DEBUG')
+    log.setLevel(logging.DEBUG)
     if _context_file is None:
         log.warning('could not determine context file; no sys.path changes will be applied.')
     else:

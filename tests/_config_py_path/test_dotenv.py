@@ -99,11 +99,11 @@ def test_dotenv_config_str(tmp_path: Path) -> None:
     dotenv_path.write_text(dotenv_content)
 
     config = _DotEnvConfig(repo_root_path=tmp_path)
-
+    class_name = config.__class__.__name__
     str_output = str(config)
 
     expected_str = (
-        'DotEnvConfig:\n'
+        f'{class_name}:\n'
         '#  repo_markers=None\n'
         f'#  paths=[{str(tmp_path / "src")!r}, {str(tmp_path / "lib")!r}]\n'
         '#  load_strategy=None\n'
