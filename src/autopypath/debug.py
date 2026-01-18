@@ -2,9 +2,17 @@
 
 **Automatic Debug Mode**
 ------------------------
-By importing the :module:`autopypath.debug` submodule,
+By importing the :mod:`autopypath.debug` submodule instead of :mod:`autopypath`,
 detailed debug logging is enabled to trace how the project root is determined,
 which paths are added to `sys.path`, and any issues encountered along the way.
+
+Additionally, warnings logged by the configuration processing are upgraded to logged errors
+and exceptions are raised for them. This does not affect warnings originating from other modules
+that autopypath depends on.
+
+It changes the global logging level for the :mod:`autopypath._log` logger to ``DEBUG``.
+Normally this should have no side effects because autopypath can only be imported once per process
+and does not publically expose any logging configuration APIs.
 
 Otherwise, it is functionally equivalent to importing :mod:`autopypath`.
 
@@ -12,7 +20,7 @@ This is useful for troubleshooting and understanding the internal workings of au
 
 .. code-block:: python
     import autopypath.debug
-    # sys.path is now adjusted automatically with debug logging enabled
+    # sys.path was adjusted automatically with debug logging and exceptions enabled
 
 """
 
@@ -45,12 +53,13 @@ if _context_info is not None:
             _context_name,
         )
         _path_adjusted = False
-    else:  # pragma: no cover  # Untestable branch for coverage: cannot run as __main__ from test frameworks
-        _ConfigPyPath(context_file=_context_file)
+    else:
+        _ConfigPyPath(context_file=_context_file, strict=True)
         log.debug('sys.path adjusted automatically for %s', _context_file)
         _path_adjusted = True
 else:  # pragma: no cover  # Wierd case I don't even know how to trigger: could not determine context file at all
     _context_file = None
     _context_name = None
     _path_adjusted = False
-    log.warning('could not determine context file; no sys.path changes will be applied.')
+    log.error('could not determine context file; no sys.path changes will be applied.')
+    raise RuntimeError('could not determine context file for autopypath.debug import')

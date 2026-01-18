@@ -20,8 +20,9 @@ class _DotEnvConfig(_Config):
 
     _FOUND_POSIX_SEP_MESSAGE: str = "Detected POSIX-style path separator ':' in .env PYTHONPATH on Windows platform."
     _FOUND_NT_SEP_MESSAGE: str = "Detected Windows-style path separator ';' in .env PYTHONPATH on POSIX platform."
+    _NOT_A_FILE_MESSAGE: str = '.env path is not a file'
 
-    def __init__(self, repo_root_path: 'Path') -> None:
+    def __init__(self, repo_root_path: 'Path', strict: bool = False) -> None:
         """Configuration for autopypath using dotenv files.
 
         If a ``.env`` file is not found in the provided repository root path,
@@ -36,6 +37,7 @@ class _DotEnvConfig(_Config):
         environment variable.
 
         :param Path repo_root_path: The root path of the repository containing a .env file.
+        :param bool strict: (default: ``False``) Indicates whether strict mode is enabled for error handling.
         :raises ValueError: If the provided repo_root_path is not a valid directory.
         """
         log.debug('Initializing DotEnvConfig with repo_root_path: %s', repo_root_path)
@@ -46,18 +48,27 @@ class _DotEnvConfig(_Config):
         log.debug('.env file path resolved to: %s', dotenv_path)
         if not dotenv_path.exists():
             log.info('No .env file found at path: %s', dotenv_path)
-            super().__init__(repo_markers=None, paths=None, load_strategy=None, path_resolution_order=None)
+            super().__init__(
+                repo_markers=None, paths=None, load_strategy=None, path_resolution_order=None, strict=strict
+            )
             return
 
         if not dotenv_path.is_file():
-            log.warning('.env path is not a file: %s', dotenv_path)
-            super().__init__(repo_markers=None, paths=None, load_strategy=None, path_resolution_order=None)
+            message = f'{self._NOT_A_FILE_MESSAGE}: %s'
+            if strict:
+                formatted_message = self._NOT_A_FILE_MESSAGE.format(dotenv_path)
+                log.error(formatted_message)
+                raise ValueError(formatted_message)
+            log.warning(message, dotenv_path)
+            super().__init__(
+                repo_markers=None, paths=None, load_strategy=None, path_resolution_order=None, strict=strict
+            )
             return
 
         self._dotenv_path = dotenv_path
 
         paths = self._dotenv_pythonpaths(repo_root=self._repo_root_path, dotenv_path=self._dotenv_path)
-        super().__init__(repo_markers=None, paths=paths, load_strategy=None, path_resolution_order=None)
+        super().__init__(repo_markers=None, paths=paths, load_strategy=None, path_resolution_order=None, strict=strict)
 
     def _dotenv_pythonpaths(self, *, repo_root: Path, dotenv_path: Path) -> Union[tuple[Path, ...], None]:
         """Parses PYTHONPATH from the .env file and returns the list of directory paths as a tuple.

@@ -1,28 +1,76 @@
 """Custom autopypath configurations.
 
-This module provides functionality to configure :var:`sys.path`
-using custom repository markers, paths, load strategies, and resolution orders.
-"""
+**Custom Configuration Interface**
+----------------------------------
 
-import inspect
+This module provides a function :func:`configure_pypath` that allows users to
+customize how the :var:`sys.path` is set up according to their specific needs.
+
+It provides detailed control over repository markers, additional paths, load strategy,
+resolution order, logging level, and strictness of configuration.
+
+By importing the :mod:`autopypath.custom` submodule instead of :mod:`autopypath`,
+no automatic adjustments to :var:`sys.path` are made. Instead, users can call
+:func:`configure_pypath` with their desired parameters to set up the PYTHONPATH
+according to their requirements.
+
+It still must be imported from the `__main__` context to function. The call
+to :func:`configure_pypath` will be a no-op if imported from a non-`__main__` context.
+
+This prevents unintended side effects in modules that are not the main script such
+as when running unit tests or interactive sessions.
+
+The call to :func:`configure_pypath` must be place early in the execution of the script,
+before any other imports that depend on the adjusted :var:`sys.path`.
+
+**Example Usage**
+-----------------
+
+.. code-block:: python
+    import logging
+    from autopypath.custom import configure_pypath
+
+    configure_pypath(
+        repo_markers={'pyproject.toml': 'file', '.git': 'dir'},
+        paths=['src', 'lib'],
+        load_strategy='prepend',
+        path_resolution_order=['autopypath', 'pyproject'],
+        log_level=logging.INFO,
+        strict=True,
+    )
+
+    import mymodule  # This import can now rely on the adjusted sys.path
+"""
 
 from collections.abc import Mapping, Sequence
 from pathlib import Path
 from typing import Union, Optional
 
 from .._config_py_path import _ConfigPyPath
+from .._context import _context_frameinfo
 from .._log import log
 from ..types import RepoMarkerLiterals, LoadStrategyLiterals, PathResolutionLiterals
 
 
 _context_file: Optional[Path] = None
 """This is the file path of the script that imported this module, if available."""
+_context_name: Optional[str] = None
+"""This is the __name__ of the script that imported this module, if available."""
+_context_info: Optional[tuple[Path, str]] = _context_frameinfo()
+"""Context information (path, __name__) tuple about the importing script, if available."""
 
-_current_frame = inspect.currentframe()
-if _current_frame is not None:
-    _parent_frame = _current_frame.f_back
-    if _parent_frame and _parent_frame.f_globals.get('__name__') == '__main__':
-        _context_file = Path(_parent_frame.f_globals.get('__file__', ''))
+if _context_info is not None:
+    _context_file, _context_name = _context_info
+    if _context_name != '__main__':
+        log.debug(
+            'autopypath.custom imported from non-__main__ context (%s); no sys.path changes will be applied.',
+            _context_name,
+        )
+
+else:  # pragma: no cover  # Wierd case I don't even know how to trigger: could not determine context file at all
+    _context_file = None
+    _context_name = None
+    log.warning('could not determine context file; no sys.path changes will be applied.')
 
 
 def configure_pypath(
@@ -33,6 +81,8 @@ def configure_pypath(
     windows_paths: Optional[Sequence[Union[Path, str]]] = None,
     load_strategy: Optional[LoadStrategyLiterals] = None,
     path_resolution_order: Optional[Sequence[PathResolutionLiterals]] = None,
+    log_level: Optional[int] = None,
+    strict: bool = False,
 ) -> None:
     """Configures the PYTHONPATH according to the provided parameters.
 
@@ -52,9 +102,36 @@ def configure_pypath(
         for loading :var:`sys.path` entries.
     :param Sequence[Literal['manual', 'autopypath', 'pyproject', 'dotenv']] | None path_resolution_order: The order
         in which to resolve :var:`sys.path` sources.
+    :param log_level: Optional[int] = None
+        The logging level to use during configuration. If None, the current log level is used.
+    :param bool strict: If True, raises an error for conditions that would normally only log a warning.
+        Default is False.
+
+        Conditions that normally trigger logged warnings include:
+            - Imported from a non-`__main__` context.
+
+    :raises RuntimeError: If the context file cannot be determined or if `strict` is set to ``True``
+        and a condition that would normally log a warning occurs.
     """
+    if isinstance(log_level, int):  # Set as early as possible
+        log.setLevel(log_level)
+
     if _context_file is None:
-        log.warning('could not determine context file; no sys.path changes will be applied.')
+        log.error('could not determine context file; cannot configure sys.path.')
+        raise RuntimeError('could not determine context file; cannot configure sys.path.')
+    elif _context_name != '__main__':
+        if strict:
+            log.error(
+                'autopypath.custom imported from non-__main__ context (%s); cannot configure sys.path.',
+                _context_name,
+            )
+            raise RuntimeError(
+                f'autopypath.custom imported from non-__main__ context ({_context_name}); cannot configure sys.path.'
+            )
+        log.warning(
+            'autopypath.custom imported from non-__main__ context (%s); no sys.path changes will be applied.',
+            _context_name,
+        )
     else:
         _ConfigPyPath(
             context_file=_context_file,
@@ -64,5 +141,7 @@ def configure_pypath(
             windows_paths=windows_paths,
             load_strategy=load_strategy,
             path_resolution_order=path_resolution_order,
+            log_level=log_level,
+            strict=strict,
         )
         log.debug('sys.path adjusted automatically for %s', _context_file)

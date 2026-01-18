@@ -14,7 +14,7 @@ from ._config import _Config
 class _DefaultConfig(_Config):
     """Default configuration for autopypath."""
 
-    def __init__(self) -> None:
+    def __init__(self, *, strict: bool = False) -> None:
         """Default configuration for autopypath.
 
         The default configuration uses the default values defined in

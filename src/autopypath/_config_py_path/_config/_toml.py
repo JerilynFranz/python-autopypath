@@ -37,7 +37,7 @@ class _TomlConfig(_Config):
 
     __slots__ = ('_repo_root_path', '_toml_filepath', '_toml_section', '_no_file_found')
 
-    def __init__(self, repo_root_path: Union[Path, None], toml_filename: str, toml_section: str) -> None:
+    def __init__(self, *, repo_root_path: Union[Path, None], toml_filename: str, toml_section: str) -> None:
         """Configuration for autopypath using toml files.
 
         :param Path | None repo_root_path: The root path of the repository containing the toml file.

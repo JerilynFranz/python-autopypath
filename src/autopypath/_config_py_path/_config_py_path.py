@@ -165,7 +165,7 @@ class _ConfigPyPath:
             self._pyproject = _PyProjectConfig(self.repo_root_path)
             """Configuration loaded from pyproject.toml (if present)."""
 
-            self._dotenv = _DotEnvConfig(self.repo_root_path)
+            self._dotenv = _DotEnvConfig(self.repo_root_path, strict=strict)
             """Configuration loaded from .env file (if present)."""
 
             self._path_resolution_order: tuple[PathResolution, ...] = self._determine_path_resolution_order()
@@ -259,6 +259,7 @@ class _ConfigPyPath:
                 log.debug('Resolving paths from DOTENV source: %s', source_paths)
             else:  # pragma: no cover  # should never happen due to earlier validation
                 if self._strict:
+                    log.error('Unknown path resolution source: %s', source)
                     raise ValueError(f'Unknown path resolution source: {source}')
                 log.warning('Unknown path resolution source: %s', source)
                 continue
@@ -298,6 +299,7 @@ class _ConfigPyPath:
                 resolved_path = path.resolve() if path.is_absolute() else (self.repo_root_path / path).resolve()
             except Exception as exc:
                 if self._strict:
+                    log.error('Could not resolve configured path: %s', path)
                     raise RuntimeError(f'Could not resolve configured path: {path}') from exc
                 log.warning('Could not resolve configured path: %s', path)
                 continue
@@ -312,12 +314,14 @@ class _ConfigPyPath:
                 final_paths.append(path)
             else:
                 if self._strict:
+                    log.error('Configured path does not exist: %s', path)
                     raise RuntimeError(f'autopypath: Configured path does not exist: {path}')
                 log.warning('autopypath: Configured path does not exist and will be skipped: %s', path)
 
         # Final check for empty paths
         if not final_paths:
             if self.load_strategy == LoadStrategy.REPLACE:
+                log.error('No valid paths to use as sys.path after processing in "replace" mode.')
                 raise RuntimeError('autopypath: No valid paths to use as sys.path after processing in "replace" mode.')
             log.warning('autopypath: No valid paths to add to sys.path after processing.')
 
@@ -403,6 +407,7 @@ class _ConfigPyPath:
             if self._autopypath is None and autopypath_path.exists():
                 if not autopypath_path.is_file():
                     if self._strict:
+                        log.error('Found autopypath.toml at %s but it is not a file', autopypath_path.resolve())
                         raise RuntimeError(f'Found autopypath.toml at {autopypath_path} but it is not a file')
                     log.warning(
                         'Found autopypath.toml at %s but it is not a file - ignoring', autopypath_path.resolve()

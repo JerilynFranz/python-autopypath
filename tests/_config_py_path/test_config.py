@@ -504,9 +504,9 @@ def test_repr() -> None:
     # where we know the input values and expected output. In general, eval
     # should be avoided due to security risks. IOW: This is a test-only use of eval.
     config = _Config(
-        repo_markers={'.git': MarkerType.DIR},
+        repo_markers={'.git': 'dir'},
         paths=['src', 'lib'],
-        load_strategy=LoadStrategy.PREPEND,
+        load_strategy='prepend',
         path_resolution_order=[PathResolution.MANUAL, PathResolution.PYPROJECT]
     )
 
@@ -539,10 +539,10 @@ def test_repr() -> None:
 def test_str() -> None:
     """Test Config __str__ method."""
     config = _Config(
-        repo_markers={'.git': MarkerType.DIR},
+        repo_markers={'.git': 'dir'},
         paths=['src', 'lib'],
-        load_strategy=LoadStrategy.PREPEND,
-        path_resolution_order=[PathResolution.MANUAL, PathResolution.PYPROJECT]
+        load_strategy='prepend',
+        path_resolution_order=['manual', 'pyproject']
     )
     expected_str = repr(config)
     assert str(config) == expected_str, "STR_001 Config __str__ output mismatch."

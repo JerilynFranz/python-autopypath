@@ -43,6 +43,7 @@ class _Config:
         paths: Optional[Sequence[Union[Path, str]]] = None,
         load_strategy: Optional[Union[LoadStrategy, LoadStrategyLiterals]] = None,
         path_resolution_order: Optional[Sequence[Union[PathResolution, PathResolutionLiterals]]] = None,
+        strict: bool = False,
     ) -> None:
         """
         :param Mapping[str, MarkerType | Literal['dir', 'file']] | None repo_markers: Markers to identify the repository root.
@@ -63,6 +64,7 @@ class _Config:
             It is expected to be a sequence containing any of the following values:
             `manual`, `autopypath`, `pyproject`, or `dotenv` as defined in :class:`PathResolution`.
             It can use either the enum values or their string representations.
+        :param bool strict: (default: ``False``) Indicates whether strict mode is enabled for error handling.
         """
         self._repo_markers: Union[MappingProxyType[str, MarkerType], None] = _validate.repo_markers(repo_markers)
         self._paths: Union[tuple[Path, ...], None] = _validate.paths(paths)

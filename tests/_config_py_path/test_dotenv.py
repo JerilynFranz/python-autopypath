@@ -141,9 +141,17 @@ def test_dotenv_config_with_not_a_file_dotenv(tmp_path: Path, caplog: pytest.Log
     caplog.clear()
     _DotEnvConfig(repo_root_path=tmp_path)
     warning_messages = [record.message for record in caplog.records if record.levelno == logging.WARNING]
-    assert any(message.startswith('.env path is not a file') for message in warning_messages), (
+    assert any(message.startswith(_DotEnvConfig._NOT_A_FILE_MESSAGE) for message in warning_messages), (
         'DOTENV_030 Expected a warning about .env path not being a file'
     )
+
+    # Test strict mode raises ValueError
+    try:
+        _DotEnvConfig(repo_root_path=tmp_path, strict=True)
+    except ValueError as e:
+        assert str(e).startswith(_DotEnvConfig._NOT_A_FILE_MESSAGE), (
+            'DOTENV_035 Expected ValueError about .env path not being a file in strict mode'
+        )
 
 
 def test_non_platform_path_separators_in_dotenv(tmp_path: Path, caplog: pytest.LogCaptureFixture) -> None:

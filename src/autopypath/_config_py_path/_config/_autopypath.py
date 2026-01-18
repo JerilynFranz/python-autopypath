@@ -25,6 +25,7 @@ class _AutopypathConfig(_TomlConfig):
             set to a :class:`NoPath` instance (a custom Path subclass representing the absence of a path).
             The configuration attributes (:attr:`repo_markers`, :attr:`paths`, :attr:`load_strategy`, and
             :attr:`path_resolution_order`) will all be set to ``None`` in this case.
+        :param bool strict: (default: ``False``) Indicates whether strict mode is enabled for error handling.
         :raises ValueError: If the provided repo_root_path is not a valid directory.
         """
         super().__init__(repo_root_path=repo_root_path, toml_filename='autopypath.toml', toml_section='tool.autopypath')
