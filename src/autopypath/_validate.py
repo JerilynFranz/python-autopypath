@@ -322,10 +322,10 @@ def validate_path_or_str(path: Union[Path, str]) -> Path:
     for offset, segment in enumerate(validated_path.parts):
         if offset == 0 and segment.endswith(':'):
             # Skip drive letter for Windows even on non-Windows platforms
-            continue  # pragma: no cover  # Covered in Windows tests
+            continue
         if offset == 0 and segment == '/':
             # Skip root '/' for POSIX even on non-POSIX platforms
-            continue  # pragma: no cover  # Covered in POSIX tests
+            continue
         validate_file_or_dir_name(segment)
     return validated_path
 

@@ -165,7 +165,7 @@ commands = [
 
 [tool.tox.env.coverage_html]
 description = "Run tests and generate HTML coverage report"
-base_python = ["python3.10", "python3.11", "python3.12", "python3.13", "python3.14"]
+base_python = ["python3.12", "python3.13", "python3.14"]
 dependency_groups = ["test", "tools"]
 commands = [
     ["coverage", "run", "-m", "pytest", {replace = "posargs", extend = true}],
@@ -273,7 +273,6 @@ omit = [
 fail_under = 95
 exclude_also = [
     # Don't complain about missing debug-only code:
-    "def __repr__",
     "if self\\.debug",
 
     # Don't complain if tests don't hit defensive assertion code:

@@ -70,7 +70,7 @@ class _DotEnvConfig(_Config):
         """
         pythonpath_value = dotenv.get_key(dotenv_path, 'PYTHONPATH', encoding='utf-8')
         log.info('Read PYTHONPATH from .env file at %s: PYTHONPATH=%s', dotenv_path, pythonpath_value)
-        if not pythonpath_value:
+        if pythonpath_value is None:
             log.info('PYTHONPATH not set in .env file at %s', dotenv_path)
             return None
         has_posix_pathsep: bool = posix_pathsep in pythonpath_value

@@ -228,3 +228,33 @@ def test_cross_platform_path_separators_in_dotenv(tmp_path: Path, caplog: pytest
                 )
     finally:
         log.setLevel(logging.NOTSET)
+
+
+def test_no_paths_pythonpath_in_dotenv(tmp_path: Path) -> None:
+    """Test that DotEnvConfig returns None for paths when PYTHONPATH is not set in .env file."""
+    dotenv_content = 'PYTHONPATH=:\n'
+    dotenv_path = tmp_path / '.env'
+    dotenv_path.write_text(dotenv_content)
+
+    config = _DotEnvConfig(repo_root_path=tmp_path)
+
+    assert config.paths is None, 'DOTENV_033 Paths should be None when PYTHONPATH is not set in .env file'
+
+
+def test_absolute_and_relative_paths_in_dotenv(tmp_path: Path) -> None:
+    """Test that DotEnvConfig correctly resolves absolute and relative paths from PYTHONPATH in .env file."""
+    abs_path = tmp_path / 'absolute_path'
+    abs_path.mkdir()
+    rel_path = 'relative_path'
+    (tmp_path / rel_path).mkdir()
+
+    dotenv_content = f'PYTHONPATH={abs_path}:{rel_path}\n'
+    dotenv_path = tmp_path / '.env'
+    dotenv_path.write_text(dotenv_content)
+
+    config = _DotEnvConfig(repo_root_path=tmp_path)
+
+    expected_paths = (abs_path.resolve(), (tmp_path / rel_path).resolve())
+    assert config.paths == expected_paths, (
+        'DOTENV_034 Paths do not match expected absolute and relative paths from .env file'
+    )

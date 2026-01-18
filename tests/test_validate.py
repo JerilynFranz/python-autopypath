@@ -1,6 +1,7 @@
 """Tests for autopypath._validate module."""
 
 import logging
+import os
 from pathlib import Path
 from types import MappingProxyType
 
@@ -474,4 +475,47 @@ def test_strict(testspec: TestSpec) -> None:
 ])
 def test_log_level(testspec: TestSpec) -> None:
     """Test Config with log_level."""
+    testspec.run()
+
+@pytest.mark.parametrize('testspec', [
+    PytestAction('PATH_OR_STR_001',
+        name='valid string path',
+        action=_validate.validate_path_or_str,
+        args=['some/path/to/file.txt'],
+        expected=Path('some/path/to/file.txt')),
+    PytestAction('PATH_OR_STR_002',
+        name='valid Path object',
+        action=_validate.validate_path_or_str,
+        args=[Path('another/path/to/dir')],
+        expected=Path('another/path/to/dir')),
+    PytestAction('PATH_OR_STR_003',
+        name='invalid type (int)',
+        action=_validate.validate_path_or_str,
+        args=[123],
+        exception=TypeError),
+    PytestAction('PATH_OR_STR_004',
+        name='path with null byte',
+        action=_validate.validate_path_or_str,
+        args=['invalid\0path'],
+        exception=ValueError),
+    PytestAction('PATH_OR_STR_005',
+        name='path that is only forward slashes',
+        action=_validate.validate_path_or_str,
+        args=['///'],
+        exception=ValueError),
+    PytestAction('PATH_OR_STR_006',
+        name='path that is only backslashes',
+        action=_validate.validate_path_or_str,
+        args=['\\\\\\'],
+        exception=ValueError),
+    PytestAction('PATH_OR_STR_007',
+        name='windows drive letter segment',
+        action=_validate.validate_path_or_str,
+        args=['C:/folder/file.txt'],
+        expected=Path('C:/folder/file.txt')),
+])
+def test_validate_path_or_str_posix(testspec: TestSpec) -> None:
+    """Test _validate_path_or_str function using PytestAction style for posix paths."""
+    if os.name != 'posix':
+        pytest.skip('Skipping POSIX-specific tests on non-POSIX platform')
     testspec.run()
