@@ -30,12 +30,18 @@ any of these files or directories indicates the root of the project repository.
 Default markers are:
 - ``pyproject.toml``: Indicates the repository root by the presence of this file.
 - ``autopypath.toml``: Indicates the repository root by the presence of this file.
+
     Note that there is special behavior for this marker if found. If it changes
     the repo_markers settings, the directory it is found in is evaluated using the new settings
     and that may result in a different repository root being identified.
 
     This allows autopypath.toml to be used to directly identify the repository root
-    OR to customize the repo markers used to actually identify the repository root
+    OR to customize the repo markers used to actually identify the repository root.
+
+    Only the first autopypath.toml file found when searching upwards from
+    the starting directory is used to allow hierarchical configurations.
+    Additional autopypath.toml files found higher up the directory tree are ignored.
+
 - ``.git``: Indicates a Git repository root by the presence of this directory.
 - ``.hg``: Indicates a Mercurial repository root by the presence of this directory.
 - ``.svn``: Indicates a Subversion repository root by the presence of this directory.
@@ -223,17 +229,25 @@ The default strategy as defined above.
 
 """
 
-_PATHS: Final[tuple[Path, ...]] = (Path('src'), Path('tests'))
+_PATHS: Final[tuple[Path, ...]] = (Path('src'), Path('tests'), Path('lib'), Path('src/test'))
 """Default paths to add to sys.path relative to the repository root.
+
+The default paths, in order of priority, are:
+- `src`: Common source directory for project code.
+- `tests`: Common source directory for test code.
+- `lib`: Common source directory for library code.
+- `src/test`: Alternate test source directory.
 
 These directories are added to :var:`sys.path` if they exist in the repository root.
 
-They can be overridden by the `paths` parameter to `configure_pypath()`.
+They can be customized by the `paths` parameter to `configure_pypath()` or
+configured in a `.env` file in the repository root, or in `pyproject.toml` or
+a `autopypath.toml` file in the `[tool.autopypath]` section.
 
-They can also be configured in `pyproject.toml` under the
-`[tool.autopypath]` section.
+This is just the 'out-of-the-box' default configuration and is intended to cover
+the most common project layouts. You can (and **should**) customize it as needed for your project.
 
-If a configured path does not exist or is not a directory, it will be logged at 'INFO' level
+If a configured path does not exist or is not a directory, it will be logged at 'INFO' level and skipped.
 
 .. code-block:: toml
     [tool.autopypath]
