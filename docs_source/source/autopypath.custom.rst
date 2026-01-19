@@ -5,11 +5,3 @@ autopypath.custom package
    :members:
    :show-inheritance:
    :undoc-members:
-
-Submodules
-----------
-
-.. toctree::
-   :maxdepth: 4
-
-   autopypath.custom.debug

@@ -1,4 +1,3 @@
-==========
 autopypath
 ==========
   
@@ -71,10 +70,11 @@ first-class support for configuring paths based on that file.
 
 .. toctree::
    :name: contents
-   :maxdepth: 2
+   :maxdepth: 4
    :caption: Table of Contents
 
    installation
    usage
    tutorials
-   command_line_options
+   genindex
+   modindex
