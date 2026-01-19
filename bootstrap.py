@@ -1,11 +1,9 @@
 """Zero-dependency, cross-platform bootstrap script to set up a Python
 development environment.
 
-This is a specialized version of the bootstrap script for projects that
-require Python 3.10 or later. It may use features that were deprecated
-in later versions of Python, so it is kept separate to ensure compatibility.
+This is the development bootstrap script for the 'autopypath' project.
 
-It is NOT intended to be run with Python versions earlier than 3.10
+The bootstrap script is NOT intended to be run with Python versions earlier than 3.10
 and will exit with an error if attempted.
 
 It has been tested with Python 3.10 through 3.14 as of January 2025.
@@ -20,11 +18,7 @@ Licensed under the Apache License, Version 2.0 (SPDX-License-Identifier: Apache-
 https://www.apache.org/licenses/LICENSE-2.0.txt
 Copyright [2025] Jerilyn Franz
 
-See https://github.com/JerilynFranz/python-env-bootstrap/blob/main/LICENSE
-for details.
-
-You can get the most recent version of this script for your own use
-in a project at https://github.com/JerilynFranz/python-env-bootstrap
+Based on 'python-env-bootstrap' (https://github.com/JerilynFranz/python-env-bootstrap).
 
 Description
 -----------
@@ -35,13 +29,7 @@ a local virtual environment (.venv for example), and install necessary developme
 It relies only on the Python standard library and network access to PyPI and
 does not require any pre-installed packages or change your system Python installation.
 
-This example project requires Python 3.10 or later, so this script
-checks the Python version meets that requirement before proceeding.
-
-The minimum Python version can be changed as needed for your project and
-the lowest supported version is Python 3.10.
-
-This example script installs the following tools by default:
+This script installs the following tools by default:
 - uv (for managing Python packages and dependencies)
 
 That is the minimum set of tools required to start development for this project.
@@ -52,10 +40,6 @@ corresponding constants in this script. The script can also be extended to
 perform additional setup steps as needed via the run_post_install_steps() function
 such as installing additional packages from requirements.txt files
 or configuring settings.
-
-The choice of installing 'uv' for the bootstrap are just an example;
-you can modify the BOOTSTRAP_MODULES list to include any packages you need
-for your development bootstrap workflow.
 
 Settable Options
 ----------------
@@ -86,8 +70,6 @@ CLI Help
   --no-debug     Disable debug output.
   -q, --quiet    Suppress non-error output.
   -v, --verbose  Enable verbose output (default).
-
-
 """
 
 __version__ = '1.3.0'
@@ -341,27 +323,6 @@ def run_post_install_steps(python_exe: Path, root_path: Path, bin_dir: Path) -> 
     _validate_path(python_exe, 'python_exe', exists=True)
     _validate_path(root_path, 'root_path', exists=True)
 
-    # This assumes 'uv' is installed in the bootstrap virtual environment
-    # and that there is a pyproject.toml file configured for the project.
-
-    # This has the effect of setting up the development environment and installing
-    # the project in editable mode.
-
-    # Alternatives include installing from requirements.txt files or other setup steps.
-    # run_command([...]) can be used to run any commands needed.
-
-    # python_exe is the Python executable in the venv and bin_dir is the venv's bin/Scripts directory.
-
-    # Example implementations (assuming you are not deleting the venv right after):
-
-    # run_command([python_exe, '-m', 'pip', 'install', '-r', 'requirements.txt'], cwd=root_path, check=True)
-
-    # Example of running 'tox devenv -e dev' to set up and activate the development environment
-
-    # controlled_print("--> Running initial 'tox devenv -e dev' to setup and activate the development environment...")
-    # run_command([python_exe, str(bin_dir / 'tox'), 'devenv', '-e', 'dev'], cwd=root_path, check=True)
-
-    # Example of installing the current project in editable mode using 'uv pip install -e .'
     controlled_print('--> Installing the current project in editable mode within the development environment...')
     run_command([bin_dir / 'uv', 'pip', 'install', '-e', '.'], cwd=root_path, check=True)
     run_command([bin_dir / 'uv', 'sync'], cwd=root_path, check=True)
