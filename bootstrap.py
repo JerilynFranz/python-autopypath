@@ -323,9 +323,11 @@ def run_post_install_steps(python_exe: Path, root_path: Path, bin_dir: Path) -> 
     _validate_path(python_exe, 'python_exe', exists=True)
     _validate_path(root_path, 'root_path', exists=True)
 
-    controlled_print('--> Installing the current project in editable mode within the development environment...')
-    run_command([bin_dir / 'uv', 'pip', 'install', '-e', '.'], cwd=root_path, check=True)
-    run_command([bin_dir / 'uv', 'sync'], cwd=root_path, check=True)
+    controlled_print('--> Installing the current project and syncing all dependency groups...')
+    # We use --all-groups to ensure 'tools' (tox), 'test', etc. defined in
+    # pyproject.toml are installed. uv sync also handles installing the
+    # project itself in editable mode.
+    run_command([bin_dir / 'uv', 'sync', '--all-groups'], cwd=root_path, check=True)
 
 
 class FatalBootstrapError(Exception):
