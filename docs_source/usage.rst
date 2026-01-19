@@ -47,7 +47,11 @@ The default repository markers it looks for are:
 - `autopypath.toml` file
 
 If it finds one of these markers when searching upwards from the test script's
-directory, it considers that directory the project root.
+directory, it considers that directory the project root. There is some
+special handling for `autopypath.toml` files to allow hierarchical configurations.
+
+See the :doc:`configuration` section of the documentation for details on
+that special behavior.
 
 The default paths it adds to :data:`sys.path` relative to the project root are:
 
@@ -65,6 +69,12 @@ sources are found.
 If your project has a `.env` file in the root of the project, autopypath
 will load PYTHONPATH entries from it instead of using the defaults
 and prepend those directories to :data:`sys.path`.
+
+It only adds directories that actually exist. Non-existent directories
+are logged at 'INFO' level and skipped.
+
+An exception will be raised if the root directory cannot be found
+or if no valid paths are found to add to :data:`sys.path`.
 
 Customized Configuration
 ------------------------
