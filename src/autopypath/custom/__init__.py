@@ -4,13 +4,13 @@
 ----------------------------------
 
 This module provides a function :func:`configure_pypath` that allows users to
-customize how the :var:`sys.path` is set up according to their specific needs.
+customize how the :data:`sys.path` is set up according to their specific needs.
 
 It provides detailed control over repository markers, additional paths, load strategy,
 resolution order, logging level, and strictness of configuration.
 
 By importing the :mod:`autopypath.custom` submodule instead of :mod:`autopypath`,
-no automatic adjustments to :var:`sys.path` are made. Instead, users can call
+no automatic adjustments to :data:`sys.path` are made. Instead, users can call
 :func:`configure_pypath` with their desired parameters to set up the PYTHONPATH
 according to their requirements.
 
@@ -21,12 +21,13 @@ This prevents unintended side effects in modules that are not the main script su
 as when running unit tests or interactive sessions.
 
 The call to :func:`configure_pypath` must be place early in the execution of the script,
-before any other imports that depend on the adjusted :var:`sys.path`.
+before any other imports that depend on the adjusted :data:`sys.path`.
 
 **Example Usage**
 -----------------
 
 .. code-block:: python
+
     import logging
     from autopypath.custom import configure_pypath
 
@@ -87,22 +88,22 @@ def configure_pypath(
 ) -> None:
     """Configures the PYTHONPATH according to the provided parameters.
 
-    Configures the :var:`sys.path` according to the provided parameters.
+    Configures the :data:`sys.path` according to the provided parameters.
 
-    This function allows customization of how the :var:`sys.path` is set up,
+    This function allows customization of how the :data:`sys.path` is set up,
     including repository markers, additional paths, load strategy, and resolution order.
 
     :param Mapping[str, Literal['dir', 'file']] | None repo_markers: A mapping of file or directory names to
         their MarkerType used to identify the repository root.
-    :param Sequence[Path | str] | None paths: A sequence of paths to include in the :var:`sys.path`.
+    :param Sequence[Path | str] | None paths: A sequence of paths to include in the :data:`sys.path`.
     :param Sequence[Path | str] | None posix_paths: A sequence of POSIX-specific paths to include in
-                        the :var:`sys.path`.
+                        the :data:`sys.path`.
     :param Sequence[Path | str] | None windows_paths: A sequence of Windows-specific paths to include in
-                        the :var:`sys.path`.
+                        the :data:`sys.path`.
     :param Literal['prepend', 'prepend_highest_priority', 'replace'] | None load_strategy: The strategy
-        for loading :var:`sys.path` entries.
+        for loading :data:`sys.path` entries.
     :param Sequence[Literal['manual', 'autopypath', 'pyproject', 'dotenv']] | None path_resolution_order: The order
-        in which to resolve :var:`sys.path` sources.
+        in which to resolve :data:`sys.path` sources.
     :param log_level: Optional[int] = None
         The logging level to use during configuration. If None, the current log level is used.
     :param bool strict: If True, raises an error for conditions that would normally only log a warning.

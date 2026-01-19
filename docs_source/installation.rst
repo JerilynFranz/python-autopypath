@@ -1,5 +1,5 @@
-Installation Instructions
-=========================
+Installation
+============
 
 Installing from PyPI
 --------------------
@@ -24,8 +24,11 @@ repository and install it manually. Here are the steps to do so:
    cd autopypath
    pip install .
 
+.. _development-installation:
+
 Development Installation
 ------------------------
+
 For development purposes, you can install `autopypath` in editable mode.
 
 This allows you to make changes to the source code and have them reflected
@@ -37,12 +40,18 @@ You can run the following commands:
 
 .. code-block:: shell
 
-   git clone https://github.com/JerilynFranz/autopypath.git
-   cd autopypath
+   git clone https://github.com/JerilynFranz/python-autopypath.git
+   cd python-autopypath
    python3 bootstrap.py
-   source .vs
+   source .venv/bin/activate
 
 This will set up the development environment and install `autopypath` in
-editable mode. It will also setup `tox` and other development dependencies
+editable mode.
+
+It will also setup `uv <https://docs.astral.sh/uv/>`_,
+`tox <https://python-basics-tutorial.readthedocs.io/en/latest/test/tox.html>`_,
+`sphinx <https://www.sphinx-doc.org/en/master/>`_ and other development dependencies
 to help with testing and building the project.
 
+For information on contributing to `autopypath`, please refer to the
+:doc:`contributing` section.
