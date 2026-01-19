@@ -4,6 +4,11 @@ Contributing
 Thank you for your interest in contributing to `autopypath`! We always welcome contributions
 from the community to help improve the project.
 
+Code of Conduct
+----------------
+
+We expect all contributors to adhere to the :doc:`Code of Conduct <code_of_conduct>` of this project.
+
 Ways to Contribute
 ------------------
 There are several ways you can contribute to `autopypath`:

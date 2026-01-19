@@ -12,8 +12,9 @@ Table of Contents
    installation
    usage
    tutorials
-   contributing
    faq
+   contributing
+   code_of_conduct
    genindex
    modindex
    Source <source/modules>
