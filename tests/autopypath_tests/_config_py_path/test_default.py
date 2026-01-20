@@ -10,7 +10,6 @@ All the real logic is tested in tests/_config_py_path/test_config.py
 
 from autopypath._config_py_path._config import _Config, _DefaultConfig
 from autopypath import _defaults
-from autopypath._load_strategy import LoadStrategy
 
 
 def test_default_config_init() -> None:

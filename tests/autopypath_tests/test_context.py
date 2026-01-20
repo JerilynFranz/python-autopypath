@@ -1,8 +1,9 @@
 """Test context detection functionality."""
 
 from pathlib import Path
-
+from typing import Union
 import inspect
+
 import pytest
 
 from autopypath._context import _context_frameinfo
@@ -23,7 +24,7 @@ def test_context_frameinfo_basic() -> None:
 def test_context_frameinfo_no_autopypath() -> None:
     """Test that the context frame info is identified when autopypath is not in the stack."""
 
-    def dummy_function() -> tuple[Path, str] | None:
+    def dummy_function() -> Union[tuple[Path, str], None]:
         return _context_frameinfo()
 
     context_info = dummy_function()

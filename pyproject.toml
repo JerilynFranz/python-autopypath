@@ -1,7 +1,7 @@
 [project]
 name = "autopypath"
 dynamic = ["version"]
-requires-python = ">=3.9"
+#requires-python = ">=3.9"  # Disabled because UV can't seem to handle it when dev and dist targets differ
 description = "Automatic path management for testing and development."
 authors = [
     {name = "Jerilyn Franz", email = "opensource@snowhare.com"}
@@ -65,7 +65,24 @@ Changelog = "https://github.com/JerilynFranz/python-autopypath/blob/main/CHANGEL
 
 
 [dependency-groups]
-# Dependencies for running the test suite
+
+dev = [
+       "pytest>=7.4.1,<9.0.0",
+       "pytest-cov>=4.2.1",
+       "coverage>=6.10.6",
+       "mypy>=1.13.1",
+       "ruff>=0.14.11",
+       "hatch>=1.13",
+       "hatchling>=1.27",
+       "pydeps>=1.23.2",
+       "tox>=4.22.0",
+       "tox-uv>=1.13.1",
+       "uv>=0.9.18",
+       "python-dotenv>=1.2.1",
+       "tomli",
+       "typing-extensions >= 3.10.0.0"
+      ]
+
 test = [
     "pytest>=7.4.1,<9.0.0",
     "pytest-cov>=4.2.1",
@@ -96,6 +113,19 @@ tools = [
     "tox-uv>=1.13.1",
     "uv>=0.9.18",
 ]
+
+[tool.uv]
+default-groups = ["dev"]
+conflicts = [
+    [
+      { extra = "docs" },
+      { extra = "dev" },
+    ],
+]
+
+
+[tool.uv.dependency-groups]
+dev = {requires-python = ">=3.12"}
 
 [tool.tox]
 requires = ["tox>=4.22"]
@@ -133,7 +163,7 @@ commands = [
 [tool.tox.env.dev]
 description = "Development environment with all tools"
 package = "editable"
-dependency_groups = ["test", "tools", "lint"]
+dependency_groups = ["dev"]
 base = ["testenv"]
 base_python = ["python3.12", "python3.11", "python3.13", "python3.14"]
 allowlist_externals = ["pytest", "mypy", "ruff", "coverage"]
@@ -143,7 +173,7 @@ commands = []
 description = "Run linters"
 package = "skip"
 base_python = ["python3.10", "python3.11", "python3.12", "python3.13", "python3.14"]
-dependency_groups = ["lint"]
+dependency_groups = ["lint", "dev"]
 commands = [
     ["ruff", "check", "tests", "src"],
     ["mypy", "src", "tests"],
