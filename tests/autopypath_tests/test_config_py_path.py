@@ -8,8 +8,9 @@ import sys
 import pytest
 
 from autopypath._config_py_path._config_py_path import _ConfigPyPath, _EMPTY_AUTOPYPATH_CONFIG, _NON_RESOLVABLE_SYS_PATH
-from autopypath.types._no_path import _NoPath
+from autopypath.types import _NoPath
 from autopypath import _defaults as defaults
+
 
 _ORIGINAL_SYS_PATH: list[str] = sys.path.copy()
 _ORIGINAL_NAME: str = __name__
@@ -923,3 +924,315 @@ def test_updated_sys_path_property(tmp_path: Path) -> None:
 
     finally:
         sys.path = _ORIGINAL_SYS_PATH.copy()
+
+
+def test_path_order_resolution(tmp_path: Path) -> None:
+    """Tests that _ConfigPyPath correctly resolves configuration
+    for path resolution order specified in various configuration sources.
+
+    Uses a temporary directory to simulate a repository with an autopypath.toml file.
+    """
+    root_path = tmp_path / 'repo'
+    root_path.mkdir()
+    root_path.joinpath('some_file.txt').write_text('Just a test file.')
+    git_path = root_path / '.git'
+    git_path.mkdir()
+
+    manual_src_path = root_path / 'manual_src'
+    manual_src_path.mkdir()
+
+    pyproject_src_path = root_path / 'pyproject_src'
+    pyproject_src_path.mkdir()
+
+    autopypath_src_path = root_path / 'autopypath_src'
+    autopypath_src_path.mkdir()
+
+    dotenv_src_path = root_path / 'dotenv_src'
+    dotenv_src_path.mkdir()
+
+    # Create pyproject.toml with some configuration
+    pyproject_path = root_path / 'pyproject.toml'
+    pyproject_path.write_text("""
+[tool.autopypath]
+load_strategy = "prepend"
+path_resolution_order = ["pyproject", "dotenv"]
+repo_markers = {".git" = "dir"}
+paths=["pyproject_src"]
+""")
+
+    # Create autopypath.toml with some configuration
+    autopypath_path = root_path / 'autopypath.toml'
+    autopypath_path.write_text("""
+[tool.autopypath]
+load_strategy = "prepend"
+path_resolution_order = ["autopypath", "pyproject"]
+repo_markers = {".git" = "dir"}
+paths=["autopypath_src"]
+""")
+
+    # Create .env with some configuration
+    dotenv_path = root_path / '.env'
+    dotenv_path.write_text("""
+PYTHONPATH=dotenv_src
+""")
+
+    config = _ConfigPyPath(
+        context_file=str(root_path / 'some_file.txt'),
+        load_strategy='prepend',
+        path_resolution_order=['manual', 'autopypath', 'pyproject', 'dotenv'],
+        paths=['manual_src'],
+        repo_markers={'.git': 'dir'},
+    )
+
+    # manual config should be highest precedence and thus first in sys.path
+    assert sys.path[0] == str(manual_src_path), (
+        f'PATH_ORDER_RESOLUTION_001 manual_src should be first in updated_sys_path: {sys.path!r}'
+    )
+
+    # autopypath.toml config should be second precedence
+    assert sys.path[1] == str(autopypath_src_path), (
+        f'PATH_ORDER_RESOLUTION_002 autopypath_src should be second in updated_sys_path: {sys.path!r}'
+    )
+
+    # pyproject.toml config should be third precedence
+    assert sys.path[2] == str(pyproject_src_path), (
+        f'PATH_ORDER_RESOLUTION_003 pyproject_src should be third in updated_sys_path: {sys.path!r}'
+    )
+
+    # dotenv config should be fourth precedence
+    assert sys.path[3] == str(dotenv_src_path), (
+        f'PATH_ORDER_RESOLUTION_004 dotenv_src should be fourth in updated_sys_path: {sys.path!r}'
+    )
+
+    config.restore_sys_path()
+
+    # reverse the order to verify it wasn't a fluke
+    config = _ConfigPyPath(
+        context_file=str(root_path / 'some_file.txt'),
+        load_strategy='prepend',
+        path_resolution_order=['dotenv', 'pyproject', 'autopypath', 'manual'],
+        paths=['manual_src'],
+        repo_markers={'.git': 'dir'},
+    )
+
+    # dotenv config should be highest precedence and thus first in sys.path
+    assert sys.path[0] == str(dotenv_src_path), (
+        f'PATH_ORDER_RESOLUTION_005 dotenv_src should be first in updated_sys_path: {sys.path!r}'
+    )
+    # pyproject.toml config should be second precedence
+    assert sys.path[1] == str(pyproject_src_path), (
+        f'PATH_ORDER_RESOLUTION_006 pyproject_src should be second in updated_sys_path: {sys.path!r}'
+    )
+    # autopypath.toml config should be third precedence
+    assert sys.path[2] == str(autopypath_src_path), (
+        f'PATH_ORDER_RESOLUTION_007 autopypath_src should be third in updated_sys_path: {sys.path!r}'
+    )
+    # manual config should be fourth precedence
+    assert sys.path[3] == str(manual_src_path), (
+        f'PATH_ORDER_RESOLUTION_008 manual_src should be fourth in updated_sys_path: {sys.path!r}'
+    )
+
+    sys.path = []  # Clear sys.path for next test
+
+    # Finally, test with only autopypath.toml and pyproject.toml configs
+    # manual and dotenv configs are not in the resolution order
+    config = _ConfigPyPath(
+        context_file=str(root_path / 'some_file.txt'),
+        load_strategy='prepend',
+        path_resolution_order=['autopypath', 'pyproject'],
+        repo_markers={'.git': 'dir'},
+    )
+    # autopypath.toml config should be first precedence
+    assert sys.path[0] == str(autopypath_src_path), (
+        f'PATH_ORDER_RESOLUTION_009 autopypath_src should be first in updated_sys_path: {sys.path!r}'
+    )
+    # pyproject.toml config should be second precedence
+    assert sys.path[1] == str(pyproject_src_path), (
+        f'PATH_ORDER_RESOLUTION_010 pyproject_src should be second in updated_sys_path: {sys.path!r}'
+    )
+
+    assert len(sys.path) == 2, f'PATH_ORDER_RESOLUTION_011 updated_sys_path should have length 2: {sys.path!r}'
+
+    sys.path = _ORIGINAL_SYS_PATH.copy()
+
+
+def test_load_strategy_precedence(tmp_path: Path) -> None:
+    """Tests that _ConfigPyPath respects the load_strategy precedence
+    in the hierarchical configuration resolution.
+
+    manual > autopypath.toml > pyproject.toml  > defaults.
+
+    Uses a temporary directory to simulate a repository with an autopypath.toml file.
+    """
+    root_path = tmp_path / 'repo'
+    root_path.mkdir()
+    root_path.joinpath('some_file.txt').write_text('Just a test file.')
+    git_path = root_path / '.git'
+    git_path.mkdir()
+    src_path = root_path / 'src'
+    src_path.mkdir()
+
+    # Create pyproject.toml with load_strategy configuration
+    pyproject_path = root_path / 'pyproject.toml'
+    pyproject_path.write_text("""
+[tool.autopypath]
+load_strategy = "replace"
+path_resolution_order = ["pyproject"]
+repo_markers = {".git" = "dir"}
+paths=["src"]
+""")
+    # Create autopypath.toml with load_strategy configuration
+    autopypath_path = root_path / 'autopypath.toml'
+    autopypath_path.write_text("""
+[tool.autopypath]
+load_strategy = "prepend"
+path_resolution_order = ["autopypath", "pyproject"]
+repo_markers = {".git" = "dir"}
+paths=["src"]
+""")
+    config = _ConfigPyPath(
+        context_file=str(root_path / 'some_file.txt'),
+        load_strategy='prepend_highest_priority',
+        path_resolution_order=['manual', 'autopypath', 'pyproject'],
+        dry_run=True,
+        paths=['src'],
+        repo_markers={'.git': 'dir'},
+    )
+
+    # manual config should be highest precedence and hence the winner
+    assert config.load_strategy == 'prepend_highest_priority', (
+        'LOAD_STRATEGY_PRECEDENCE_001 load_strategy should be prepend_highest_priority from manual config'
+    )
+
+    # autopypath.toml config should winner as second precedence without a manual load_strategy
+    config = _ConfigPyPath(
+        context_file=str(root_path / 'some_file.txt'),
+        path_resolution_order=['autopypath', 'pyproject'],
+        dry_run=True,
+        paths=['src'],
+        repo_markers={'.git': 'dir'},
+    )
+    assert config.load_strategy == 'prepend', (
+        'LOAD_STRATEGY_PRECEDENCE_002 load_strategy should be prepend from autopypath.toml config'
+    )
+
+    # pyproject.toml config should be winner as third precedence without manual or autopypath load_strategy
+    autopypath_path.unlink()  # Remove autopypath.toml to test pyproject.toml precedence
+
+    # Create autopypath.toml without load_strategy configuration
+    autopypath_path = root_path / 'autopypath.toml'
+    autopypath_path.write_text("""
+[tool.autopypath]
+path_resolution_order = ["autopypath", "pyproject"]
+repo_markers = {".git" = "dir"}
+paths=["src"]
+""")
+    config = _ConfigPyPath(
+        context_file=str(root_path / 'some_file.txt'),
+        path_resolution_order=['autopypath', 'pyproject'],
+        dry_run=True,
+        paths=['src'],
+        repo_markers={'.git': 'dir'},
+    )
+    assert config.load_strategy == 'replace', (
+        'LOAD_STRATEGY_PRECEDENCE_003 load_strategy should be replace from pyproject.toml config'
+    )
+
+    # finally, defaults should be winner without any load_strategy configured
+
+    autopypath_path.unlink()  # Remove autopypath.toml to test default precedence
+    pyproject_path.unlink()  # Remove pyproject.toml to test default precedence
+
+    # default load_strategy should be winner without manual, autopypath, or pyproject load_strategy
+    config = _ConfigPyPath(
+        context_file=str(root_path / 'some_file.txt'),
+        path_resolution_order=['autopypath', 'pyproject'],
+        dry_run=True,
+        paths=['src'],
+        repo_markers={'.git': 'dir'},
+    )
+    assert config.load_strategy == defaults._LOAD_STRATEGY, (
+        'LOAD_STRATEGY_PRECEDENCE_004 load_strategy should be prepend from default configuration'
+    )
+
+
+def test_path_resolution_order_precedence(tmp_path: Path) -> None:
+    """Tests that _ConfigPyPath respects the path_resolution_order precedence
+    in the hierarchical configuration resolution.
+
+    manual > autopypath.toml > pyproject.toml  > defaults.
+
+    Uses a temporary directory to simulate a repository with an autopypath.toml file.
+    """
+    root_path = tmp_path / 'repo'
+    root_path.mkdir()
+    root_path.joinpath('some_file.txt').write_text('Just a test file.')
+    git_path = root_path / '.git'
+    git_path.mkdir()
+    src_path = root_path / 'src'
+    src_path.mkdir()
+
+    # Create pyproject.toml with path_resolution_order configuration
+    pyproject_path = root_path / 'pyproject.toml'
+    pyproject_path.write_text("""
+[tool.autopypath]
+path_resolution_order = ["pyproject"]
+repo_markers = {".git" = "dir"}
+paths=["src"]
+""")
+    # Create autopypath.toml with path_resolution_order configuration
+    autopypath_path = root_path / 'autopypath.toml'
+    autopypath_path.write_text("""
+[tool.autopypath]
+path_resolution_order = ["autopypath", "pyproject"]
+repo_markers = {".git" = "dir"}
+paths=["src"]
+""")
+    config = _ConfigPyPath(
+        context_file=str(root_path / 'some_file.txt'),
+        path_resolution_order=['manual', 'autopypath', 'pyproject'],
+        dry_run=True,
+        paths=['src'],
+        repo_markers={'.git': 'dir'},
+    )
+    # manual config should be highest precedence and hence the winner
+    assert config.path_resolution_order == ('manual', 'autopypath', 'pyproject'), (
+        'PATH_RESOLUTION_ORDER_PRECEDENCE_001 path_resolution_order should be '
+        f'["manual", "autopypath", "pyproject"] from manual config: {config.path_resolution_order}'
+    )
+    # autopypath.toml config should winner as second precedence without a manual path_resolution_order
+    config = _ConfigPyPath(
+        context_file=str(root_path / 'some_file.txt'),
+        path_resolution_order=['autopypath', 'pyproject'],
+        dry_run=True,
+        paths=['src'],
+        repo_markers={'.git': 'dir'},
+    )
+    assert config.path_resolution_order == ('autopypath', 'pyproject'), (
+        'PATH_RESOLUTION_ORDER_PRECEDENCE_002 path_resolution_order should be '
+        '["autopypath", "pyproject"] from autopypath.toml config'
+    )
+    # pyproject.toml config should be winner as third precedence without manual or autopypath path_resolution_order
+    autopypath_path.unlink()  # Remove autopypath.toml to test pyproject.toml precedence
+    config = _ConfigPyPath(
+        context_file=str(root_path / 'some_file.txt'),
+        path_resolution_order=['pyproject'],
+        dry_run=True,
+        paths=['src'],
+        repo_markers={'.git': 'dir'},
+    )
+    assert config.path_resolution_order == ('pyproject',), (
+        'PATH_RESOLUTION_ORDER_PRECEDENCE_003 path_resolution_order should be ["pyproject"] from pyproject.toml config'
+    )
+    # finally, defaults should be winner without any path_resolution_order configured
+    pyproject_path.unlink()  # Remove pyproject.toml to test default precedence
+    config = _ConfigPyPath(
+        context_file=str(root_path / 'some_file.txt'),
+        dry_run=True,
+        paths=['src'],
+        repo_markers={'.git': 'dir'},
+    )
+    assert config.path_resolution_order == defaults._PATH_RESOLUTION_ORDER, (
+        'PATH_RESOLUTION_ORDER_PRECEDENCE_004 path_resolution_order should be '
+        f'{defaults._PATH_RESOLUTION_ORDER} from default configuration'
+    )

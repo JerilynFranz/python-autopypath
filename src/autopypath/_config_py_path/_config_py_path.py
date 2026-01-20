@@ -426,9 +426,11 @@ class _ConfigPyPath:
                 # happen because it is defined in the default markers so it can be used
                 # to identify the repo root if wanted).
                 else:
+                    log.debug('Loading autopypath.toml from: %s', autopypath_path)
                     self._autopypath = _AutopypathConfig(current_path)
                     if self.manual_config.repo_markers is None:
                         repo_markers = self.autopypath_config.repo_markers or repo_markers
+                        log.debug('Updated repo markers from autopypath.toml: %s', repo_markers)
 
             for marker, typ in repo_markers.items():
                 test_path = current_path / marker
