@@ -7,7 +7,7 @@ from pathlib import Path
 
 import pytest
 
-from autopypath import _defaults as defaults
+from autopypath import _defaults as defaults, AutopypathError
 from autopypath._config_py_path._config_py_path import _EMPTY_AUTOPYPATH_CONFIG, _NON_RESOLVABLE_SYS_PATH, _ConfigPyPath
 from autopypath._types import _NoPath
 
@@ -473,9 +473,9 @@ def test_replace_strategy_live(tmp_path: Path) -> None:
             paths=['src', 'tests'],
             repo_markers={'.vcs': 'dir'},
         )
-        pytest.fail('REPLACE_STRATEGY_LIVE_001 Expected RuntimeError because no paths exist to replace sys.path')
+        pytest.fail('REPLACE_STRATEGY_LIVE_001 Expected AutopypathError because no paths exist to replace sys.path')
 
-    except RuntimeError:
+    except AutopypathError:
         pass  # Expected because paths do not exist at all
     finally:
         sys.path = sys_path_before
@@ -668,7 +668,7 @@ paths=["tests"]
 
 
 def test_strict(tmp_path: Path, caplog: pytest.LogCaptureFixture) -> None:
-    """Tests that _ConfigPyPath raises RuntimeError in strict mode
+    """Tests that _ConfigPyPath raises AutopypathError in strict mode
     when no valid paths are found to add to sys.path for non-replace
     load strategies.
 
@@ -694,8 +694,8 @@ paths=["src", "tests"]
             dry_run=True,
             strict=True,
         )
-        pytest.fail('STRICT_001 Expected RuntimeError because no paths exist and strict mode is enabled')
-    except RuntimeError:
+        pytest.fail('STRICT_001 Expected AutopypathError because no paths exist and strict mode is enabled')
+    except AutopypathError:
         pass  # Expected because paths do not exist
 
     # Now test that a warning is logged for non-strict mode
@@ -811,16 +811,16 @@ def test_non_file_autopypath_toml(tmp_path: Path) -> None:
             strict=True,
         )
         pytest.fail(
-            'NON_FILE_AUTOPYPATH_TOML_002 Expected RuntimeError because autopypath.toml is not a file in strict mode'
+            'NON_FILE_AUTOPYPATH_TOML_002 Expected AutopypathError because autopypath.toml is not a file in strict mode'
         )
-    except RuntimeError:
+    except AutopypathError:
         pass
     finally:
         sys.path = _ORIGINAL_SYS_PATH.copy()
 
 
 def test_no_repo(tmp_path: Path) -> None:
-    """Test that a RuntimeError is raised when no repository markers are found."""
+    """Test that a AutopypathError is raised when no repository markers are found."""
     root_path = tmp_path / 'repo'
     root_path.mkdir()
     context_file = root_path / 'some_file.txt'
@@ -832,8 +832,8 @@ def test_no_repo(tmp_path: Path) -> None:
             dry_run=True,
             repo_markers={'.nonexistent_vcs': 'dir'},
         )
-        pytest.fail('NO_REPO_001 Expected RuntimeError because no repository markers were found')
-    except RuntimeError:
+        pytest.fail('NO_REPO_001 Expected AutopypathError because no repository markers were found')
+    except AutopypathError:
         pass  # Expected because no repository markers exist
 
 

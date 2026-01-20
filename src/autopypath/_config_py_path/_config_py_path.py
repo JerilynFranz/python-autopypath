@@ -7,6 +7,7 @@ from pathlib import Path
 from typing import Optional, Union
 
 from .. import _validate
+from .._exceptions import AutopypathError
 from .._load_strategy import _LoadStrategy
 from .._log import _log
 from .._marker_type import _MarkerType
@@ -70,8 +71,8 @@ class _ConfigPyPath:
         It is typically called automatically when the module is imported,
         but can also be called manually to customize behavior.
 
-        It is very liberal in what it accepts, but will raise `TypeError` or
-        `ValueError` if the inputs are invalid.
+        It is very liberal in what it accepts, but will raise `AutopypathError` or
+        `AutopypathError` if the inputs are invalid.
 
         :param Path | str context_file: The file path of the script that is configuring the Python path.
         :param Mapping[str, MarkerType | Literal['dir', 'file']] | None repo_markers: (default: ``None``) A
@@ -120,10 +121,10 @@ class _ConfigPyPath:
         :param int | None log_level: (default: ``None``) The logging level to set for the internal logger during
             configuration. It will be restored to its original setting afterwards. If ``None``,
             the current log level is used.
-        :raises TypeError: If any of the inputs are of incorrect type.
-        :raises ValueError: If any of the inputs have invalid values or strict mode is enabled
+        :raises AutopypathError: If any of the inputs are of incorrect type.
+        :raises AutopypathError: If any of the inputs have invalid values or strict mode is enabled
             and an unknown path resolution source is encountered.
-        :raises RuntimeError: If the repository root cannot be found or if strict mode is enabled
+        :raises AutopypathError: If the repository root cannot be found or if strict mode is enabled
             and a configured path cannot be resolved.
         """
         _existing_log_level: int = _log.level
@@ -200,7 +201,7 @@ class _ConfigPyPath:
             _LoadStrategy.PREPEND_HIGHEST_PRIORITY,
             _LoadStrategy.PREPEND,
         }:  # pragma: no cover  # should never happen due to earlier validation
-            raise ValueError(f'Unknown load strategy: {self.load_strategy}')
+            raise AutopypathError(f'Unknown load strategy: {str(self.load_strategy)}')
         if not paths:
             _log.debug('No paths to apply to sys.path.')
             return
@@ -233,8 +234,8 @@ class _ConfigPyPath:
         Paths that are already in :var:`sys.path` are not duplicated.
 
         :return tuple[Path, ...]: The paths to be added to :var:`sys.path`.
-        :raises RuntimeError: If a configured path cannot be resolved and strict mode is enabled.
-        :raises ValueError: If an unknown path resolution source is encountered and strict mode is enabled.
+        :raises AutopypathError: If a configured path cannot be resolved and strict mode is enabled.
+        :raises AutopypathError: If an unknown path resolution source is encountered and strict mode is enabled.
         """
 
         existing_paths = sys.path if self.load_strategy != _LoadStrategy.REPLACE else []
@@ -267,7 +268,7 @@ class _ConfigPyPath:
             else:  # pragma: no cover  # should never happen due to earlier validation
                 if self._strict:
                     _log.error('Unknown path resolution source: %s', source)
-                    raise ValueError(f'Unknown path resolution source: {source}')
+                    raise AutopypathError(f'Unknown path resolution source: {source}')
                 _log.warning('Unknown path resolution source: %s', source)
                 continue
 
@@ -289,7 +290,7 @@ class _ConfigPyPath:
                 _log.debug('Load strategy PREPEND: Appending paths %s from %s', source_paths, source)
                 raw_paths.extend(source_paths)
             else:  # pragma: no cover  # should never happen due to earlier validation
-                raise ValueError(f'Unknown load strategy: {self.load_strategy}')
+                raise AutopypathError(f'Unknown load strategy: {str(self.load_strategy)}')
 
         # Process default paths if no paths have been set yet
         if not raw_paths:
@@ -311,7 +312,7 @@ class _ConfigPyPath:
             except Exception as exc:
                 if self._strict:
                     _log.error('Could not resolve configured path: %s', path)
-                    raise RuntimeError(f'Could not resolve configured path: {path}') from exc
+                    raise AutopypathError(f'Could not resolve configured path: {path}') from exc
                 _log.warning('Could not resolve configured path: %s', path)
                 continue
             if resolved_path not in known_paths:
@@ -322,7 +323,7 @@ class _ConfigPyPath:
         if not unique_paths:
             if self.load_strategy == _LoadStrategy.REPLACE:
                 _log.error('No valid paths to use as sys.path after processing in "replace" mode.')
-                raise RuntimeError('autopypath: No valid paths to use as sys.path after processing in "replace" mode.')
+                raise AutopypathError('autopypath: No valid paths to use as sys.path after processing in "replace" mode.')
             _log.warning('autopypath: No valid paths to add to sys.path after processing.')
 
         _log.debug('Final resolved paths to add to sys.path: %s', unique_paths)
@@ -401,7 +402,7 @@ class _ConfigPyPath:
 
         :param Path context_file_path: The file path of the script that is configuring the Python path.
         :return Path: The path to the repository root.
-        :raises RuntimeError: If the repository root cannot be found.
+        :raises AutopypathError: If the repository root cannot be found.
         """
         repo_markers = self.manual_config.repo_markers or self.default_config.repo_markers
         current_path = context_file_path.parent.resolve(strict=True)
@@ -414,7 +415,7 @@ class _ConfigPyPath:
                         _log.error(
                             'Found autopypath.toml at %s but it is not a file', autopypath_path.resolve(strict=True)
                         )
-                        raise RuntimeError(f'Found autopypath.toml at {autopypath_path} but it is not a file')
+                        raise AutopypathError(f'Found autopypath.toml at {autopypath_path} but it is not a file')
                     _log.warning(
                         'Found autopypath.toml at %s but it is not a file - ignoring',
                         autopypath_path.resolve(strict=True),
@@ -443,7 +444,7 @@ class _ConfigPyPath:
             if current_path == current_path.parent:
                 break
             current_path = current_path.parent
-        raise RuntimeError('Repository root could not be found.')
+        raise AutopypathError('Repository root could not be found.')
 
     def restore_sys_path(self) -> None:
         """Restores :var:`sys.path` to its original state before any modifications."""
