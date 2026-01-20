@@ -191,7 +191,7 @@ class _ConfigPyPath:
 
             self._updated_paths: tuple[str, ...] = tuple(sys.path)
             """The updated sys.path after modifications."""
-        except Exception:
+        except BaseException:  # Yes. We want to catch ALL exceptions here.
             # On ANY error, restore original sys.path
             # "First, do no harm"
             if not self.dry_run:
