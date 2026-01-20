@@ -2,6 +2,7 @@
 
 import inspect
 from pathlib import Path
+from types import FrameType
 from typing import Union
 
 import pytest
@@ -41,3 +42,18 @@ def test_context_frameinfo_currentframe_none(monkeypatch: pytest.MonkeyPatch) ->
     monkeypatch.setattr(inspect, 'currentframe', lambda: None)
     result = _context_frameinfo()
     assert result is None, 'CONTEXT_009 Should return None if currentframe() is None'
+
+
+def test_context_frameinfo_no_file_in_globals(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Test that _context_frameinfo returns None if __file__ is missing."""
+    class DummyCode:
+        co_name = "dummy"
+
+    class DummyFrame:
+        f_globals = {"__name__": "dummy"}  # no __file__
+        f_code = DummyCode()
+        f_back: FrameType | None = None
+
+    monkeypatch.setattr(inspect, "currentframe", lambda: DummyFrame())
+    result = _context_frameinfo()
+    assert result is None, "CONTEXT_010 Should return None if __file__ is missing in globals"

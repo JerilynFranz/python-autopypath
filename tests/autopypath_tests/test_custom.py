@@ -1,5 +1,5 @@
 """Tests for autopypath.custom.configure_pypath"""
-
+import importlib
 import logging
 import sys
 from pathlib import Path
@@ -134,3 +134,21 @@ def test_noop_on_multiple_calls(tmp_path: Path) -> None:
         sys.path = _ORIGINAL_SYS_PATH.copy()
         __name__ = _ORIGINAL_NAME
         sys.modules.pop('autopypath.custom', None)
+
+
+def test_import_raises_when_context_unknown(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Test that importing autopypath raises AutopypathError when context frame is unknown."""
+    global __name__
+    original_name = __name__
+    try:
+        __name__ = '__main__'
+        sys.modules.pop('autopypath.custom', None)
+        import autopypath.custom
+
+        # Patch the frame introspection to simulate inability to find context frame
+        monkeypatch.setattr("inspect.currentframe", lambda: None)
+
+        with pytest.raises(autopypath.AutopypathError, match="could not determine context file"):
+            importlib.reload(autopypath.custom)
+    finally:
+        __name__ = original_name

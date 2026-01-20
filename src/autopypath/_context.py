@@ -36,10 +36,10 @@ def _context_frameinfo() -> Optional[tuple[Path, str]]:
                 if context_file is not None:
                     return (Path(context_file), frame_name)
 
-                # else: Wierd case: no __file__ in globals. Don't even know how to trigger this.
-                else:  # pragma: no cover
+                # no __file__ in globals.
+                else:
                     return None
             current_frame = current_frame.f_back
     finally:
         del current_frame  # Avoid accidental reference cycles
-    return None  # pragma: no cover  # No context frame found case is untestable
+    return None # No context frame found

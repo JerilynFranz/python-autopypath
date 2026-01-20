@@ -1,5 +1,5 @@
 """Tests for :mod:`autopypath` module."""
-
+import importlib
 import logging
 import sys
 from pathlib import Path
@@ -83,6 +83,23 @@ repo_markers = {".git" = "dir", "autopypath.toml" = "file"}
     )
 
 
+def test_import_raises_when_context_unknown(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Test that importing autopypath raises AutopypathError when context frame is unknown."""
+    global __name__
+    original_name = __name__
+    try:
+        __name__ = '__main__'
+        sys.modules.pop('autopypath', None)
+        import autopypath
+
+        # Patch the frame introspection to simulate inability to find context frame
+        monkeypatch.setattr("inspect.currentframe", lambda: None)
+
+        with pytest.raises(autopypath.AutopypathError, match="could not determine context file"):
+            importlib.reload(autopypath)
+    finally:
+        __name__ = original_name
+
 # For direct manual execution of tests as a script.
 #
 # This is what pytest would do to set up sys.path for testing when run from the command line,
@@ -108,8 +125,11 @@ repo_markers = {".git" = "dir", "autopypath.toml" = "file"}
 #
 # And it **just works** when run directly at the command line as `python your_script.py`
 #
+
+
 if __name__ == '__main__':
     repo_dir = Path(__file__).parent.parent
     sys.path = [str(repo_dir / 'src'), str(repo_dir / 'tests')] + sys.path
 
     pytest.main([__file__])
+

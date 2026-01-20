@@ -193,7 +193,7 @@ class _ConfigPyPath:
 
         Based on the load strategy, it updates :data:`sys.path` accordingly.
         """
-        if self.load_strategy not in {
+        if self.load_strategy not in {  # future-proofing for new strategies that may be added
             _LoadStrategy.REPLACE,
             _LoadStrategy.PREPEND_HIGHEST_PRIORITY,
             _LoadStrategy.PREPEND,
@@ -262,7 +262,7 @@ class _ConfigPyPath:
             elif source == _PathResolution.DOTENV:
                 source_paths = self.dotenv_config.paths
                 _log.debug('Resolving paths from DOTENV source: %s', source_paths)
-            else:  # pragma: no cover  # should never happen due to earlier validation
+            else:  # pragma: no cover  # This is future-proofing for new sources that may be added
                 if self._strict:
                     _log.error('Unknown path resolution source: %s', source)
                     raise AutopypathError(f'Unknown path resolution source: {source}')

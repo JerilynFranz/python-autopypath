@@ -1,5 +1,6 @@
 """Tests for :mod:`autopypath.debug` module."""
 
+import importlib
 import logging
 import sys
 from pathlib import Path
@@ -83,6 +84,24 @@ repo_markers = {".git" = "dir", "autopypath.toml" = "file"}
         'AUTOPYPATH_003 autopypath.debug._path_adjusted should be True when autopypath is '
         'imported from our forced __main__ context.'
     )
+
+
+def test_import_raises_when_context_unknown(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Test that importing autopypath raises AutopypathError when context frame is unknown."""
+    global __name__
+    original_name = __name__
+    try:
+        __name__ = '__main__'
+        sys.modules.pop('autopypath.debug', None)
+        import autopypath.debug
+
+        # Patch the frame introspection to simulate inability to find context frame
+        monkeypatch.setattr("inspect.currentframe", lambda: None)
+
+        with pytest.raises(autopypath.AutopypathError, match="could not determine context file"):
+            importlib.reload(autopypath.debug)
+    finally:
+        __name__ = original_name
 
 
 # For direct manual execution of tests as a script.

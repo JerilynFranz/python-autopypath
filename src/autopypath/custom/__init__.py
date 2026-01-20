@@ -69,10 +69,11 @@ if _context_info is not None:
         message = _NOT_MAIN_CONTEXT_WARNING.format(_context_name)
         _log.debug(message)
 
-else:  # pragma: no cover  # Wierd case I don't even know how to trigger: could not determine context file at all
+else: # unable to determine context info
     _context_file = None
     _context_name = None
-    _log.warning('could not determine context file; no sys.path changes will be applied.')
+    _log.error('could not determine context file; no sys.path changes will be applied.')
+    raise AutopypathError('could not determine context file; no sys.path changes will be applied.')
 
 _ran_once: bool = False
 """Indicates whether :func:`configure_pypath` has been called already."""

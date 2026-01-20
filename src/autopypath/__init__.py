@@ -300,8 +300,6 @@ if _context_info is not None:
         _ConfigPyPath(context_file=_context_file)
         _log.debug('sys.path adjusted automatically for %s', _context_file)
         _path_adjusted = True
-else:  # pragma: no cover  # Wierd case I don't even know how to trigger: could not determine context file at all
-    _context_file = None
-    _context_name = None
-    _path_adjusted = False
-    _log.warning('could not determine context file; no sys.path changes will be applied.')
+else:
+    _log.error('could not determine context file; no sys.path changes will be applied.')
+    raise AutopypathError('could not determine context file for autopypath; sys.path not adjusted.')
