@@ -1,7 +1,7 @@
 [project]
 name = "autopypath"
 dynamic = ["version"]
-#requires-python = ">=3.9"  # Disabled because UV can't seem to handle it when dev and dist targets differ
+requires-python = ">=3.9" 
 description = "Automatic path management for testing and development."
 authors = [
     {name = "Jerilyn Franz", email = "opensource@snowhare.com"}
@@ -78,8 +78,8 @@ dev = [
        "tox>=4.22.0",
        "tox-uv>=1.13.1",
        "uv>=0.9.18",
-       "python-dotenv>=1.2.1",
        "tomli",
+       "python-dotenv>=1.2.1",
        "typing-extensions >= 3.10.0.0"
       ]
 
@@ -98,10 +98,10 @@ lint = [
 
 # Dependencies for building documentation
 docs = [
-    "furo>=2025.09.25",
-    "sphinx>=8.2.3,<9.0.0",
-    "sphinx-copybutton>=0.5.2",
-    "sphinx-design>=0.6.1",
+    "furo>=2025.09.25; python_version >= '3.11'",
+    "sphinx>=8.2.3,<9.0.0; python_version >= '3.11'",
+    "sphinx-copybutton>=0.5.2; python_version >= '3.11'",
+    "sphinx-design>=0.6.1; python_version >= '3.11'",
 ]
 
 # A group for all other development tools
@@ -116,12 +116,6 @@ tools = [
 
 [tool.uv]
 default-groups = ["dev"]
-conflicts = [
-    [
-      { extra = "docs" },
-      { extra = "dev" },
-    ],
-]
 
 
 [tool.uv.dependency-groups]
@@ -164,7 +158,6 @@ commands = [
 description = "Development environment with all tools"
 package = "editable"
 dependency_groups = ["dev"]
-base = ["testenv"]
 base_python = ["python3.12", "python3.11", "python3.13", "python3.14"]
 allowlist_externals = ["pytest", "mypy", "ruff", "coverage"]
 commands = []
