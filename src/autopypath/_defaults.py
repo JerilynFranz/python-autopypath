@@ -4,24 +4,24 @@ from pathlib import Path
 from types import MappingProxyType
 from typing import Final, Union
 
-from ._load_strategy import LoadStrategy
-from ._marker_type import MarkerType
-from ._path_resolution import PathResolution
-from .types import LoadStrategyLiterals, PathResolutionLiterals, RepoMarkerLiterals
+from ._load_strategy import _LoadStrategy
+from ._marker_type import _MarkerType
+from ._path_resolution import _PathResolution
+from ._types import LoadStrategyLiterals, PathResolutionLiterals, RepoMarkerLiterals
 
 __all__ = []
 
-_REPO_MARKERS: Final[MappingProxyType[str, Union[MarkerType, RepoMarkerLiterals]]] = MappingProxyType(
+_REPO_MARKERS: Final[MappingProxyType[str, Union[_MarkerType, RepoMarkerLiterals]]] = MappingProxyType(
     {
-        'pyproject.toml': MarkerType.FILE,
-        'autopypath.toml': MarkerType.FILE,
-        '.git': MarkerType.DIR,  # Git repository marker
-        '.hg': MarkerType.DIR,  # Mercurial repository marker
-        '.svn': MarkerType.DIR,  # Subversion repository marker
-        '.bzr': MarkerType.DIR,  # Bazaar repository marker
-        '.cvs': MarkerType.DIR,  # CVS repository marker
-        '_darcs': MarkerType.DIR,  # Darcs repository marker
-        '.fossil': MarkerType.DIR,  # Fossil repository marker
+        'pyproject.toml': _MarkerType.FILE,
+        'autopypath.toml': _MarkerType.FILE,
+        '.git': _MarkerType.DIR,  # Git repository marker
+        '.hg': _MarkerType.DIR,  # Mercurial repository marker
+        '.svn': _MarkerType.DIR,  # Subversion repository marker
+        '.bzr': _MarkerType.DIR,  # Bazaar repository marker
+        '.cvs': _MarkerType.DIR,  # CVS repository marker
+        '_darcs': _MarkerType.DIR,  # Darcs repository marker
+        '.fossil': _MarkerType.DIR,  # Fossil repository marker
     }
 )
 """Default repository markers used to identify the repository root. The presence of
@@ -101,11 +101,11 @@ The default markers are:
 
 """
 
-_PATH_RESOLUTION_ORDER: Final[tuple[Union[PathResolution, PathResolutionLiterals], ...]] = (
-    PathResolution.MANUAL,
-    PathResolution.AUTOPYPATH,
-    PathResolution.PYPROJECT,
-    PathResolution.DOTENV,
+_PATH_RESOLUTION_ORDER: Final[tuple[Union[_PathResolution, PathResolutionLiterals], ...]] = (
+    _PathResolution.MANUAL,
+    _PathResolution.AUTOPYPATH,
+    _PathResolution.PYPROJECT,
+    _PathResolution.DOTENV,
 )
 
 """Default resolution order for :func:`sys.path` sources.
@@ -160,7 +160,7 @@ These examples apply the following path prioritization order:
 4. Paths from ``PYTHONPATH`` specified in a `.env` file in the repository root
 """
 
-_LOAD_STRATEGY: Union[LoadStrategy, LoadStrategyLiterals] = LoadStrategy.PREPEND
+_LOAD_STRATEGY: Union[_LoadStrategy, LoadStrategyLiterals] = _LoadStrategy.PREPEND
 """Default load strategy for :func:`sys.path` sources.
 
 This is used if there is no specific load strategy provided in pyproject.toml

@@ -4,7 +4,7 @@ from pathlib import Path
 import pytest
 
 from autopypath._config_py_path._config._toml import _TomlConfig
-from autopypath._marker_type import MarkerType
+from autopypath._marker_type import _MarkerType
 
 
 def test_toml_config_init(tmp_path: Path) -> None:
@@ -338,7 +338,7 @@ repo_markers = {'.git'='dir', 'setup.py'='file'}
         config = _TomlConfig(repo_root_path=repo_root, toml_filename=toml_filename, toml_section='tool.autopypath')
     except Exception as e:
         pytest.fail(f'TOML_033 Initialization of TomlConfig with valid repo_markers failed with exception: {e}')
-    assert config.repo_markers == {'.git': MarkerType.DIR, 'setup.py': MarkerType.FILE}, (
+    assert config.repo_markers == {'.git': _MarkerType.DIR, 'setup.py': _MarkerType.FILE}, (
         f'TOML_034 Expected repo_markers to be correctly parsed, got: {config.repo_markers}'
     )
 

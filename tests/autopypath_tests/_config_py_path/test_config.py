@@ -10,10 +10,10 @@ import pytest
 from testspec import Assert, PytestAction, TestSpec
 
 from autopypath._config_py_path._config import _Config
-from autopypath._load_strategy import LoadStrategy
-from autopypath._marker_type import MarkerType
-from autopypath._path_resolution import PathResolution
-from autopypath.types import LoadStrategyLiterals, PathResolutionLiterals, RepoMarkerLiterals
+from autopypath._load_strategy import _LoadStrategy
+from autopypath._marker_type import _MarkerType
+from autopypath._path_resolution import _PathResolution
+from autopypath._types import LoadStrategyLiterals, PathResolutionLiterals, RepoMarkerLiterals
 
 
 class ConfigParameters(NamedTuple):
@@ -25,10 +25,10 @@ class ConfigParameters(NamedTuple):
     :param tuple[PathResolution | PathResolutionLiterals, ...] | None path_resolution_order: Path resolution order.
     """
 
-    repo_markers: Union[MappingProxyType[str, Union[MarkerType, RepoMarkerLiterals]], None]
+    repo_markers: Union[MappingProxyType[str, Union[_MarkerType, RepoMarkerLiterals]], None]
     paths: Union[tuple[str, ...], tuple[Path, ...], None]
-    load_strategy: Union[LoadStrategy, LoadStrategyLiterals, None]
-    path_resolution_order: Union[tuple[Union[PathResolution, PathResolutionLiterals], ...], None]
+    load_strategy: Union[_LoadStrategy, LoadStrategyLiterals, None]
+    path_resolution_order: Union[tuple[Union[_PathResolution, PathResolutionLiterals], ...], None]
 
 
 # fmt: off
@@ -38,25 +38,25 @@ class ConfigParameters(NamedTuple):
         PytestAction('MARKER_001',
             name='Create Config with valid repo_markers',
             action=_Config,
-            kwargs={'repo_markers': {'.git': MarkerType.DIR, 'pyproject.toml': MarkerType.FILE}},
+            kwargs={'repo_markers': {'.git': _MarkerType.DIR, 'pyproject.toml': _MarkerType.FILE}},
             validate_attr='repo_markers',
-            expected={'.git': MarkerType.DIR, 'pyproject.toml': MarkerType.FILE}),
+            expected={'.git': _MarkerType.DIR, 'pyproject.toml': _MarkerType.FILE}),
         PytestAction('MARKER_002',
             name='Create Config with empty repo_markers',
             action=_Config, kwargs={'repo_markers': {}},
             validate_attr='repo_markers', expected=None),
         PytestAction('MARKER_003',
             name='Create Config with single repo_marker',
-            action=_Config, kwargs={'repo_markers': {'setup.py': MarkerType.FILE}},
-            validate_attr='repo_markers', expected={'setup.py': MarkerType.FILE}),
+            action=_Config, kwargs={'repo_markers': {'setup.py': _MarkerType.FILE}},
+            validate_attr='repo_markers', expected={'setup.py': _MarkerType.FILE}),
         PytestAction('MARKER_004',
             name='Create Config with string repo_markers',
             action=_Config, kwargs={'repo_markers': {'.git': 'dir', 'setup.py': 'file'}},
-            validate_attr='repo_markers', expected={'.git': MarkerType.DIR, 'setup.py': MarkerType.FILE}),
+            validate_attr='repo_markers', expected={'.git': _MarkerType.DIR, 'setup.py': _MarkerType.FILE}),
         PytestAction('MARKER_005',
             name='Create Config with mixed type repo_markers',
-            action=_Config, kwargs={'repo_markers': {'.git': MarkerType.DIR, 'setup.py': 'file'}},
-            validate_attr='repo_markers', expected={'.git': MarkerType.DIR, 'setup.py': MarkerType.FILE}),
+            action=_Config, kwargs={'repo_markers': {'.git': _MarkerType.DIR, 'setup.py': 'file'}},
+            validate_attr='repo_markers', expected={'.git': _MarkerType.DIR, 'setup.py': _MarkerType.FILE}),
         PytestAction('MARKER_006',
             name='Create Config with invalid repo_marker',
             action=_Config, kwargs={'repo_markers': {'.git': 'DIR'}},
@@ -75,51 +75,51 @@ class ConfigParameters(NamedTuple):
             validate_attr='repo_markers', expected=None),
         PytestAction('MARKER_010',
             name='Create Config with whitespace repo_marker key',
-            action=_Config, kwargs={'repo_markers': {'   ': MarkerType.DIR}},
+            action=_Config, kwargs={'repo_markers': {'   ': _MarkerType.DIR}},
             exception=ValueError),
         PytestAction('MARKER_011',
             name='Create Config with non-string repo_marker key',
-            action=_Config, kwargs={'repo_markers': {123: MarkerType.DIR}},
+            action=_Config, kwargs={'repo_markers': {123: _MarkerType.DIR}},
             exception=TypeError),
         PytestAction('MARKER_012',
             name='Create Config with non-mapping repo_markers',
-            action=_Config, kwargs={'repo_markers': [('setup.py', MarkerType.FILE)]},
+            action=_Config, kwargs={'repo_markers': [('setup.py', _MarkerType.FILE)]},
             exception=TypeError),
         PytestAction('MARKER_013',
             name='Create Config with repo_marker key exceeding max length',
-            action=_Config, kwargs={'repo_markers': {'a' * 65: MarkerType.DIR}},
+            action=_Config, kwargs={'repo_markers': {'a' * 65: _MarkerType.DIR}},
             exception=ValueError),
         PytestAction('MARKER_014',
             name='Create Config with repo_marker key containing path separator',
-            action=_Config, kwargs={'repo_markers': {'inva/lid': MarkerType.DIR}},
+            action=_Config, kwargs={'repo_markers': {'inva/lid': _MarkerType.DIR}},
             exception=ValueError),
         PytestAction('MARKER_015',
             name='Create Config with repo_marker key being Windows reserved name',
-            action=_Config, kwargs={'repo_markers': {'CON': MarkerType.FILE}},
+            action=_Config, kwargs={'repo_markers': {'CON': _MarkerType.FILE}},
             exception=ValueError),
         PytestAction('MARKER_016',
             name='Create Config with repo_marker key containing forbidden characters',
-            action=_Config, kwargs={'repo_markers': {'inva<lid': MarkerType.FILE}},
+            action=_Config, kwargs={'repo_markers': {'inva<lid': _MarkerType.FILE}},
             exception=ValueError),
         PytestAction('MARKER_017',
             name='Create Config with repo_marker key being empty string',
-            action=_Config, kwargs={'repo_markers': {'': MarkerType.FILE}},
+            action=_Config, kwargs={'repo_markers': {'': _MarkerType.FILE}},
             exception=ValueError),
         PytestAction('MARKER_018',
             name='Create Config with repo_marker key having leading whitespace',
-            action=_Config, kwargs={'repo_markers': {'  setup.py': MarkerType.FILE}},
+            action=_Config, kwargs={'repo_markers': {'  setup.py': _MarkerType.FILE}},
             exception=ValueError),
         PytestAction('MARKER_019',
             name='Create Config with repo_marker key having trailing whitespace',
-            action=_Config, kwargs={'repo_markers': {'setup.py  ': MarkerType.FILE}},
+            action=_Config, kwargs={'repo_markers': {'setup.py  ': _MarkerType.FILE}},
             exception=ValueError),
         PytestAction('MARKER_020',
             name='Create Config with repo_marker key containing null character',
-            action=_Config, kwargs={'repo_markers': {'setup\0.py': MarkerType.FILE}},
+            action=_Config, kwargs={'repo_markers': {'setup\0.py': _MarkerType.FILE}},
             exception=ValueError),
         PytestAction('MARKER_021',
             name='Validate repo_marker attr returns MappingProxyType',
-            action=_Config, kwargs={'repo_markers': {'setup.py': MarkerType.FILE}},
+            action=_Config, kwargs={'repo_markers': {'setup.py': _MarkerType.FILE}},
             validate_attr='repo_markers', expected=MappingProxyType,
             assertion=Assert.ISINSTANCE),
     ]
@@ -228,15 +228,15 @@ def test_paths(testspec: TestSpec) -> None:
     PytestAction('LOAD_001',
         name='Create Config with valid load_strategy',
         action=_Config,
-        kwargs={'load_strategy': LoadStrategy.PREPEND},
+        kwargs={'load_strategy': _LoadStrategy.PREPEND},
         validate_attr='load_strategy',
-        expected=LoadStrategy.PREPEND),
+        expected=_LoadStrategy.PREPEND),
     PytestAction('LOAD_002',
         name='Create Config with load_strategy as string',
         action=_Config,
         kwargs={'load_strategy': 'prepend'},
         validate_attr='load_strategy',
-        expected=LoadStrategy.PREPEND),
+        expected=_LoadStrategy.PREPEND),
     PytestAction('LOAD_003',
         name='Create Config with invalid load_strategy string',
         action=_Config,
@@ -269,13 +269,13 @@ def test_load_strategy(testspec: TestSpec) -> None:
         action=_Config,
         kwargs={'path_resolution_order': [ 'manual', 'pyproject', 'dotenv']},
         validate_attr='path_resolution_order',
-        expected=(PathResolution.MANUAL, PathResolution.PYPROJECT, PathResolution.DOTENV)),
+        expected=(_PathResolution.MANUAL, _PathResolution.PYPROJECT, _PathResolution.DOTENV)),
     PytestAction('RESOLVE_002',
         name='Create Config with path_resolution_order as enums',
         action=_Config,
-        kwargs={'path_resolution_order': [PathResolution.DOTENV, PathResolution.MANUAL]},
+        kwargs={'path_resolution_order': [_PathResolution.DOTENV, _PathResolution.MANUAL]},
         validate_attr='path_resolution_order',
-        expected=(PathResolution.DOTENV, PathResolution.MANUAL)),
+        expected=(_PathResolution.DOTENV, _PathResolution.MANUAL)),
     PytestAction('RESOLVE_003',
         name='Create Config with invalid path_resolution_order string',
         action=_Config,
@@ -314,13 +314,13 @@ def test_load_strategy(testspec: TestSpec) -> None:
         action=_Config,
         kwargs={'path_resolution_order': ['dotenv']},
         validate_attr='path_resolution_order',
-        expected=(PathResolution.DOTENV,)),
+        expected=(_PathResolution.DOTENV,)),
     PytestAction('RESOLVE_010',
         name='Create Config with mixed type path_resolution_order entries',
         action=_Config,
-        kwargs={'path_resolution_order': ['manual', PathResolution.DOTENV, 'pyproject']},
+        kwargs={'path_resolution_order': ['manual', _PathResolution.DOTENV, 'pyproject']},
         validate_attr='path_resolution_order',
-        expected=(PathResolution.MANUAL, PathResolution.DOTENV, PathResolution.PYPROJECT)),
+        expected=(_PathResolution.MANUAL, _PathResolution.DOTENV, _PathResolution.PYPROJECT)),
     PytestAction('RESOLVE_011',
         name='Create Config with path_resolution_order having leading/trailing whitespace',
         action=_Config,
@@ -351,9 +351,9 @@ def test_path_resolution_order(testspec: TestSpec) -> None:
     PytestAction('REPLACE_001',
         name='Use replace method to change repo_markers of Config',
         action=_Config().replace,
-        kwargs={'repo_markers': {'.hg': MarkerType.DIR}},
+        kwargs={'repo_markers': {'.hg': _MarkerType.DIR}},
         validate_attr='repo_markers',
-        expected={'.hg': MarkerType.DIR}),
+        expected={'.hg': _MarkerType.DIR}),
     PytestAction('REPLACE_002',
         name='Use replace method to change paths of Config',
         action=_Config().replace, kwargs={'paths': ['new_src', 'new_lib']},
@@ -361,25 +361,25 @@ def test_path_resolution_order(testspec: TestSpec) -> None:
         expected=(Path('new_src'), Path('new_lib'))),
     PytestAction('REPLACE_003',
         name='Use replace method to change load_strategy of Config',
-        action=_Config().replace, kwargs={'load_strategy': LoadStrategy.REPLACE},
+        action=_Config().replace, kwargs={'load_strategy': _LoadStrategy.REPLACE},
         validate_attr='load_strategy',
-        expected=LoadStrategy.REPLACE),
+        expected=_LoadStrategy.REPLACE),
     PytestAction('REPLACE_004',
         name='Use replace method to change path_resolution_order of Config',
         action=_Config().replace, kwargs={'path_resolution_order': ['dotenv', 'manual']},
         validate_attr='path_resolution_order',
-        expected=(PathResolution.DOTENV, PathResolution.MANUAL)),
+        expected=(_PathResolution.DOTENV, _PathResolution.MANUAL)),
     PytestAction('REPLACE_005',
         name='Use replace method with multiple changes to Config',
         action=_Config().replace,
         kwargs={
-            'repo_markers': {'.svn': MarkerType.DIR},
+            'repo_markers': {'.svn': _MarkerType.DIR},
             'paths': ['another_src'],
             'load_strategy': 'prepend_highest_priority',
-            'path_resolution_order': [PathResolution.PYPROJECT]
+            'path_resolution_order': [_PathResolution.PYPROJECT]
         },
         validate_attr='repo_markers',
-        expected={'.svn': MarkerType.DIR}),
+        expected={'.svn': _MarkerType.DIR}),
 ])
 def test_replace(testspec: TestSpec) -> None:
     """Test Config replace method."""
@@ -401,10 +401,10 @@ def generate_all_config_combinations() -> tuple[tuple[_Config, ConfigParameters]
     :return tuple[tuple[Config, ConfigParameters], ...]: A tuple containing all generated Config instances and
         their corresponding parameter combinations.
     """
-    repo_markers: tuple[Union[MappingProxyType[str, Union[MarkerType, RepoMarkerLiterals]], None], ...] = (
-        MappingProxyType({'.git': MarkerType.DIR}),
-        MappingProxyType({'pyproject.toml': MarkerType.FILE}),
-        MappingProxyType({'.git': MarkerType.DIR, 'pyproject.toml': MarkerType.FILE}),
+    repo_markers: tuple[Union[MappingProxyType[str, Union[_MarkerType, RepoMarkerLiterals]], None], ...] = (
+        MappingProxyType({'.git': _MarkerType.DIR}),
+        MappingProxyType({'pyproject.toml': _MarkerType.FILE}),
+        MappingProxyType({'.git': _MarkerType.DIR, 'pyproject.toml': _MarkerType.FILE}),
         None,
     )
 
@@ -414,16 +414,16 @@ def generate_all_config_combinations() -> tuple[tuple[_Config, ConfigParameters]
         None
     )
 
-    load_strategies: tuple[Union[LoadStrategy, LoadStrategyLiterals, None], ...] = (
-        LoadStrategy.PREPEND,
-        LoadStrategy.REPLACE,
-        LoadStrategy.PREPEND_HIGHEST_PRIORITY,
+    load_strategies: tuple[Union[_LoadStrategy, LoadStrategyLiterals, None], ...] = (
+        _LoadStrategy.PREPEND,
+        _LoadStrategy.REPLACE,
+        _LoadStrategy.PREPEND_HIGHEST_PRIORITY,
         None,
     )
 
-    path_resolution_orders: tuple[Union[tuple[Union[PathResolution, PathResolutionLiterals], ...], None], ...] = (
-        (PathResolution.MANUAL, PathResolution.PYPROJECT),
-        (PathResolution.DOTENV,),
+    path_resolution_orders: tuple[Union[tuple[Union[_PathResolution, PathResolutionLiterals], ...], None], ...] = (
+        (_PathResolution.MANUAL, _PathResolution.PYPROJECT),
+        (_PathResolution.DOTENV,),
         None,
     )
 
@@ -505,7 +505,7 @@ def test_repr() -> None:
         repo_markers={'.git': 'dir'},
         paths=['src', 'lib'],
         load_strategy='prepend',
-        path_resolution_order=[PathResolution.MANUAL, PathResolution.PYPROJECT]
+        path_resolution_order=[_PathResolution.MANUAL, _PathResolution.PYPROJECT]
     )
 
     reconstituted_config = eval(repr(config))

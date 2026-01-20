@@ -7,11 +7,11 @@ from typing import Union
 from ._doc_utils import enum_docstrings
 from ._typing import Final, Literal, TypeAlias, TypeGuard
 
-__all__ = ['MarkerType']
+__all__ = ['_MarkerType']
 
 
 @enum_docstrings
-class MarkerType(str, Enum):
+class _MarkerType(str, Enum):
     """Types of repository markers used to identify the repository root.
 
     - FILE: A file that must exist in the repository root.
@@ -36,8 +36,8 @@ MarkerTypeLiteral: TypeAlias = Literal['file', 'dir']
 """Literal type for MarkerType values."""
 
 
-MARKER_TYPE_MAP: Final[MappingProxyType[MarkerTypeLiteral, MarkerType]] = MappingProxyType(
-    {marker.value: marker for marker in MarkerType}
+MARKER_TYPE_MAP: Final[MappingProxyType[MarkerTypeLiteral, _MarkerType]] = MappingProxyType(
+    {marker.value: marker for marker in _MarkerType}
 )
 """Mapping from literal strings to MarkerType enum members.
 
@@ -72,7 +72,7 @@ def is_marker_type_literal(value: str) -> TypeGuard[MarkerTypeLiteral]:
     return value in MARKER_TYPE_MAP
 
 
-def resolve_marker_type_literal(value: str) -> Union[MarkerType, None]:
+def resolve_marker_type_literal(value: str) -> Union[_MarkerType, None]:
     """Resolves a string literal to its corresponding MarkerType enum member
     or returns ``None`` if the literal is invalid.
 

@@ -7,11 +7,11 @@ from pathlib import Path
 from typing import Optional, Union
 
 from .. import _validate
-from .._load_strategy import LoadStrategy
+from .._load_strategy import _LoadStrategy
 from .._log import log
-from .._marker_type import MarkerType
-from .._path_resolution import PathResolution
-from ..types import LoadStrategyLiterals, PathResolutionLiterals, RepoMarkerLiterals
+from .._marker_type import _MarkerType
+from .._path_resolution import _PathResolution
+from .._types import LoadStrategyLiterals, PathResolutionLiterals, RepoMarkerLiterals
 from ._config import _AutopypathConfig, _DefaultConfig, _DotEnvConfig, _ManualConfig, _PyProjectConfig
 
 __all__ = []
@@ -51,12 +51,12 @@ class _ConfigPyPath:
         self,
         *,
         context_file: Union[Path, str],
-        repo_markers: Optional[Mapping[str, Union[MarkerType, RepoMarkerLiterals]]] = None,
+        repo_markers: Optional[Mapping[str, RepoMarkerLiterals]] = None,
         paths: Optional[Sequence[Union[Path, str]]] = None,
         posix_paths: Optional[Sequence[Union[Path, str]]] = None,
         windows_paths: Optional[Sequence[Union[Path, str]]] = None,
-        load_strategy: Optional[Union[LoadStrategy, LoadStrategyLiterals]] = None,
-        path_resolution_order: Optional[Sequence[Union[PathResolution, PathResolutionLiterals]]] = None,
+        load_strategy: Optional[LoadStrategyLiterals] = None,
+        path_resolution_order: Optional[Sequence[PathResolutionLiterals]] = None,
         dry_run: bool = False,
         strict: bool = False,
         log_level: Optional[int] = None,
@@ -174,10 +174,10 @@ class _ConfigPyPath:
             self._dotenv = _DotEnvConfig(self.repo_root_path, strict=strict)
             """Configuration loaded from .env file (if present)."""
 
-            self._path_resolution_order: tuple[PathResolution, ...] = self._determine_path_resolution_order()
+            self._path_resolution_order: tuple[_PathResolution, ...] = self._determine_path_resolution_order()
             """The order in which to resolve :var:`sys.path` sources."""
 
-            self._load_strategy: LoadStrategy = self._determine_load_strategy()
+            self._load_strategy: _LoadStrategy = self._determine_load_strategy()
             """The strategy for handling multiple :var:`sys.path` sources."""
 
             self._paths: tuple[Path, ...] = self._process_paths()
@@ -196,9 +196,9 @@ class _ConfigPyPath:
         Based on the load strategy, it updates :var:`sys.path` accordingly.
         """
         if self.load_strategy not in {
-            LoadStrategy.REPLACE,
-            LoadStrategy.PREPEND_HIGHEST_PRIORITY,
-            LoadStrategy.PREPEND,
+            _LoadStrategy.REPLACE,
+            _LoadStrategy.PREPEND_HIGHEST_PRIORITY,
+            _LoadStrategy.PREPEND,
         }:  # pragma: no cover  # should never happen due to earlier validation
             raise ValueError(f'Unknown load strategy: {self.load_strategy}')
         if not paths:
@@ -207,7 +207,7 @@ class _ConfigPyPath:
 
         # Note: paths are already resolved and ordered for load strategy in _process_paths
         stringified_paths = [str(p) for p in paths]
-        if self.load_strategy == LoadStrategy.REPLACE:
+        if self.load_strategy == _LoadStrategy.REPLACE:
             if not self.dry_run:
                 sys.path = stringified_paths
                 log.debug('sys.path replaced all paths with: %s', stringified_paths)
@@ -237,7 +237,7 @@ class _ConfigPyPath:
         :raises ValueError: If an unknown path resolution source is encountered and strict mode is enabled.
         """
 
-        existing_paths = sys.path if self.load_strategy != LoadStrategy.REPLACE else []
+        existing_paths = sys.path if self.load_strategy != _LoadStrategy.REPLACE else []
         known_paths: set[Path] = set()
         for p in existing_paths:
             try:
@@ -252,16 +252,16 @@ class _ConfigPyPath:
 
         # collect paths based on resolution order and load strategy
         for source in self.path_resolution_order:
-            if source == PathResolution.MANUAL:
+            if source == _PathResolution.MANUAL:
                 source_paths = self.manual_config.paths
                 log.debug('Resolving paths from MANUAL source: %s', source_paths)
-            elif source == PathResolution.AUTOPYPATH:
+            elif source == _PathResolution.AUTOPYPATH:
                 source_paths = self.autopypath_config.paths
                 log.debug('Resolving paths from AUTOPYPATH source: %s', source_paths)
-            elif source == PathResolution.PYPROJECT:
+            elif source == _PathResolution.PYPROJECT:
                 source_paths = self.pyproject_config.paths
                 log.debug('Resolving paths from PYPROJECT source: %s', source_paths)
-            elif source == PathResolution.DOTENV:
+            elif source == _PathResolution.DOTENV:
                 source_paths = self.dotenv_config.paths
                 log.debug('Resolving paths from DOTENV source: %s', source_paths)
             else:  # pragma: no cover  # should never happen due to earlier validation
@@ -277,15 +277,15 @@ class _ConfigPyPath:
                 continue
 
             # Identify load strategy behavior
-            if self.load_strategy == LoadStrategy.REPLACE:
+            if self.load_strategy == _LoadStrategy.REPLACE:
                 raw_paths.extend(source_paths)
                 log.debug('Load strategy REPLACE: Using paths %s from %s', source_paths, source)
                 break
-            elif self.load_strategy == LoadStrategy.PREPEND_HIGHEST_PRIORITY:
+            elif self.load_strategy == _LoadStrategy.PREPEND_HIGHEST_PRIORITY:
                 log.debug('Load strategy PREPEND_HIGHEST_PRIORITY: Using paths %s from %s', source_paths, source)
                 raw_paths = list(source_paths)
                 break
-            elif self.load_strategy == LoadStrategy.PREPEND:
+            elif self.load_strategy == _LoadStrategy.PREPEND:
                 log.debug('Load strategy PREPEND: Appending paths %s from %s', source_paths, source)
                 raw_paths.extend(source_paths)
             else:  # pragma: no cover  # should never happen due to earlier validation
@@ -320,7 +320,7 @@ class _ConfigPyPath:
 
         # Final check for empty paths
         if not unique_paths:
-            if self.load_strategy == LoadStrategy.REPLACE:
+            if self.load_strategy == _LoadStrategy.REPLACE:
                 log.error('No valid paths to use as sys.path after processing in "replace" mode.')
                 raise RuntimeError('autopypath: No valid paths to use as sys.path after processing in "replace" mode.')
             log.warning('autopypath: No valid paths to add to sys.path after processing.')
@@ -328,7 +328,7 @@ class _ConfigPyPath:
         log.debug('Final resolved paths to add to sys.path: %s', unique_paths)
         return tuple(unique_paths)
 
-    def _determine_load_strategy(self) -> LoadStrategy:
+    def _determine_load_strategy(self) -> _LoadStrategy:
         """Determines the load strategy for handling multiple :var:`sys.path` sources.
 
         It looks for the strategy in the following precedence:
@@ -342,24 +342,24 @@ class _ConfigPyPath:
         :return LoadStrategy: The strategy for handling multiple :var:`sys.path` sources.
         """
         if self.manual_config.load_strategy is not None:
-            strategy = LoadStrategy(self.manual_config.load_strategy)
+            strategy = _LoadStrategy(self.manual_config.load_strategy)
             log.debug('Using manual load strategy: %s', strategy)
             return strategy
 
         if self.autopypath_config.load_strategy is not None:
-            strategy = LoadStrategy(self.autopypath_config.load_strategy)
+            strategy = _LoadStrategy(self.autopypath_config.load_strategy)
             log.debug('Using autopypath.toml load strategy: %s', strategy)
             return strategy
 
         if self.pyproject_config.load_strategy is not None:
-            strategy = LoadStrategy(self.pyproject_config.load_strategy)
+            strategy = _LoadStrategy(self.pyproject_config.load_strategy)
             log.debug('Using pyproject.toml load strategy: %s', strategy)
             return strategy
 
         log.debug('Using default load strategy: %s', self.default_config.load_strategy)
         return self.default_config.load_strategy
 
-    def _determine_path_resolution_order(self) -> tuple[PathResolution, ...]:
+    def _determine_path_resolution_order(self) -> tuple[_PathResolution, ...]:
         """Determines the order in which to resolve :var:`sys.path` sources.
 
         It looks for the order in the following precedence sequence:
@@ -380,17 +380,17 @@ class _ConfigPyPath:
         :return tuple[PathResolution, ...]: The order in which to resolve :var:`sys.path` sources.
         """
         if self.manual_config.path_resolution_order is not None:
-            order = tuple(PathResolution(item) for item in self.manual_config.path_resolution_order)
+            order = tuple(_PathResolution(item) for item in self.manual_config.path_resolution_order)
             log.debug('Using manual path resolution order: %s', order)
             return order
 
         if self.autopypath_config.path_resolution_order is not None:
-            order = tuple(PathResolution(item) for item in self.autopypath_config.path_resolution_order)
+            order = tuple(_PathResolution(item) for item in self.autopypath_config.path_resolution_order)
             log.debug('Using autopypath.toml path resolution order: %s', order)
             return order
 
         if self.pyproject_config.path_resolution_order is not None:
-            order = tuple(PathResolution(item) for item in self.pyproject_config.path_resolution_order)
+            order = tuple(_PathResolution(item) for item in self.pyproject_config.path_resolution_order)
             log.debug('Using pyproject.toml path resolution order: %s', order)
             return order
         log.debug('Using default path resolution order: %s', self.default_config.path_resolution_order)
@@ -434,10 +434,10 @@ class _ConfigPyPath:
 
             for marker, typ in repo_markers.items():
                 test_path = current_path / marker
-                if typ == MarkerType.FILE and test_path.exists() and test_path.is_file():
+                if typ == _MarkerType.FILE and test_path.exists() and test_path.is_file():
                     log.debug('Repository root found at: %s', current_path)
                     return current_path
-                elif typ == MarkerType.DIR and test_path.exists() and test_path.is_dir():
+                elif typ == _MarkerType.DIR and test_path.exists() and test_path.is_dir():
                     log.debug('Repository root found at: %s', current_path)
                     return current_path
             if current_path == current_path.parent:
@@ -454,7 +454,7 @@ class _ConfigPyPath:
             log.debug('Dry run - sys.path would be restored to original state: %s', self.original_sys_path)
 
     @property
-    def load_strategy(self) -> LoadStrategy:
+    def load_strategy(self) -> _LoadStrategy:
         """The strategy for handling multiple :var:`sys.path` sources.
 
         :return LoadStrategy: The strategy for handling multiple :var:`sys.path` sources.
@@ -470,7 +470,7 @@ class _ConfigPyPath:
         return self._paths
 
     @property
-    def path_resolution_order(self) -> tuple[PathResolution, ...]:
+    def path_resolution_order(self) -> tuple[_PathResolution, ...]:
         """The order in which to resolve :var:`sys.path` sources.
 
         :return tuple[PathResolution, ...]: The order in which to resolve :var:`sys.path` sources.

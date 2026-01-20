@@ -6,10 +6,10 @@ from typing import Union
 
 from ._typing import Final, Literal, TypeAlias, TypeGuard
 
-__all__ = ['PathResolution']
+__all__ = ['_PathResolution']
 
 
-class PathResolution(str, Enum):
+class _PathResolution(str, Enum):
     """Defines the order in which :func:`sys.path` sources are resolved.
 
     - MANUAL: Paths provided directly to the configuration function.
@@ -39,8 +39,8 @@ PathResolutionLiteral: TypeAlias = Literal['manual', 'autopypath', 'pyproject', 
 """Literal type for PathResolution values."""
 
 
-PATH_RESOLUTION_MAP: Final[MappingProxyType[PathResolutionLiteral, PathResolution]] = MappingProxyType(
-    {order.value: order for order in PathResolution}
+PATH_RESOLUTION_MAP: Final[MappingProxyType[PathResolutionLiteral, _PathResolution]] = MappingProxyType(
+    {order.value: order for order in _PathResolution}
 )
 """Mapping from literal strings to PathResolution enum members.
 
@@ -77,7 +77,7 @@ def is_path_resolution_literal(value: str) -> TypeGuard[PathResolutionLiteral]:
     return value in PATH_RESOLUTION_MAP
 
 
-def resolve_path_resolution_literal(value: str) -> Union[PathResolution, None]:
+def resolve_path_resolution_literal(value: str) -> Union[_PathResolution, None]:
     """Resolves a string literal to its corresponding PathResolution enum member
     or returns ``None`` if the literal is invalid.
 

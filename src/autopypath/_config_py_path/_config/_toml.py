@@ -8,11 +8,11 @@ from typing import Any, Union
 import tomli
 
 from ... import _validate
-from ..._load_strategy import LoadStrategy
+from ..._load_strategy import _LoadStrategy
 from ..._log import log
-from ..._marker_type import MarkerType
-from ..._path_resolution import PathResolution
-from ...types import _NoPath
+from ..._marker_type import _MarkerType
+from ..._path_resolution import _PathResolution
+from ..._types import _NoPath
 from ._config import _Config
 
 __all__ = ['_TomlConfig']
@@ -162,7 +162,7 @@ class _TomlConfig(_Config):
 
         return autopypath_config
 
-    def _toml_repo_markers(self, autopypath_config: dict) -> Union[MappingProxyType[str, MarkerType], None]:
+    def _toml_repo_markers(self, autopypath_config: dict) -> Union[MappingProxyType[str, _MarkerType], None]:
         """Collects repository markers from the [tool.autopypath] section of the toml data.
 
         Example
@@ -182,13 +182,13 @@ class _TomlConfig(_Config):
             raise TypeError(
                 f'Invalid repo_markers in pyproject.toml: expected table, got {toml_type}: {raw_repo_markers}'
             )
-        collected_repo_markers: dict[str, MarkerType] = {}
+        collected_repo_markers: dict[str, _MarkerType] = {}
         if raw_repo_markers is not None:
             for key, value in raw_repo_markers.items():
                 if not isinstance(value, str):
                     toml_type = _TOML_TYPES.get(type(raw_repo_markers), 'unknown')
                     raise TypeError(f'Invalid repo_marker value for {key}: expected string, got {toml_type}: {value}')
-                collected_repo_markers[key] = MarkerType(value)
+                collected_repo_markers[key] = _MarkerType(value)
 
         repo_markers = _validate.repo_markers(collected_repo_markers)
         return repo_markers
@@ -220,7 +220,7 @@ class _TomlConfig(_Config):
         paths = tuple(filtered_paths) if filtered_paths else None
         return paths
 
-    def _toml_load_strategy(self, autopypath_config: dict[str, Any]) -> Union[LoadStrategy, None]:
+    def _toml_load_strategy(self, autopypath_config: dict[str, Any]) -> Union[_LoadStrategy, None]:
         """Collects load strategy from toml configuration.
 
         Example
@@ -242,13 +242,13 @@ class _TomlConfig(_Config):
         if raw_load_strategy is None:
             return None
         try:
-            load_strategy = LoadStrategy(raw_load_strategy)
+            load_strategy = _LoadStrategy(raw_load_strategy)
         except ValueError as e:
             raise ValueError(f'Invalid load_strategy: {raw_load_strategy}') from e
 
         return load_strategy
 
-    def _toml_path_resolution_order(self, autopypath_config: dict[str, Any]) -> Union[tuple[PathResolution, ...], None]:
+    def _toml_path_resolution_order(self, autopypath_config: dict[str, Any]) -> Union[tuple[_PathResolution, ...], None]:
         """Collects path resolution order from toml configuration.
 
         Example

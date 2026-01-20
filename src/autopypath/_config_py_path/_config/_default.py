@@ -4,10 +4,10 @@ from pathlib import Path
 from types import MappingProxyType
 
 from ... import _defaults
-from ..._load_strategy import LoadStrategy
+from ..._load_strategy import _LoadStrategy
 from ..._log import log
-from ..._marker_type import MarkerType
-from ..._path_resolution import PathResolution
+from ..._marker_type import _MarkerType
+from ..._path_resolution import _PathResolution
 from ._config import _Config
 
 
@@ -29,10 +29,10 @@ class _DefaultConfig(_Config):
         # from the DefaultConfig module because we double check them above.
         # This let us avoid mypy errors about possible None values when accessing the
         # the default properties.
-        self._load_strategy: LoadStrategy  # type: ignore
+        self._load_strategy: _LoadStrategy  # type: ignore
         self._paths: tuple[Path, ...]  # type: ignore
-        self._repo_markers: MappingProxyType[str, MarkerType]  # type: ignore
-        self._path_resolution_order: tuple[PathResolution, ...]  # type: ignore
+        self._repo_markers: MappingProxyType[str, _MarkerType]  # type: ignore
+        self._path_resolution_order: tuple[_PathResolution, ...]  # type: ignore
 
         super().__init__(
             repo_markers=_defaults._REPO_MARKERS,
@@ -42,7 +42,7 @@ class _DefaultConfig(_Config):
         )
 
     @property
-    def repo_markers(self) -> MappingProxyType[str, MarkerType]:
+    def repo_markers(self) -> MappingProxyType[str, _MarkerType]:
         """Mapping of repository markers to their MarkerType.
 
         :return MappingProxyType[str, MarkerType] | None: A mapping where keys are filenames or directory names
@@ -52,7 +52,7 @@ class _DefaultConfig(_Config):
         return self._repo_markers
 
     @property
-    def load_strategy(self) -> LoadStrategy:
+    def load_strategy(self) -> _LoadStrategy:
         """The load strategy for handling multiple :func:`sys.path` sources.
 
         :return LoadStrategy | None: The strategy used when handling multiple sys.path sources.
@@ -61,7 +61,7 @@ class _DefaultConfig(_Config):
         return self._load_strategy
 
     @property
-    def path_resolution_order(self) -> tuple[PathResolution, ...]:
+    def path_resolution_order(self) -> tuple[_PathResolution, ...]:
         """The order in which to resolve :func:`sys.path` sources.
 
         :return tuple[PathResolution, ...] | None: A tuple defining the order of resolution for sys.path sources.

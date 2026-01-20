@@ -7,11 +7,11 @@ from typing import Union
 from ._doc_utils import enum_docstrings
 from ._typing import Final, Literal, TypeAlias, TypeGuard
 
-__all__ = ['LoadStrategy']
+__all__ = ['_LoadStrategy']
 
 
 @enum_docstrings
-class LoadStrategy(str, Enum):
+class _LoadStrategy(str, Enum):
     """Defines the strategy for loading :func:`sys.path` from multiple sources.
 
     - PREPEND: Combine paths from all sources in priority order and prepend them to :func:`sys.path`.
@@ -56,8 +56,8 @@ LoadStrategyLiteral: TypeAlias = Literal['prepend', 'prepend_highest_priority', 
 """Literal type for LoadStrategy values."""
 
 
-LOAD_STRATEGY_MAP: Final[MappingProxyType[LoadStrategyLiteral, LoadStrategy]] = MappingProxyType(
-    {strategy.value: strategy for strategy in LoadStrategy}
+LOAD_STRATEGY_MAP: Final[MappingProxyType[LoadStrategyLiteral, _LoadStrategy]] = MappingProxyType(
+    {strategy.value: strategy for strategy in _LoadStrategy}
 )
 """Mapping from literal strings to LoadStrategy enum members.
 
@@ -93,7 +93,7 @@ def is_load_strategy_literal(value: str) -> TypeGuard[LoadStrategyLiteral]:
     return value in LOAD_STRATEGY_MAP
 
 
-def resolve_load_strategy_literal(value: str) -> Union[LoadStrategy, None]:
+def resolve_load_strategy_literal(value: str) -> Union[_LoadStrategy, None]:
     """Resolves a string literal to its corresponding :class:`LoadStrategy` enum member
     or returns ``None`` if the literal is invalid.
 

@@ -7,11 +7,11 @@ from types import MappingProxyType
 from typing import Optional, Union
 
 from ... import _validate
-from ..._load_strategy import LoadStrategy
+from ..._load_strategy import _LoadStrategy
 from ..._log import log
-from ..._marker_type import MarkerType
-from ..._path_resolution import PathResolution
-from ...types import LoadStrategyLiterals, PathResolutionLiterals, RepoMarkerLiterals
+from ..._marker_type import _MarkerType
+from ..._path_resolution import _PathResolution
+from ..._types import LoadStrategyLiterals, PathResolutionLiterals, RepoMarkerLiterals
 
 __all__ = []
 
@@ -38,10 +38,10 @@ class _Config:
     def __init__(
         self,
         *,
-        repo_markers: Optional[Mapping[str, Union[MarkerType, RepoMarkerLiterals]]] = None,
+        repo_markers: Optional[Mapping[str, Union[_MarkerType, RepoMarkerLiterals]]] = None,
         paths: Optional[Sequence[Union[Path, str]]] = None,
-        load_strategy: Optional[Union[LoadStrategy, LoadStrategyLiterals]] = None,
-        path_resolution_order: Optional[Sequence[Union[PathResolution, PathResolutionLiterals]]] = None,
+        load_strategy: Optional[Union[_LoadStrategy, LoadStrategyLiterals]] = None,
+        path_resolution_order: Optional[Sequence[Union[_PathResolution, PathResolutionLiterals]]] = None,
         strict: bool = False,
     ) -> None:
         """
@@ -65,10 +65,10 @@ class _Config:
             It can use either the enum values or their string representations.
         :param bool strict: (default: ``False``) Indicates whether strict mode is enabled for error handling.
         """
-        self._repo_markers: Union[MappingProxyType[str, MarkerType], None] = _validate.repo_markers(repo_markers)
+        self._repo_markers: Union[MappingProxyType[str, _MarkerType], None] = _validate.repo_markers(repo_markers)
         self._paths: Union[tuple[Path, ...], None] = _validate.paths(paths)
-        self._load_strategy: Union[LoadStrategy, None] = _validate.load_strategy(load_strategy)
-        self._path_resolution_order: Union[tuple[PathResolution, ...], None] = _validate.path_resolution_order(
+        self._load_strategy: Union[_LoadStrategy, None] = _validate.load_strategy(load_strategy)
+        self._path_resolution_order: Union[tuple[_PathResolution, ...], None] = _validate.path_resolution_order(
             path_resolution_order
         )
 
@@ -80,7 +80,7 @@ class _Config:
         )
 
     @property
-    def repo_markers(self) -> Union[MappingProxyType[str, MarkerType], None]:
+    def repo_markers(self) -> Union[MappingProxyType[str, _MarkerType], None]:
         """Mapping of repository markers to their MarkerType.
 
         :return MappingProxyType[str, MarkerType] | None: A mapping where keys are filenames or directory names
@@ -90,7 +90,7 @@ class _Config:
         return self._repo_markers
 
     @property
-    def load_strategy(self) -> Union[LoadStrategy, None]:
+    def load_strategy(self) -> Union[_LoadStrategy, None]:
         """The load strategy for handling multiple :func:`sys.path` sources.
 
         :return LoadStrategy | None: The strategy used when handling multiple sys.path sources.
@@ -99,7 +99,7 @@ class _Config:
         return self._load_strategy
 
     @property
-    def path_resolution_order(self) -> Union[tuple[PathResolution, ...], None]:
+    def path_resolution_order(self) -> Union[tuple[_PathResolution, ...], None]:
         """The order in which to resolve :func:`sys.path` sources.
 
         :return tuple[PathResolution, ...] | None: A tuple defining the order of resolution for sys.path sources.
@@ -173,7 +173,7 @@ class _Config:
 
     def __hash__(self) -> int:
         """Hash for Config objects."""
-        repo_markers: MappingProxyType[str, MarkerType] = self.repo_markers or MappingProxyType({})
+        repo_markers: MappingProxyType[str, _MarkerType] = self.repo_markers or MappingProxyType({})
         return hash(
             (frozenset(sorted(repo_markers.items())), self.paths, self.load_strategy, self.path_resolution_order)
         )
@@ -181,11 +181,11 @@ class _Config:
     def replace(
         self,
         *,
-        repo_markers: Union[Mapping[str, Union[MarkerType, RepoMarkerLiterals]], None, NotPresent] = NOT_PRESENT,
+        repo_markers: Union[Mapping[str, Union[_MarkerType, RepoMarkerLiterals]], None, NotPresent] = NOT_PRESENT,
         paths: Union[Sequence[Union[Path, str]], None, NotPresent] = NOT_PRESENT,
-        load_strategy: Union[LoadStrategy, LoadStrategyLiterals, None, NotPresent] = NOT_PRESENT,
+        load_strategy: Union[_LoadStrategy, LoadStrategyLiterals, None, NotPresent] = NOT_PRESENT,
         path_resolution_order: Union[
-            Sequence[Union[PathResolution, PathResolutionLiterals]], None, NotPresent
+            Sequence[Union[_PathResolution, PathResolutionLiterals]], None, NotPresent
         ] = NOT_PRESENT,
     ) -> '_Config':
         """Creates a copy of the current Config instance with specified attributes replaced.

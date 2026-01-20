@@ -6,7 +6,7 @@ import os
 
 import pytest
 
-from autopypath.types._no_path import _NOT_SUPPORTED_ERR, _NoPath, _NotSupported, _UsagePreventedType
+from autopypath._types._no_path import _NOT_SUPPORTED_ERR, _NoPath, _NotSupported, _UsagePreventedType
 
 
 @pytest.fixture

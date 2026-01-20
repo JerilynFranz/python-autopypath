@@ -9,7 +9,7 @@ import pytest
 
 from autopypath import _defaults as defaults
 from autopypath._config_py_path._config_py_path import _EMPTY_AUTOPYPATH_CONFIG, _NON_RESOLVABLE_SYS_PATH, _ConfigPyPath
-from autopypath.types import _NoPath
+from autopypath._types import _NoPath
 
 _ORIGINAL_SYS_PATH: list[str] = sys.path.copy()
 _ORIGINAL_NAME: str = __name__

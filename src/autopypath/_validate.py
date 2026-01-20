@@ -18,10 +18,10 @@ from typing import Any, Union
 
 __all__ = []
 
-from ._load_strategy import LoadStrategy, resolve_load_strategy_literal
+from ._load_strategy import _LoadStrategy, resolve_load_strategy_literal
 from ._log import log
-from ._marker_type import MarkerType, resolve_marker_type_literal
-from ._path_resolution import PathResolution, resolve_path_resolution_literal
+from ._marker_type import _MarkerType, resolve_marker_type_literal
+from ._path_resolution import _PathResolution, resolve_path_resolution_literal
 
 _MAX_FILE_DIR_NAME_LENGTH: int = 64
 """Maximum length for file or directory names.
@@ -159,7 +159,7 @@ def context_file(value: Any) -> Path:
     return context_file_path
 
 
-def repo_markers(value: Any) -> Union[MappingProxyType[str, MarkerType], None]:
+def repo_markers(value: Any) -> Union[MappingProxyType[str, _MarkerType], None]:
     """Validates a mapping of repository markers.
 
     :param Any value: A mapping where keys are filenames or directory names
@@ -175,14 +175,14 @@ def repo_markers(value: Any) -> Union[MappingProxyType[str, MarkerType], None]:
 
     if not isinstance(value, Mapping):
         raise TypeError(f'Invalid repo_markers: expected a mapping, got {type(value)}')
-    validated_markers: dict[str, MarkerType] = {}
+    validated_markers: dict[str, _MarkerType] = {}
     for key, val in value.items():
         if isinstance(val, str):
             resolved_val = resolve_marker_type_literal(val)
             if resolved_val is None:
                 raise ValueError(f'Invalid MarkerType: {val} is not a valid MarkerType')
             val = resolved_val
-        if not isinstance(val, MarkerType):
+        if not isinstance(val, _MarkerType):
             raise TypeError(f'Invalid repo_markers value: expected MarkerType or string, got {type(val)}')
         if not isinstance(key, str):
             raise TypeError(f'Invalid repo_markers key: expected str, got {type(key)}')
@@ -222,7 +222,7 @@ def paths(value: Any) -> Union[tuple[Path, ...], None]:
     return tuple(validated_paths)
 
 
-def load_strategy(value: Any) -> Union[LoadStrategy, None]:
+def load_strategy(value: Any) -> Union[_LoadStrategy, None]:
     """Validates a LoadStrategy value.
 
     :param Any value: A LoadStrategy value or string matching a LoadStrategy value.
@@ -236,15 +236,15 @@ def load_strategy(value: Any) -> Union[LoadStrategy, None]:
     if isinstance(value, str):
         resolved_value = resolve_load_strategy_literal(value)
         if resolved_value is None:
-            raise ValueError(f'Invalid LoadStrategy: {value} is not a valid LoadStrategy: {list(LoadStrategy)}')
+            raise ValueError(f'Invalid LoadStrategy: {value} is not a valid LoadStrategy: {list(_LoadStrategy)}')
         value = resolved_value
 
-    if not isinstance(value, LoadStrategy):
+    if not isinstance(value, _LoadStrategy):
         raise TypeError(f'Invalid load_strategy: expected LoadStrategy, got {type(value)}')
     return value
 
 
-def path_resolution_order(value: Any) -> Union[tuple[PathResolution, ...], None]:
+def path_resolution_order(value: Any) -> Union[tuple[_PathResolution, ...], None]:
     """Validates a sequence of PathResolution values.
 
     :param Any value: A sequence of PathResolution values or strings matching PathResolution values.
@@ -265,17 +265,17 @@ def path_resolution_order(value: Any) -> Union[tuple[PathResolution, ...], None]
     if len(value) == 0:
         return None
 
-    validated_orders: list[PathResolution] = []
-    seen_orders: dict[PathResolution, int] = {}
+    validated_orders: list[_PathResolution] = []
+    seen_orders: dict[_PathResolution, int] = {}
     for item in value:
         if isinstance(item, str):
             resolved_item = resolve_path_resolution_literal(item)
             if resolved_item is None:
                 raise ValueError(
-                    f'Invalid PathResolution: {item} is not a valid PathResolution: {list(PathResolution)}'
+                    f'Invalid PathResolution: {item} is not a valid PathResolution: {list(_PathResolution)}'
                 )
             item = resolved_item
-        if not isinstance(item, PathResolution):
+        if not isinstance(item, _PathResolution):
             raise TypeError(f'Invalid path_resolution_order item: expected PathResolution, got {item}')
         validated_orders.append(item)
         seen_orders[item] = seen_orders.get(item, 0) + 1
