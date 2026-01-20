@@ -129,18 +129,24 @@ docs = {requires-python = ">=3.11"}
 
 [tool.tox]
 requires = ["tox>=4.22"]
+# tox does not support factor expansion in env_list yet (as of tox 4.34.1),
+# so we list all envs explicitly here. You cannot use "py1{0-4}" syntax here.
 env_list = [ 
     "py39",
-    "py31{0-4}",
-    "pypy31{0-1}",
-    "doctest",
-    "lint",
+    "py310",
+    "py311",
+    "py312",
+    "py313",
+    "py314",
+    "pypy310",
+    "pypy311",
+    "lint"
 ]
 install_command = ["uv", "pip", "install", "{opts}", "{packages}"]
 
 # labels table for grouping environments
 [tool.tox.labels]
-test = ["py39", "py310", "py311", "py312", "py313", "py314", "pypy310", "pypy311", "doctest", "lint"]
+test = ["py39", "py310", "py311", "py312", "py313", "py314", "pypy310", "pypy311", "lint"]
 
 # --- Base Test Environment for automation of 'run' from env_list -
 
@@ -209,7 +215,6 @@ base_python = ["pypy3.10"]
 dependency_groups = ["test", "tools"]  # omit "lint"
 commands = [
     ["ruff", "check", "tests", "src"],
-    ["pytest"],
     ["coverage", "run", "-m", "pytest", { replace = "posargs", extend = true }],
     ["coverage", "report"],
 ]
@@ -220,7 +225,6 @@ base_python = ["pypy3.11"]
 dependency_groups = ["test", "tools"]  # omit "lint"
 commands = [
     ["ruff", "check", "tests", "src"],
-    ["pytest"],
     ["coverage", "run", "-m", "pytest", { replace = "posargs", extend = true }],
     ["coverage", "report"],
 ]
