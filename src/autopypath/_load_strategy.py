@@ -69,7 +69,7 @@ Example
     from autopypath.load_strategy import LOAD_STRATEGY_MAP, LoadStrategy
 
     strategy = LOAD_STRATEGY_MAP['prepend']
-    assert strategy == LoadStrategy.MERGE
+    assert strategy == LoadStrategy.PREPEND
 """
 
 
@@ -83,7 +83,7 @@ def is_load_strategy_literal(value: str) -> TypeGuard[LoadStrategyLiteral]:
         from autopypath.load_strategy import is_load_strategy_literal
 
         assert is_load_strategy_literal('prepend') is True
-        assert is_load_strategy_literal('override') is True
+        assert is_load_strategy_literal('prepend_highest_priority') is True
         assert is_load_strategy_literal('replace') is True
         assert is_load_strategy_literal('invalid') is False
 
@@ -103,8 +103,8 @@ def resolve_load_strategy_literal(value: str) -> Union[_LoadStrategy, None]:
     .. code-block:: python
         from autopypath.path_resolution_order import resolve_load_strategy_literal, LoadStrategy
 
-        assert resolve_load_strategy_literal('prepend') == LoadStrategy.MERGE
-        assert resolve_load_strategy_literal('override') == LoadStrategy.OVERR IDE
+        assert resolve_load_strategy_literal('prepend') == LoadStrategy.PREPEND
+        assert resolve_load_strategy_literal('prepend_highest_priority') == LoadStrategy.PREPEND_HIGHEST_PRIORITY
         assert resolve_load_strategy_literal('replace') == LoadStrategy.REPLACE
         assert resolve_load_strategy_literal('invalid') is None
 

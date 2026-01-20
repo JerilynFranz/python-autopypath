@@ -506,7 +506,7 @@ def test_repr() -> None:
         repo_markers={'.git': 'dir'},
         paths=['src', 'lib'],
         load_strategy='prepend',
-        path_resolution_order=[_PathResolution.MANUAL, _PathResolution.PYPROJECT]
+        path_resolution_order=['manual', 'pyproject']
     )
 
     reconstituted_config = eval(repr(config))

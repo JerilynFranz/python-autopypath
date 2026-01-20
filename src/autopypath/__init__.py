@@ -236,9 +236,9 @@ It should be called before any other imports that depend on the adjusted Python 
     from autopypath.custom import configure_pypath
 
     configure_pypath(
-        repo_markers={'setup.py': MarkerType.FILE, '.git': MarkerType.DIR},
-        manual_paths=[Path('src'), Path('lib')],
-        load_strategy=LoadStrategy.PREPEND,
+        repo_markers={'setup.py': 'file', '.git': 'dir'},
+        manual_paths=['src', 'lib'],
+        load_strategy='prepend',
     )
     # sys.path is now adjusted based on custom configuration
 
@@ -256,9 +256,9 @@ The path is **NOT** adjusted automatically on import; the user must call the
     from autopypath.custom.debug import configure_pypath
 
     configure_pypath(
-        repo_markers={'setup.py': MarkerType.FILE, '.git': MarkerType.DIR},
-        manual_paths=[Path('src'), Path('lib')],
-        load_strategy=LoadStrategy.OVERRIDE,
+        repo_markers={'setup.py': 'file', '.git': 'dir},
+        manual_paths=['src', 'lib'],
+        load_strategy='prepend',
     )
     # sys.path is now adjusted based on custom configuration
 
