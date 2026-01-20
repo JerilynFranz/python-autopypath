@@ -6,12 +6,11 @@ The validation functions raise `AutopypathError` or `AutopypathError` if the inp
 is invalid.
 
 They return the validated and possibly transformed value if valid."""
-
 import re
 from collections.abc import Mapping, Sequence
 from ntpath import pathsep as nt_pathsep
 from os import sep as path_sep
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 from posixpath import pathsep as posix_pathsep
 from types import MappingProxyType
 from typing import Any, Union
@@ -156,10 +155,14 @@ def context_file(value: Any) -> Path:
     :raises AutopypathError: If the file does not exist or is not a file.
     :raises AutopypathError: If the path is invalid.
     """
-    context_file_path = validate_path_or_str(value)
-    if not context_file_path.exists() or not context_file_path.is_file():
-        raise AutopypathError(f'Context file does not exist or is not a file: {context_file_path}')
-    return context_file_path
+    if isinstance(value, Path):
+        _log.debug('Validating context file path: %s', value)
+    elif isinstance(value, str):
+        value = Path(value)
+        _log.debug('Validating context file path: %s', value)
+    if not value.exists() or not value.is_file():
+        raise AutopypathError(f'Context file does not exist or is not a file: {value}')
+    return value
 
 
 def repo_markers(value: Any) -> Union[MappingProxyType[str, _MarkerType], None]:
@@ -200,6 +203,8 @@ def repo_markers(value: Any) -> Union[MappingProxyType[str, _MarkerType], None]:
 
 def paths(value: Any) -> Union[tuple[Path, ...], None]:
     """Validates a sequence of Path objects or strings.
+
+    Strings are ALWAYS treated as POSIX paths for consistency, regardless of the operating system.
 
     If the input is None, returns None. If the input is a sequence, each item is validated
     to be either a Path or a string (which is converted to a Path).
@@ -288,11 +293,50 @@ def path_resolution_order(value: Any) -> Union[tuple[_PathResolution, ...], None
 
     return tuple(validated_orders)
 
+def _normalize_path_string_to_platform(raw_path_string: str) -> Path:
+    """
+    Normalize a POSIX style path string to the current platform's Path object.
+
+    1. Syntactic Gatekeeping: No backslashes allowed in the config string.
+    2. POSIX Validation: Standard check for leading '/'
+    3. Windows Leakage Validation (The "C:" Check):
+       We must explicitly check for colons in the first part of the path.
+       In POSIX, "C:/" is relative; on Windows, it is absolute. We reject it.
+    4. Host Translation: Direct wrapper to the platform-specific Path.
+
+    :raise AutopypathError: If the path string contains backslashes, is absolute in POSIX,
+        or uses Windows drive/volume syntax.
+    :param str raw_path_string: The raw POSIX style path string to normalize.
+    :return Path: A Path object representing the normalized path on the current platform.
+    """
+    # 1. Syntactic Gatekeeping: No backslashes allowed in the config string.
+    if "\\" in raw_path_string:
+        raise AutopypathError("backslashes forbidden in path string.")
+
+    # 2. POSIX Validation: Standard check for leading '/'
+    posix_path = PurePosixPath(raw_path_string)
+    if posix_path.is_absolute():
+        raise AutopypathError("POSIX absolute paths forbidden.")
+
+    # 3. Windows Leakage Validation (The "C:" Check):
+    # We must explicitly check for colons in the first part of the path.
+    # In POSIX, "C:/" is relative; on Windows, it is absolute. We reject it.
+    first_part = posix_path.parts[0] if posix_path.parts else ""
+    if ":" in first_part:
+        raise AutopypathError("Windows drive/volume syntax forbidden.")
+
+    # 4. Host Translation: Direct wrapper to the platform-specific Path.
+    return Path(posix_path)
+
 
 def validate_path_or_str(path: Union[Path, str]) -> Path:
     """Validate a Path object or a string path.
 
     It does not check for existence, only validity.
+
+    The returned Path object is the same type as the input if the input is a Path.
+    If the input is a string, it is parsed as a POSIX path and returned
+    as the current platform's :class:`Path` version.
 
     - Cannot contain null bytes.
     - Cannot be empty or whitespace only.
@@ -321,7 +365,7 @@ def validate_path_or_str(path: Union[Path, str]) -> Path:
         raise AutopypathError('Invalid path item: path cannot be only backslashes')
     if item_str.replace('/', '') == '':
         raise AutopypathError('Invalid path item: path cannot be only forward slashes')
-    validated_path = Path(item_str) if isinstance(path, str) else path
+    validated_path = _normalize_path_string_to_platform(item_str) if isinstance(path, str) else path
     for offset, segment in enumerate(validated_path.parts):
         if offset == 0 and segment.endswith(':'):
             # Skip drive letter for Windows even on non-Windows platforms

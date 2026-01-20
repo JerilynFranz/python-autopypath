@@ -119,7 +119,7 @@ class _DotEnvConfig(_Config):
 
         :return str: A string representation of the DefaultConfig instance.
         """
-        return f'{self.__class__.__name__}(repo_root_path={str(self._repo_root_path)!r})\n'
+        return f'{self.__class__.__name__}(repo_root_path={self._repo_root_path!r})\n'
 
     def __str__(self) -> str:
         """String representation of the DotEnvConfig instance."""

@@ -511,7 +511,12 @@ def test_log_level(testspec: TestSpec) -> None:
         name='windows drive letter segment',
         action=_validate.validate_path_or_str,
         args=['C:/folder/file.txt'],
-        expected=Path('C:/folder/file.txt')),
+        exception=AutopypathError),
+    PytestAction('PATH_OR_STR_008',
+        name='absolute posix path',
+        action=_validate.validate_path_or_str,
+        args=['/folder/subfolder/file.txt'],
+        exception=AutopypathError),
 ])
 def test_validate_path_or_str_posix(testspec: TestSpec) -> None:
     """Test _validate_path_or_str function using PytestAction style for posix paths."""

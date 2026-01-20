@@ -314,7 +314,7 @@ class _TomlConfig(_Config):
 
         :return str: A string representation of the TomlConfig instance.
         """
-        repo_root_str = 'None' if isinstance(self._repo_root_path, _NoPath) else f'{str(self._repo_root_path)!r}'
+        repo_root_str = 'None' if isinstance(self._repo_root_path, _NoPath) else f'{self._repo_root_path!r}'
         return (
             f'{self.__class__.__name__}(repo_root_path={repo_root_str}, '
             f'toml_filename={str(self._toml_filepath)!r}, '

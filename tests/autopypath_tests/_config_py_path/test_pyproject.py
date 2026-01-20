@@ -9,7 +9,7 @@ initializes correctly and that __repr__ and __str__ methods work as expected for
 """
 
 from collections.abc import Sequence
-from pathlib import Path
+from pathlib import Path, PosixPath  # noqa: F401  # Needed for repr eval
 
 from autopypath._config_py_path._config._config import _Config
 from autopypath._config_py_path._config._pyproject import _PyProjectConfig
@@ -40,7 +40,7 @@ def test_pyproject_config_repr(tmp_path: Path) -> None:
 """)
     config = _PyProjectConfig(repo_root_path=tmp_path)
     class_name = config.__class__.__name__
-    expected_repr = f'{class_name}(repo_root_path={str(tmp_path)!r})'
+    expected_repr = f'{class_name}(repo_root_path={tmp_path!r})'
     assert repr(config) == expected_repr, 'PYPROJECT_008 __repr__ output does not match expected format'
 
     new_config = eval(repr(config))
@@ -54,7 +54,7 @@ def test_pyproject_config_str(tmp_path: Path) -> None:
 """)
     config = _PyProjectConfig(repo_root_path=tmp_path)
     class_name = config.__class__.__name__
-    expected_str = f'{class_name}(repo_root_path={str(tmp_path)!r})'
+    expected_str = f'{class_name}(repo_root_path={tmp_path!r})'
     assert str(config) == expected_str, 'PYPROJECT_010 __str__ output does not match expected format'
 
 

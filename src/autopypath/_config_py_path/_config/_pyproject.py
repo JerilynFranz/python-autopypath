@@ -29,11 +29,11 @@ class _PyProjectConfig(_TomlConfig):
 
         :return str: A string representation of the PyProjectConfig instance.
         """
-        return f'{self.__class__.__name__}(repo_root_path={str(self._repo_root_path)!r})'
+        return f'{self.__class__.__name__}(repo_root_path={self._repo_root_path!r})'.strip()
 
     def __str__(self) -> str:
         """String conversion of the PyProjectConfig object.
 
         :return str: A string representation of the PyProjectConfig instance.
         """
-        return self.__repr__()
+        return self.__repr__().strip()

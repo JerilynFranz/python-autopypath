@@ -3,7 +3,7 @@
 import logging
 import os
 import unittest.mock
-from pathlib import Path
+from pathlib import Path, PosixPath  # noqa: F401  # Needed for repr eval
 
 import pytest
 
