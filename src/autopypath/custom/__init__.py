@@ -95,8 +95,12 @@ def configure_pypath(
     including repository markers, additional paths, load strategy, and resolution order.
 
     :param Mapping[str, Literal['dir', 'file']] | None repo_markers: A mapping of file or directory names to
-        their MarkerType used to identify the repository root.
+        their MarkerType used to identify the repository root. They can only be of type 'dir' or 'file'
+        and must be names only (no paths). If None, the default repo markers are used.
     :param Sequence[Path | str] | None paths: A sequence of paths to include in the :data:`sys.path`.
+        If passed as strings, the must be formatted as POSIX-style paths (e.g., 'src/utils') and
+        cannot be absolute paths.
+        If passed as :class:`pathlib.Path` objects, they can be either absolute or relative paths.
     :param Literal['prepend', 'prepend_highest_priority', 'replace'] | None load_strategy: The strategy
         for loading :data:`sys.path` entries.
     :param Sequence[Literal['manual', 'autopypath', 'pyproject', 'dotenv']] | None path_resolution_order: The order
