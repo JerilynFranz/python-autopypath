@@ -49,7 +49,7 @@ from typing import Optional, Union
 
 from .._config_py_path import _ConfigPyPath
 from .._context import _context_frameinfo
-from .._log import log
+from .._log import _log
 from .._types import LoadStrategyLiterals, PathResolutionLiterals, RepoMarkerLiterals
 
 _NOT_MAIN_CONTEXT_WARNING = 'autopypath.custom imported from non-__main__ context; no sys.path changes will be applied.'
@@ -63,7 +63,7 @@ _context_info: Optional[tuple[Path, str]] = _context_frameinfo()
 if _context_info is not None:
     _context_file, _context_name = _context_info
     if _context_name != '__main__':
-        log.debug(
+        _log.debug(
             _NOT_MAIN_CONTEXT_WARNING,
             _context_name,
         )
@@ -71,7 +71,7 @@ if _context_info is not None:
 else:  # pragma: no cover  # Wierd case I don't even know how to trigger: could not determine context file at all
     _context_file = None
     _context_name = None
-    log.warning('could not determine context file; no sys.path changes will be applied.')
+    _log.warning('could not determine context file; no sys.path changes will be applied.')
 
 
 def configure_pypath(
@@ -115,18 +115,18 @@ def configure_pypath(
         and a condition that would normally log a warning occurs.
     """
     if isinstance(log_level, int):  # Set as early as possible
-        log.setLevel(log_level)
+        _log.setLevel(log_level)
 
     if _context_file is None:
-        log.error('could not determine context file; cannot configure sys.path.')
+        _log.error('could not determine context file; cannot configure sys.path.')
         raise RuntimeError('could not determine context file; cannot configure sys.path.')
     elif _context_name != '__main__':
         if strict:
-            log.error(_NOT_MAIN_CONTEXT_WARNING)
+            _log.error(_NOT_MAIN_CONTEXT_WARNING)
             raise RuntimeError(
                 f'autopypath.custom imported from non-__main__ context ({_context_name}); cannot configure sys.path.'
             )
-        log.warning(_NOT_MAIN_CONTEXT_WARNING)
+        _log.warning(_NOT_MAIN_CONTEXT_WARNING)
     else:
         _ConfigPyPath(
             context_file=_context_file,
@@ -139,4 +139,4 @@ def configure_pypath(
             log_level=log_level,
             strict=strict,
         )
-        log.debug('sys.path adjusted automatically for %s', _context_file)
+        _log.debug('sys.path adjusted automatically for %s', _context_file)

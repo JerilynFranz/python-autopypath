@@ -269,7 +269,7 @@ from typing import Optional
 
 from ._config_py_path import _ConfigPyPath
 from ._context import _context_frameinfo
-from ._log import log
+from ._log import _log
 
 # Only run if directly imported by a script being executed as __main__
 # If there is any doubt, does not run automatically
@@ -285,17 +285,17 @@ _context_info: Optional[tuple[Path, str]] = _context_frameinfo()
 if _context_info is not None:
     _context_file, _context_name = _context_info
     if _context_name != '__main__':
-        log.debug(
+        _log.debug(
             'autopypath imported from non-__main__ context (%s); no sys.path changes will be applied.',
             _context_name,
         )
         _path_adjusted = False
     else:
         _ConfigPyPath(context_file=_context_file)
-        log.debug('sys.path adjusted automatically for %s', _context_file)
+        _log.debug('sys.path adjusted automatically for %s', _context_file)
         _path_adjusted = True
 else:  # pragma: no cover  # Wierd case I don't even know how to trigger: could not determine context file at all
     _context_file = None
     _context_name = None
     _path_adjusted = False
-    log.warning('could not determine context file; no sys.path changes will be applied.')
+    _log.warning('could not determine context file; no sys.path changes will be applied.')

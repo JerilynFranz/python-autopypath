@@ -8,7 +8,7 @@ from pathlib import Path
 import pytest
 
 from autopypath._config_py_path._config._dotenv import _DotEnvConfig
-from autopypath._log import log
+from autopypath._log import _log
 
 
 def test_dotenv_config_init_no_file(tmp_path: Path) -> None:
@@ -166,7 +166,7 @@ def test_non_platform_path_separators_in_dotenv(tmp_path: Path, caplog: pytest.L
     windows_message = _DotEnvConfig._FOUND_NT_SEP_MESSAGE
 
     caplog.clear()
-    log.setLevel(logging.INFO)
+    _log.setLevel(logging.INFO)
 
     try:
         # Check for expected log messages for this platform
@@ -185,7 +185,7 @@ def test_non_platform_path_separators_in_dotenv(tmp_path: Path, caplog: pytest.L
                 f'DOTENV_031 Expected log message about non-native path separators in .env{caplog.records}'
             )
     finally:
-        log.setLevel(logging.NOTSET)
+        _log.setLevel(logging.NOTSET)
 
 
 def test_cross_platform_path_separators_in_dotenv(tmp_path: Path, caplog: pytest.LogCaptureFixture) -> None:
@@ -210,7 +210,7 @@ def test_cross_platform_path_separators_in_dotenv(tmp_path: Path, caplog: pytest
     try:
         with unittest.mock.patch('os.name', other_os_name):
             caplog.clear()
-            log.setLevel(logging.INFO)
+            _log.setLevel(logging.INFO)
 
             # Test for cross-platform Path support
             # It is known to fail on CPython < 3.12 and PyPy 3.10 and 3.11
@@ -235,7 +235,7 @@ def test_cross_platform_path_separators_in_dotenv(tmp_path: Path, caplog: pytest
                     'DOTENV_032 Expected log message about non-native path separators in .env after os.name monkeypatch'
                 )
     finally:
-        log.setLevel(logging.NOTSET)
+        _log.setLevel(logging.NOTSET)
 
 
 def test_no_paths_pythonpath_in_dotenv(tmp_path: Path) -> None:

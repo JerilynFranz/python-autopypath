@@ -19,7 +19,7 @@ from typing import Any, Union
 __all__ = []
 
 from ._load_strategy import _LoadStrategy, resolve_load_strategy_literal
-from ._log import log
+from ._log import _log
 from ._marker_type import _MarkerType, resolve_marker_type_literal
 from ._path_resolution import _PathResolution, resolve_path_resolution_literal
 
@@ -305,7 +305,7 @@ def validate_path_or_str(path: Union[Path, str]) -> Path:
     if not isinstance(path, (Path, str)):
         raise TypeError(f'Invalid path: expected Path or str, got {type(path)}')
     item_str: str = str(path) if isinstance(path, Path) else path
-    log.debug('Validating path: %s', item_str)
+    _log.debug('Validating path: %s', item_str)
     if '\000' in item_str:
         raise ValueError('Invalid path item: path cannot contain null byte')
     if item_str.strip() == '':
@@ -347,7 +347,7 @@ def validate_file_or_dir_name(name: str) -> None:
     :raises ValueError: If the name is invalid.
 
     """
-    log.debug('Validating file or directory name: %s', name)
+    _log.debug('Validating file or directory name: %s', name)
     if name.strip() == '':
         raise ValueError(f'Invalid file/dir name: cannot be empty or whitespace: {name!r}')
     if name.lstrip() != name:

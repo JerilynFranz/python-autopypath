@@ -9,7 +9,7 @@ from typing import Union
 import dotenv
 
 from ... import _validate
-from ..._log import log
+from ..._log import _log
 from ._config import _Config
 
 __all__ = ['_DotEnvConfig']
@@ -40,14 +40,14 @@ class _DotEnvConfig(_Config):
         :param bool strict: (default: ``False``) Indicates whether strict mode is enabled for error handling.
         :raises ValueError: If the provided repo_root_path is not a valid directory.
         """
-        log.debug('Initializing DotEnvConfig with repo_root_path: %s', repo_root_path)
+        _log.debug('Initializing DotEnvConfig with repo_root_path: %s', repo_root_path)
         self._repo_root_path = _validate.root_repo_path(repo_root_path)
 
-        log.debug('Looking for .env file in repo_root_path: %s', self._repo_root_path)
+        _log.debug('Looking for .env file in repo_root_path: %s', self._repo_root_path)
         dotenv_path = self._repo_root_path / '.env'
-        log.debug('.env file path resolved to: %s', dotenv_path)
+        _log.debug('.env file path resolved to: %s', dotenv_path)
         if not dotenv_path.exists():
-            log.info('No .env file found at path: %s', dotenv_path)
+            _log.info('No .env file found at path: %s', dotenv_path)
             super().__init__(
                 repo_markers=None, paths=None, load_strategy=None, path_resolution_order=None, strict=strict
             )
@@ -57,9 +57,9 @@ class _DotEnvConfig(_Config):
             message = f'{self._NOT_A_FILE_MESSAGE}: %s'
             if strict:
                 formatted_message = self._NOT_A_FILE_MESSAGE.format(dotenv_path)
-                log.error(formatted_message)
+                _log.error(formatted_message)
                 raise ValueError(formatted_message)
-            log.warning(message, dotenv_path)
+            _log.warning(message, dotenv_path)
             super().__init__(
                 repo_markers=None, paths=None, load_strategy=None, path_resolution_order=None, strict=strict
             )
@@ -80,9 +80,9 @@ class _DotEnvConfig(_Config):
             in PYTHONPATH, or None if PYTHONPATH is not set in the .env file.
         """
         pythonpath_value = dotenv.get_key(dotenv_path, 'PYTHONPATH', encoding='utf-8')
-        log.info('Read PYTHONPATH from .env file at %s: PYTHONPATH=%s', dotenv_path, pythonpath_value)
+        _log.info('Read PYTHONPATH from .env file at %s: PYTHONPATH=%s', dotenv_path, pythonpath_value)
         if pythonpath_value is None:
-            log.info('PYTHONPATH not set in .env file at %s', dotenv_path)
+            _log.info('PYTHONPATH not set in .env file at %s', dotenv_path)
             return None
         has_posix_pathsep: bool = posix_pathsep in pythonpath_value
         has_nt_pathsep: bool = nt_pathsep in pythonpath_value
@@ -90,15 +90,15 @@ class _DotEnvConfig(_Config):
         is_posix: bool = os.name == 'posix'
 
         if is_nt and has_posix_pathsep:
-            log.info(self._FOUND_POSIX_SEP_MESSAGE)
+            _log.info(self._FOUND_POSIX_SEP_MESSAGE)
         elif is_posix and has_nt_pathsep:
-            log.info(self._FOUND_NT_SEP_MESSAGE)
+            _log.info(self._FOUND_NT_SEP_MESSAGE)
 
         python_path_str = pythonpath_value.strip()
 
         subdirs_to_add = []
         if python_path_str:
-            log.debug('PYTHONPATH from environment: %s', python_path_str)
+            _log.debug('PYTHONPATH from environment: %s', python_path_str)
             normalized_path = python_path_str.replace(posix_pathsep, os.pathsep).replace(nt_pathsep, os.pathsep)
             subdirs_to_add = [p.strip() for p in normalized_path.split(os.pathsep) if p]
 
@@ -108,7 +108,7 @@ class _DotEnvConfig(_Config):
             if not subdir_path.is_absolute():
                 subdir_path = repo_root / subdir_path
             paths.append(subdir_path.resolve())
-        log.debug('Resolved PYTHONPATH directories from .env: %s', paths)
+        _log.debug('Resolved PYTHONPATH directories from .env: %s', paths)
         if not paths:
             return None
         return tuple(paths)

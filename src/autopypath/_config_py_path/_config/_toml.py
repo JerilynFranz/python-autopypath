@@ -9,7 +9,7 @@ import tomli
 
 from ... import _validate
 from ..._load_strategy import _LoadStrategy
-from ..._log import log
+from ..._log import _log
 from ..._marker_type import _MarkerType
 from ..._path_resolution import _PathResolution
 from ..._types import _NoPath
@@ -125,7 +125,7 @@ class _TomlConfig(_Config):
         toml_path = self._repo_root_path / self._toml_filepath
         if not toml_path.exists() or not toml_path.is_file():
             self._no_file_found = True
-            log.debug(f'No {self._toml_filepath} file found at {toml_path}.')
+            _log.debug(f'No {self._toml_filepath} file found at {toml_path}.')
             return {}
 
         with toml_path.open('rb') as f:
@@ -157,7 +157,7 @@ class _TomlConfig(_Config):
                 f'got {toml_type}: {autopypath_config}'
             )
         if not autopypath_config:
-            log.debug('No [tool.autopypath] configuration section found in pyproject.toml.')
+            _log.debug('No [tool.autopypath] configuration section found in pyproject.toml.')
             return {}
 
         return autopypath_config

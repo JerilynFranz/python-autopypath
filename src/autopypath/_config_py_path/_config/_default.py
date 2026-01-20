@@ -5,7 +5,7 @@ from types import MappingProxyType
 
 from ... import _defaults
 from ..._load_strategy import _LoadStrategy
-from ..._log import log
+from ..._log import _log
 from ..._marker_type import _MarkerType
 from ..._path_resolution import _PathResolution
 from ._config import _Config
@@ -23,7 +23,7 @@ class _DefaultConfig(_Config):
         :raises ValueError: If any of the default values are None or empty where not allowed.
         """
 
-        log.debug('Initializing DefaultConfig with default values from autopypath.defaults')
+        _log.debug('Initializing DefaultConfig with default values from autopypath.defaults')
 
         # Override types for slots because they are guaranteed to be non-None/non-empty
         # from the DefaultConfig module because we double check them above.

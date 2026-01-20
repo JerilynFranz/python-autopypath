@@ -7,7 +7,7 @@ import inspect
 from pathlib import Path
 from typing import Optional, Union
 
-from ._log import log
+from ._log import _log
 
 
 def _context_frameinfo() -> Optional[tuple[Path, str]]:
@@ -30,7 +30,7 @@ def _context_frameinfo() -> Optional[tuple[Path, str]]:
     try:
         while current_frame is not None:
             frame_name: str = current_frame.f_globals.get('__name__', '')
-            log.debug('inspecting frame: %s', frame_name)
+            _log.debug('inspecting frame: %s', frame_name)
             if not (frame_name.startswith('autopypath') or frame_name.startswith('importlib')):
                 context_file: Union[str, None] = current_frame.f_globals.get('__file__')
                 if context_file is not None:

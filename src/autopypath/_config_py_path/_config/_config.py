@@ -8,7 +8,7 @@ from typing import Optional, Union
 
 from ... import _validate
 from ..._load_strategy import _LoadStrategy
-from ..._log import log
+from ..._log import _log
 from ..._marker_type import _MarkerType
 from ..._path_resolution import _PathResolution
 from ..._types import LoadStrategyLiterals, PathResolutionLiterals, RepoMarkerLiterals
@@ -73,7 +73,7 @@ class _Config:
         )
 
         cls = self.__class__.__name__
-        log.debug(
+        _log.debug(
             f'{cls} initialized with repo_markers={self._repo_markers}, '
             f'paths={self.paths}, load_strategy={self.load_strategy}, '
             f'path_resolution_order={self.path_resolution_order}'

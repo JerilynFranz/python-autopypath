@@ -7,5 +7,5 @@ __all__ = []
 
 
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-log = logging.getLogger('autopypath')
+_log = logging.getLogger('autopypath')
 """Logging instance for the autopypath package."""

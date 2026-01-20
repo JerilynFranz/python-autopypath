@@ -22,9 +22,9 @@ repo_markers = {".git" = "dir", "autopypath.toml" = "file"}
 
     sys.modules.pop('autopypath', None)
     import autopypath
-    from autopypath._log import log
+    from autopypath._log import _log
 
-    assert log.level == logging.NOTSET, 'AUTOPYPATH_001 Log level should be set to NOTSET upon importing autopypath'
+    assert _log.level == logging.NOTSET, 'AUTOPYPATH_001 Log level should be set to NOTSET upon importing autopypath'
     assert autopypath._context_name != '__main__', (
         'AUTOPYPATH_002 autopypath._context_name should not be __main__ when imported from inside a function; '
         f'got context name: {autopypath._context_name!r}'
@@ -68,11 +68,11 @@ repo_markers = {".git" = "dir", "autopypath.toml" = "file"}
         __name__ = '__main__'
         sys.modules.pop('autopypath', None)
         import autopypath
-        from autopypath._log import log
+        from autopypath._log import _log
     finally:
         __name__ = original_name
 
-    assert log.level == logging.NOTSET, 'AUTOPYPATH_001 Log level should be set to NOTSET upon importing autopypath'
+    assert _log.level == logging.NOTSET, 'AUTOPYPATH_001 Log level should be set to NOTSET upon importing autopypath'
     assert autopypath._context_name == '__main__', (
         'AUTOPYPATH_002 autopypath._context_name should be __main__ because we invoked deep magic; '
         f'got context name: {autopypath._context_name!r}'
