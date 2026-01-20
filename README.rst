@@ -57,7 +57,7 @@ they can be run directly without manual path adjustments or reliance on IDE feat
 It is **NOT** meant to replace normal package management or virtual environments,
 but to facilitate running scripts directly during development and testing when
 the build may be broken due to import errors in unrelated code that prevent the normal test
-runner from executing at all (:mod:`pytest`, for example, will refuse to run tests if import errors occur
+runner from executing at all (`pytest`, for example, will refuse to run tests if import errors occur
 even in unrelated modules).
 
 It detects the project root by looking for specific marker files or directories
@@ -79,7 +79,7 @@ to add to `sys.path`:
 -------------------------------
 
 Users can specify repository markers, manual paths, load strategies, and
-path resolution orders directly via the :func:`autopypath.custom.configure_pypath` function.
+path resolution orders directly via the `autopypath.custom.configure_pypath` function.
 
 This method has the highest precedence and overrides any file-based configurations
 that are set. It allows users to fully customize the behavior of autopypath
@@ -167,7 +167,7 @@ uses a standard load strategy and path resolution order and set of common reposi
 (e.g., `pyproject.toml`, `.git`, etc.) to find the project root.
 
 The default markers, paths, load strategy, and resolution order can be found in the
-:mod:`autopypath.defaults` module.
+`autopypath.defaults` module.
 
 For easy reference, here are the defaults:
 
@@ -249,31 +249,33 @@ When imported from a script, it automatically adjusts `sys.path` based on
 This ensures that modules can be imported correctly when running scripts directly.
 
 .. code-block:: python
+
     import autopypath
     # sys.path is now adjusted automatically
 
 **Fully Automatic Debug Mode**
 ------------------------------
 
-By importing the :module:`autopypath.debug` submodule,
+By importing the `autopypath.debug` submodule,
 detailed debug logging is enabled to trace how the project root is determined,
 which paths are added to `sys.path`, and any issues encountered along the way.
 
 This is useful for troubleshooting and understanding the internal workings of autopypath.
 
 .. code-block:: python
+
     import autopypath.debug
     # sys.path is now adjusted automatically with debug logging enabled
 
 **Custom Configured Mode**
 --------------------------
 
-Users can call the :func:`autopypath.custom.configure_pypath`
+Users can call the `autopypath.custom.configure_pypath`
 function to specify custom repository markers, manual paths, and loading strategies.
 This provides flexibility for different project structures and requirements.
 
 The path is **NOT** adjusted automatically on import in this mode; the user must call the
-:func:`configure_pypath` function explicitly. It can only be called from the top level
+`configure_pypath` function explicitly. It can only be called from the top level
 of a script being executed as `__main__`, not from within functions or classes.
 It will not work if called from other contexts. The prevents it from accidentally
 modifying `sys.path` except when explicitly intended (such as when running a script directly
@@ -282,11 +284,12 @@ rather than being imported as a module such as by pytest or other test runners).
 It should be called before any other imports that depend on the adjusted Python path.
 
 .. code-block:: python
+
     from autopypath.custom import configure_pypath
 
     configure_pypath(
-        repo_markers={'setup.py': MarkerType.FILE, '.git': MarkerType.DIR},
-        manual_paths=[Path('src'), Path('tests')],
+        repo_markers={'setup.py': 'file, '.git': 'dir'},
+        manual_paths=['src', 'tests'],
         load_strategy=LoadStrategy.PREPEND,
     )
     # sys.path is now adjusted based on custom configuration
@@ -294,19 +297,20 @@ It should be called before any other imports that depend on the adjusted Python 
 **Custom Configured Debug Mode**
 --------------------------------
 
-By importing the :module:`autopypath.custom.debug` submodule,
+By importing the `autopypath.custom.debug` submodule,
 users can enable detailed debug logging while using custom configuration options.
 
 The path is **NOT** adjusted automatically on import; the user must call the
-:func:`configure_pypath` function explicitly.
+`configure_pypath` function explicitly.
 
 .. code-block:: python
+
     from autopypath.custom.debug import configure_pypath
 
     configure_pypath(
-        repo_markers={'setup.py': MarkerType.FILE, '.git': MarkerType.DIR},
-        manual_paths=[Path('src'), Path('tests')],
-        load_strategy=LoadStrategy.OVERRIDE,
+        repo_markers={'setup.py': 'file', '.git': 'dir'},
+        manual_paths=['src', 'tests'],
+        load_strategy='prepend_highest_priority',
     )
     # sys.path is now adjusted based on custom configuration
 
