@@ -3,9 +3,10 @@
 # pyright: reportCallIssue=false
 
 import os
+
 import pytest
 
-from autopypath.types._no_path import _NoPath, _UsagePreventedType, _NotSupported, _NOT_SUPPORTED_ERR
+from autopypath.types._no_path import _NOT_SUPPORTED_ERR, _NoPath, _NotSupported, _UsagePreventedType
 
 
 @pytest.fixture

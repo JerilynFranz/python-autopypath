@@ -10,8 +10,8 @@ initializes correctly and that __repr__ and __str__ methods work as expected for
 
 from pathlib import Path
 
-from autopypath._config_py_path._config._config import _Config
 from autopypath._config_py_path._config._autopypath import _AutopypathConfig
+from autopypath._config_py_path._config._config import _Config
 from autopypath._config_py_path._config._toml import _TomlConfig
 
 

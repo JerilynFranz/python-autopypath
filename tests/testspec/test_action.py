@@ -1,7 +1,7 @@
 """TestSpec testing framework - test actions."""
 
-from collections.abc import Callable
 import logging
+from collections.abc import Callable
 from dataclasses import dataclass
 from enum import Enum
 from types import TracebackType

@@ -4,8 +4,8 @@ from .assertions import Assert
 from .base import TestSpec
 from .constants import NO_EXPECTED_VALUE, NO_OBJ_ASSIGNED
 from .context import Context
-from .idspec import idspec
 from .helpers import no_assigned_action
+from .idspec import idspec
 from .pytest_action import PytestAction
 from .test_action import TestAction
 from .test_get import TestGet

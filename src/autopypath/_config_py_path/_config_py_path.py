@@ -1,18 +1,18 @@
 """Module to configure Python path."""
 # ruff: noqa: E501
 
+import sys
 from collections.abc import Mapping, Sequence
 from pathlib import Path
-import sys
-from typing import Union, Optional
+from typing import Optional, Union
 
 from .. import _validate
+from .._load_strategy import LoadStrategy
 from .._log import log
 from .._marker_type import MarkerType
 from .._path_resolution import PathResolution
-from .._load_strategy import LoadStrategy
-from ..types import RepoMarkerLiterals, LoadStrategyLiterals, PathResolutionLiterals
-from ._config import _AutopypathConfig, _DefaultConfig, _ManualConfig, _PyProjectConfig, _DotEnvConfig
+from ..types import LoadStrategyLiterals, PathResolutionLiterals, RepoMarkerLiterals
+from ._config import _AutopypathConfig, _DefaultConfig, _DotEnvConfig, _ManualConfig, _PyProjectConfig
 
 __all__ = []
 

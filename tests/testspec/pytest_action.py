@@ -9,9 +9,8 @@ each test case for Pytest.
 from collections.abc import Callable
 from typing import Any, NoReturn, Optional, Union
 
-
-from .base import TestSpec
 from .assertions import Assert
+from .base import TestSpec
 from .constants import NO_EXPECTED_VALUE
 from .helpers import no_assigned_action
 from .idspec import idspec

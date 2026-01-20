@@ -1,12 +1,11 @@
 """Marker types for repository markers."""
 
 from enum import Enum
-
 from types import MappingProxyType
 from typing import Union
 
 from ._doc_utils import enum_docstrings
-from ._typing import Literal, TypeAlias, Final, TypeGuard
+from ._typing import Final, Literal, TypeAlias, TypeGuard
 
 __all__ = ['MarkerType']
 

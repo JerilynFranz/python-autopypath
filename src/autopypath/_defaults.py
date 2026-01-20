@@ -4,10 +4,10 @@ from pathlib import Path
 from types import MappingProxyType
 from typing import Final, Union
 
+from ._load_strategy import LoadStrategy
 from ._marker_type import MarkerType
 from ._path_resolution import PathResolution
-from ._load_strategy import LoadStrategy
-from .types import RepoMarkerLiterals, PathResolutionLiterals, LoadStrategyLiterals
+from .types import LoadStrategyLiterals, PathResolutionLiterals, RepoMarkerLiterals
 
 __all__ = []
 

@@ -4,10 +4,10 @@ from pathlib import Path
 from types import MappingProxyType
 
 from ... import _defaults
-from ..._log import log
 from ..._load_strategy import LoadStrategy
-from ..._path_resolution import PathResolution
+from ..._log import log
 from ..._marker_type import MarkerType
+from ..._path_resolution import PathResolution
 from ._config import _Config
 
 

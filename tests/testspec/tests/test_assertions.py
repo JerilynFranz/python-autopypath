@@ -5,6 +5,7 @@ from dataclasses import dataclass
 from typing import Any
 
 import pytest
+
 from testspec import Assert, TestSpec, idspec
 from testspec.assertions import validate_assertion
 

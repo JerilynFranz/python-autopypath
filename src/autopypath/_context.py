@@ -3,9 +3,9 @@
 Determines the context frame that imported autopypath.
 """
 
+import inspect
 from pathlib import Path
 from typing import Optional, Union
-import inspect
 
 from ._log import log
 

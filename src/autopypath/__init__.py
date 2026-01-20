@@ -267,9 +267,9 @@ The path is **NOT** adjusted automatically on import; the user must call the
 from pathlib import Path
 from typing import Optional
 
-from ._log import log
 from ._config_py_path import _ConfigPyPath
 from ._context import _context_frameinfo
+from ._log import log
 
 # Only run if directly imported by a script being executed as __main__
 # If there is any doubt, does not run automatically

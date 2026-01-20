@@ -1,8 +1,8 @@
 """Test context detection functionality."""
 
+import inspect
 from pathlib import Path
 from typing import Union
-import inspect
 
 import pytest
 

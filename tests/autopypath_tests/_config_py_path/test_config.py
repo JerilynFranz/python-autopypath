@@ -1,21 +1,19 @@
 """Tests for autopypath._config_py_path._config."""
 
-from functools import cache
 import itertools
+from functools import cache
 from pathlib import Path
 from types import MappingProxyType
-from typing import Union, NamedTuple, Iterator
-
+from typing import Iterator, NamedTuple, Union
 
 import pytest
-
-from testspec import TestSpec, PytestAction, Assert
+from testspec import Assert, PytestAction, TestSpec
 
 from autopypath._config_py_path._config import _Config
 from autopypath._load_strategy import LoadStrategy
 from autopypath._marker_type import MarkerType
 from autopypath._path_resolution import PathResolution
-from autopypath.types import RepoMarkerLiterals, LoadStrategyLiterals, PathResolutionLiterals
+from autopypath.types import LoadStrategyLiterals, PathResolutionLiterals, RepoMarkerLiterals
 
 
 class ConfigParameters(NamedTuple):

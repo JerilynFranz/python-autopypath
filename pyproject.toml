@@ -93,15 +93,15 @@ test = [
 lint = [   
     "mypy>=1.13.1",
     "pytest>=7.4.1,<9.0.0",
-    "ruff>=0.14.11"
+    "ruff>=0.14.11",
 ]
 
 # Dependencies for building documentation
 docs = [
-    "furo>=2025.09.25; python_version >= '3.11'",
-    "sphinx>=8.2.3,<9.0.0; python_version >= '3.11'",
-    "sphinx-copybutton>=0.5.2; python_version >= '3.11'",
-    "sphinx-design>=0.6.1; python_version >= '3.11'",
+    "furo>=2025.09.25",
+    "sphinx>=8.2.3,<9.0.0",
+    "sphinx-copybutton>=0.5.2",
+    "sphinx-design>=0.6.1",
 ]
 
 # A group for all other development tools
@@ -118,8 +118,14 @@ tools = [
 default-groups = ["dev"]
 
 
+# NOTE: uv sync resolves across all Python versions allowed by [project].requires-python.
+# Docs deps (e.g., Sphinx >= 8.2.3 requires Python >= 3.11), so keep docs deps
+# marker-restricted to avoid resolution failures on 3.9–3.10, even when installing only dev.
+
+# The development dependency group requires Python 3.12+ because some tools do not support older versions.
 [tool.uv.dependency-groups]
 dev = {requires-python = ">=3.12"}
+docs = {requires-python = ">=3.11"}
 
 [tool.tox]
 requires = ["tox>=4.22"]
@@ -374,7 +380,6 @@ unfixable = []
 dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
 
 [tool.ruff.format]
-# Like Black, use double quotes for strings.
 quote-style = "single"
 
 # Like Black, indent with spaces, rather than tabs.
@@ -426,14 +431,14 @@ paths = ['src', 'tests']
 
 # Strategy for handling multiple PYTHONPATH sources.
 # Options:
-#   merge_highest_priority: use only the highest priority found source, all others are ignored.
-#   merge:    combine all found sources, with priority based on path_resolution_order.
+#   prepend_highest_priority: use only the highest priority found source, all others are ignored.
+#   prepend:  combine all found sources, with priority based on path_resolution_order.
 #   replace:  replace sys.path entirely with the priority merged PYTHONPATH sources.
 #             This has the effect of removing all existing sys.path entries and
 #             may break standard library and installed package imports.
 # Default is 'prepend' if not specified. Additional paths are prepended
 # to the existing sys.path. Duplicate paths are removed, preserving existing order.
-load_strategy = 'prepend' # options: 'prepend', 'merge_highest_priority', 'replace'
+load_strategy = 'prepend' # options: 'prepend', 'prepend_highest_priority', 'replace'
 
 # Order to load PYTHONPATH sources, highest priority first.
 # Only resolution sources listed here will be considered.

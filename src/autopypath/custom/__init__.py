@@ -45,13 +45,12 @@ before any other imports that depend on the adjusted :data:`sys.path`.
 
 from collections.abc import Mapping, Sequence
 from pathlib import Path
-from typing import Union, Optional
+from typing import Optional, Union
 
 from .._config_py_path import _ConfigPyPath
 from .._context import _context_frameinfo
 from .._log import log
-from ..types import RepoMarkerLiterals, LoadStrategyLiterals, PathResolutionLiterals
-
+from ..types import LoadStrategyLiterals, PathResolutionLiterals, RepoMarkerLiterals
 
 _NOT_MAIN_CONTEXT_WARNING = 'autopypath.custom imported from non-__main__ context; no sys.path changes will be applied.'
 _context_file: Optional[Path] = None

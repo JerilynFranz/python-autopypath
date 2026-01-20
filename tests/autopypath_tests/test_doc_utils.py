@@ -1,7 +1,8 @@
-from autopypath._doc_utils import enum_docstrings
+import ast
 from enum import Enum
 from unittest.mock import patch
-import ast
+
+from autopypath._doc_utils import enum_docstrings
 
 
 @enum_docstrings

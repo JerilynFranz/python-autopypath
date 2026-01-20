@@ -7,20 +7,20 @@ is invalid.
 
 They return the validated and possibly transformed value if valid."""
 
+import re
 from collections.abc import Mapping, Sequence
-from pathlib import Path
-from posixpath import pathsep as posix_pathsep
 from ntpath import pathsep as nt_pathsep
 from os import sep as path_sep
-import re
+from pathlib import Path
+from posixpath import pathsep as posix_pathsep
 from types import MappingProxyType
 from typing import Any, Union
 
 __all__ = []
 
+from ._load_strategy import LoadStrategy, resolve_load_strategy_literal
 from ._log import log
 from ._marker_type import MarkerType, resolve_marker_type_literal
-from ._load_strategy import LoadStrategy, resolve_load_strategy_literal
 from ._path_resolution import PathResolution, resolve_path_resolution_literal
 
 _MAX_FILE_DIR_NAME_LENGTH: int = 64

@@ -2,10 +2,10 @@
 
 import logging
 import os
+import unittest.mock
 from pathlib import Path
 
 import pytest
-import unittest.mock
 
 from autopypath._config_py_path._config._dotenv import _DotEnvConfig
 from autopypath._log import log

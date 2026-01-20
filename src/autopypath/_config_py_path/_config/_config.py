@@ -4,15 +4,14 @@
 from collections.abc import Mapping, Sequence
 from pathlib import Path
 from types import MappingProxyType
-from typing import Union, Optional
+from typing import Optional, Union
 
-
-from ..._log import log
+from ... import _validate
 from ..._load_strategy import LoadStrategy
+from ..._log import log
 from ..._marker_type import MarkerType
 from ..._path_resolution import PathResolution
 from ...types import LoadStrategyLiterals, PathResolutionLiterals, RepoMarkerLiterals
-from ... import _validate
 
 __all__ = []
 

@@ -5,15 +5,13 @@ import os
 from pathlib import Path
 from types import MappingProxyType
 
-
 import pytest
+from testspec import Assert, PytestAction, TestSpec
 
-from testspec import TestSpec, PytestAction, Assert
-
+from autopypath import _validate
 from autopypath._load_strategy import LoadStrategy
 from autopypath._marker_type import MarkerType
 from autopypath._path_resolution import PathResolution
-from autopypath import _validate
 
 # fmt: off
 

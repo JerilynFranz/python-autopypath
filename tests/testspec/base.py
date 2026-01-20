@@ -1,8 +1,8 @@
 """Base TestSpec class"""
 import inspect
 from abc import ABC, abstractmethod
-from typing import Union
 from types import TracebackType
+from typing import Union
 
 
 class TestSpec(ABC):

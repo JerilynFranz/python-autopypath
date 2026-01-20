@@ -3,17 +3,17 @@
 import datetime
 from pathlib import Path
 from types import MappingProxyType
-from typing import Union, Any
+from typing import Any, Union
 
 import tomli
 
-from ._config import _Config
+from ... import _validate
 from ..._load_strategy import LoadStrategy
+from ..._log import log
 from ..._marker_type import MarkerType
 from ..._path_resolution import PathResolution
 from ...types import _NoPath
-from ... import _validate
-from ..._log import log
+from ._config import _Config
 
 __all__ = ['_TomlConfig']
 
