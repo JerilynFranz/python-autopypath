@@ -260,12 +260,15 @@ By importing the `autopypath.debug` submodule,
 detailed debug logging is enabled to trace how the project root is determined,
 which paths are added to `sys.path`, and any issues encountered along the way.
 
+Additionally, it raises exceptions for things in autopypath that would normally only
+log warnings, making it easier to identify and fix configuration problems.
+
 This is useful for troubleshooting and understanding the internal workings of autopypath.
 
 .. code-block:: python
 
     import autopypath.debug
-    # sys.path is now adjusted automatically with debug logging enabled
+    # sys.path is now adjusted automatically with debug logging enabled and exceptions raised for issues
 
 **Custom Configured Mode**
 --------------------------
@@ -285,57 +288,46 @@ It should be called before any other imports that depend on the adjusted Python 
 
 .. code-block:: python
 
+    import logging
     from autopypath.custom import configure_pypath
 
     configure_pypath(
         repo_markers={'setup.py': 'file, '.git': 'dir'},
         manual_paths=['src', 'tests'],
-        load_strategy=LoadStrategy.PREPEND,
+        load_strategy='prepend',
+        log_level=logging.DEBUG
     )
     # sys.path is now adjusted based on custom configuration
 
-**Custom Configured Debug Mode**
---------------------------------
+Example of usage with pytest
+============================
 
-By importing the `autopypath.custom.debug` submodule,
-users can enable detailed debug logging while using custom configuration options.
+To use autopypath with pytest, simply import it at the beginning of your test scripts
+and invoke pytest in the same script.
 
-The path is **NOT** adjusted automatically on import; the user must call the
-`configure_pypath` function explicitly.
-
-.. code-block:: python
-
-    from autopypath.custom.debug import configure_pypath
-
-    configure_pypath(
-        repo_markers={'setup.py': 'file', '.git': 'dir'},
-        manual_paths=['src', 'tests'],
-        load_strategy='prepend_highest_priority',
-    )
-    # sys.path is now adjusted based on custom configuration
-
-Basic usage with pytest
-=======================
-
-To use autopypath with pytest, simply import it at the beginning of your test scripts and call the
-`configure()` function. For example, at the top of your test script, add:
+For example, at the top of your test script, before imports of your own modules add:
 
 .. code-block:: python
 
+    import pytest
     import autopypath
-
 
 and add the following at the bottom of the script:
 
 .. code-block:: python
 
     if __name__ == "__main__":
-        pytest.main()
+        pytest.main(__file__)
 
+It can now be run directly:
+
+.. code-block:: shell
+
+    python test_your_module.py
 
 This will automatically adjust the Python path to include the necessary directories
 to ensure your tests can find the modules they need without looking at unrelated code.
 
 If you run the test script directly, autopypath will configure the Python path
 before executing the tests. It will not interfere with normal pytest runs or
-change the environment except when run directly.
+change the environment except when the scripts
