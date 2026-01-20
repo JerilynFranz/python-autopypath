@@ -52,7 +52,7 @@ def test_context_frameinfo_no_file_in_globals(monkeypatch: pytest.MonkeyPatch) -
     class DummyFrame:
         f_globals = {"__name__": "dummy"}  # no __file__
         f_code = DummyCode()
-        f_back: FrameType | None = None
+        f_back: Union[FrameType, None] = None
 
     monkeypatch.setattr(inspect, "currentframe", lambda: DummyFrame())
     result = _context_frameinfo()
