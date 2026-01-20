@@ -162,9 +162,6 @@ commands = [
 
 # --- Concrete Test Environments ---
 
-# environments table
-[tool.tox.env]
-
 # tox devenv -e dev
 [tool.tox.env.dev]
 description = "Development environment with all tools"
