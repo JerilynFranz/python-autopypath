@@ -197,19 +197,21 @@ When imported from a script, it automatically adjusts `sys.path` based on
 This ensures that modules can be imported correctly when running scripts directly.
 
 .. code-block:: python
+
     import autopypath
     # sys.path is now adjusted automatically
 
 **Fully Automatic Debug Mode**
 ------------------------------
 
-By importing the :module:`autopypath.debug` submodule,
+By importing the `autopypath.debug` submodule,
 detailed debug logging is enabled to trace how the project root is determined,
 which paths are added to `sys.path`, and any issues encountered along the way.
 
 This is useful for troubleshooting and understanding the internal workings of autopypath.
 
 .. code-block:: python
+
     import autopypath.debug
     # sys.path is now adjusted automatically with debug logging enabled
 
@@ -230,6 +232,7 @@ rather than being imported as a module such as by pytest or other test runners).
 It should be called before any other imports that depend on the adjusted Python path.
 
 .. code-block:: python
+
     from autopypath.custom import configure_pypath
 
     configure_pypath(
@@ -242,13 +245,14 @@ It should be called before any other imports that depend on the adjusted Python 
 **Custom Configured Debug Mode**
 --------------------------------
 
-By importing the :module:`autopypath.custom.debug` submodule,
+By importing the `autopypath.custom.debug` submodule,
 users can enable detailed debug logging while using custom configuration options.
 
 The path is **NOT** adjusted automatically on import; the user must call the
 :func:`configure_pypath` function explicitly.
 
 .. code-block:: python
+
     from autopypath.custom.debug import configure_pypath
 
     configure_pypath(
