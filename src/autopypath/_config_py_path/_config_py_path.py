@@ -121,11 +121,12 @@ class _ConfigPyPath:
         :param int | None log_level: (default: ``None``) The logging level to set for the internal logger during
             configuration. It will be restored to its original setting afterwards. If ``None``,
             the current log level is used.
-        :raises AutopypathError: If any of the inputs are of incorrect type.
-        :raises AutopypathError: If any of the inputs have invalid values or strict mode is enabled
-            and an unknown path resolution source is encountered.
-        :raises AutopypathError: If the repository root cannot be found or if strict mode is enabled
-            and a configured path cannot be resolved.
+        :raises AutopypathError: On any error. This includes but is not limited to:
+            - If any of the inputs are of incorrect type.
+            - If any of the inputs have invalid values or strict mode is enabled
+              and an unknown path resolution source is encountered.
+            - If the repository root cannot be found or if strict mode is enabled
+              and a configured path cannot be resolved.
         """
         _existing_log_level: int = _log.level
         """Existing log level to restore later."""
@@ -133,15 +134,14 @@ class _ConfigPyPath:
         existing_sys_path: list[str] = sys.path.copy()
         """Existing sys.path to restore later if needed."""
 
+        self._dry_run: bool = _validate.dry_run(dry_run)
+        """Indicates whether the configuration was a dry run (no actual sys.path modification)."""
+
+        self._strict: bool = _validate.strict(strict)
+        """Indicates whether strict mode is enabled for error handling."""
+
         try:
-            # Set log level temporarily during configuration process if provided
             _log.setLevel(_validate.log_level(log_level))
-
-            self._dry_run: bool = _validate.dry_run(dry_run)
-            """Indicates whether the configuration was a dry run (no actual sys.path modification)."""
-
-            self._strict: bool = _validate.strict(strict)
-            """Indicates whether strict mode is enabled for error handling."""
 
             if self.dry_run:
                 _log.info('Dry run enabled - sys.path will not actually be modified.')
@@ -194,11 +194,8 @@ class _ConfigPyPath:
         except BaseException:  # Yes. We want to catch ALL exceptions here.
             # On ANY error, restore original sys.path
             # "First, do no harm"
-            if not self.dry_run:
-                sys.path = existing_sys_path
-                _log.debug('Error during configuration - sys.path restored to original state: %s', sys.path)
-            else:
-                _log.debug('Error during dry run configuration - sys.path remains unchanged: %s', sys.path)
+            sys.path = existing_sys_path
+            _log.debug('Error during configuration - sys.path remains unchanged: %s', sys.path)
             raise
         finally:
             _log.setLevel(_existing_log_level)
