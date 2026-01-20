@@ -130,6 +130,9 @@ class _ConfigPyPath:
         _existing_log_level: int = _log.level
         """Existing log level to restore later."""
 
+        existing_sys_path: list[str] = sys.path.copy()
+        """Existing sys.path to restore later if needed."""
+
         try:
             # Set log level temporarily during configuration process if provided
             _log.setLevel(_validate.log_level(log_level))
@@ -188,6 +191,15 @@ class _ConfigPyPath:
 
             self._updated_paths: tuple[str, ...] = tuple(sys.path)
             """The updated sys.path after modifications."""
+        except Exception:
+            # On ANY error, restore original sys.path
+            # "First, do no harm"
+            if not self.dry_run:
+                sys.path = existing_sys_path
+                _log.debug('Error during configuration - sys.path restored to original state: %s', sys.path)
+            else:
+                _log.debug('Error during dry run configuration - sys.path remains unchanged: %s', sys.path)
+            raise
         finally:
             _log.setLevel(_existing_log_level)
 
