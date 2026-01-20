@@ -5,6 +5,8 @@ import sys
 
 import pytest
 
+from autopypath._exceptions import AutopypathError
+
 _ORIGINAL_SYS_PATH: list[str] = sys.path.copy()
 _ORIGINAL_NAME: str = __name__
 
@@ -51,7 +53,7 @@ def test_configure_pypath_all_options() -> None:
 
 
 def test_configure_pypath_strict_non_main() -> None:
-    """Test that configure_pypath raises RuntimeError when strict is True and not run as __main__."""
+    """Test that configure_pypath raises AutopypathError when strict is True and not run as __main__."""
     try:
         sys.path = _ORIGINAL_SYS_PATH.copy()
         sys.modules.pop('autopypath.custom', None)
@@ -64,7 +66,7 @@ def test_configure_pypath_strict_non_main() -> None:
 
 
 def test_configure_pypath_context_file_none() -> None:
-    """Test that configure_pypath raises RuntimeError when context file is None."""
+    """Test that configure_pypath raises AutopypathError when context file is None."""
     global __name__
     try:
         sys.path = _ORIGINAL_SYS_PATH.copy()
@@ -74,9 +76,9 @@ def test_configure_pypath_context_file_none() -> None:
 
         configure_pypath.__globals__['_context_file'] = None
         configure_pypath()
-        pytest.fail('Expected RuntimeError due to context file being None.')
+        pytest.fail('Expected AutopypathError due to context file being None.')
 
-    except RuntimeError:
+    except AutopypathError:
         pass
 
     finally:
@@ -106,7 +108,7 @@ def test_import_non_main_context() -> None:
         from autopypath.custom import configure_pypath
 
         configure_pypath(strict=True)
-    except RuntimeError:
+    except AutopypathError:
         pass
 
     finally:
