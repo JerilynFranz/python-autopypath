@@ -28,7 +28,7 @@ _NON_RESOLVABLE_PATH: str = 'non-resolvable configured path found'
 
 
 class _ConfigPyPath:
-    """Configures :var:`sys.path` based on manual settings, pyproject.toml, and .env files."""
+    """Configures :data:`sys.path` based on manual settings, pyproject.toml, and .env files."""
 
     __slots__ = (
         '_context_file',
@@ -62,7 +62,7 @@ class _ConfigPyPath:
         strict: bool = False,
         log_level: Optional[int] = None,
     ) -> None:
-        """Configures :var:`sys.path` based on manual settings, .env files, and pyproject.toml.
+        """Configures :data:`sys.path` based on manual settings, .env files, and pyproject.toml.
 
         Usage
         -----
@@ -82,24 +82,24 @@ class _ConfigPyPath:
             If ``None``, defaults to :var:`~autopypath.defaults.REPO_MARKERS`.
 
         :param Sequence[Path | str] | None paths: (default: ``None``) A list of Path objects or strings relative to
-            the repo root to add to :var:`sys.path`.
+            the repo root to add to :data:`sys.path`.
 
             If ``None``, defaults to :var:`~autopypath.defaults.PATHS`.
 
         :param Sequence[Path | str] | None posix_paths: (default: ``None``) A list of Path objects or strings
-            relative to the repo root to add to :var:`sys.path` only on POSIX systems.
+            relative to the repo root to add to :data:`sys.path` only on POSIX systems.
             These override the paths in `paths` (only on POSIX systems) if provided.
 
             If ``None``, the paths in `paths` are used on POSIX systems.
 
         :param Sequence[Path | str] | None windows_paths: (default: ``None``) A list of Path objects or strings
-            relative to the repo root to add to :var:`sys.path` only on Windows systems.
+            relative to the repo root to add to :data:`sys.path` only on Windows systems.
             These override the paths in `paths` (only on Windows systems) if provided.
 
             If ``None``, the paths in `paths` are used on Windows systems.
 
         :param LoadStrategy | Literal['prepend', 'prepend_highest_priority', 'replace'] | None load_strategy: (default:
-            ``None``) The strategy for handling multiple :var:`sys.path` sources.
+            ``None``) The strategy for handling multiple :data:`sys.path` sources.
 
             It is expected to be `prepend`, `prepend_highest_priority`, or `replace` (as defined
             in :class:`LoadStrategy`). It can use either the enum value or its string representation.
@@ -107,14 +107,14 @@ class _ConfigPyPath:
             If ``None``, defaults to :var:`~autopypath.defaults.LOAD_STRATEGY`.
 
         :param PathResolution | Literal['manual', 'autopypath', 'pyproject', 'dotenv'] | None path_resolution_order: (default:
-            ``None``) The order in which to resolve :var:`sys.path` sources.
+            ``None``) The order in which to resolve :data:`sys.path` sources.
 
             It is expected to be a sequence containing any of the following values:
             ``manual``, ``autopypath``, ``pyproject``, ``dotenv`` as defined in :class:`PathResolution`.
             If ``None``, the default order from :var:`~autopypath.defaults.PATH_RESOLUTION_ORDER` is used.
 
             It can use either the enum values or their string representations.
-        :param bool dry_run: (default: ``False``) If ``True``, the configuration is processed but :var:`sys.path` is
+        :param bool dry_run: (default: ``False``) If ``True``, the configuration is processed but :data:`sys.path` is
             not actually modified. This is useful for testing or inspecting the configuration without making changes.
         :param bool strict: (default: ``False``) If ``True``, raises exceptions on errors during configuration.
             If ``False``, errors are logged as warnings and the configuration continues where possible.
@@ -179,13 +179,13 @@ class _ConfigPyPath:
             """Configuration loaded from .env file (if present)."""
 
             self._path_resolution_order: tuple[_PathResolution, ...] = self._determine_path_resolution_order()
-            """The order in which to resolve :var:`sys.path` sources."""
+            """The order in which to resolve :data:`sys.path` sources."""
 
             self._load_strategy: _LoadStrategy = self._determine_load_strategy()
-            """The strategy for handling multiple :var:`sys.path` sources."""
+            """The strategy for handling multiple :data:`sys.path` sources."""
 
             self._paths: tuple[Path, ...] = self._process_paths()
-            """The final resolved paths that will be added to :var:`sys.path`."""
+            """The final resolved paths that will be added to :data:`sys.path`."""
 
             self._apply_paths(self.paths)
 
@@ -201,9 +201,9 @@ class _ConfigPyPath:
             _log.setLevel(_existing_log_level)
 
     def _apply_paths(self, paths: Sequence[Path]) -> None:
-        """Applies the resolved paths to :var:`sys.path`.
+        """Applies the resolved paths to :data:`sys.path`.
 
-        Based on the load strategy, it updates :var:`sys.path` accordingly.
+        Based on the load strategy, it updates :data:`sys.path` accordingly.
         """
         if self.load_strategy not in {
             _LoadStrategy.REPLACE,
@@ -240,9 +240,9 @@ class _ConfigPyPath:
         It follows the configured path resolution order and load strategy to
         combine paths from manual settings, pyproject.toml, and .env files.
 
-        Paths that are already in :var:`sys.path` are not duplicated.
+        Paths that are already in :data:`sys.path` are not duplicated.
 
-        :return tuple[Path, ...]: The paths to be added to :var:`sys.path`.
+        :return tuple[Path, ...]: The paths to be added to :data:`sys.path`.
         :raises AutopypathError: If a configured path cannot be resolved and strict mode is enabled.
         :raises AutopypathError: If an unknown path resolution source is encountered and strict mode is enabled.
         """
@@ -339,7 +339,7 @@ class _ConfigPyPath:
         return tuple(unique_paths)
 
     def _determine_load_strategy(self) -> _LoadStrategy:
-        """Determines the load strategy for handling multiple :var:`sys.path` sources.
+        """Determines the load strategy for handling multiple :data:`sys.path` sources.
 
         It looks for the strategy in the following precedence:
         1. Manual configuration provided directly to the function.
@@ -349,7 +349,7 @@ class _ConfigPyPath:
 
         The first source that provides a non-None strategy is used.
 
-        :return LoadStrategy: The strategy for handling multiple :var:`sys.path` sources.
+        :return LoadStrategy: The strategy for handling multiple :data:`sys.path` sources.
         """
         if self.manual_config.load_strategy is not None:
             strategy = _LoadStrategy(self.manual_config.load_strategy)
@@ -370,7 +370,7 @@ class _ConfigPyPath:
         return self.default_config.load_strategy
 
     def _determine_path_resolution_order(self) -> tuple[_PathResolution, ...]:
-        """Determines the order in which to resolve :var:`sys.path` sources.
+        """Determines the order in which to resolve :data:`sys.path` sources.
 
         It looks for the order in the following precedence sequence:
         1. Manual configuration provided directly to the function.
@@ -387,7 +387,7 @@ class _ConfigPyPath:
         and only one source's order is used. A path resolution order set manually
         will always take precedence over any other source and so on.
 
-        :return tuple[PathResolution, ...]: The order in which to resolve :var:`sys.path` sources.
+        :return tuple[PathResolution, ...]: The order in which to resolve :data:`sys.path` sources.
         """
         if self.manual_config.path_resolution_order is not None:
             order = tuple(_PathResolution(item) for item in self.manual_config.path_resolution_order)
@@ -456,7 +456,7 @@ class _ConfigPyPath:
         raise AutopypathError('Repository root could not be found.')
 
     def restore_sys_path(self) -> None:
-        """Restores :var:`sys.path` to its original state before any modifications."""
+        """Restores :data:`sys.path` to its original state before any modifications."""
         if not self.dry_run:
             sys.path = list(self.original_sys_path)
             _log.debug('sys.path restored to original state: %s', sys.path)
@@ -465,15 +465,15 @@ class _ConfigPyPath:
 
     @property
     def load_strategy(self) -> _LoadStrategy:
-        """The strategy for handling multiple :var:`sys.path` sources.
+        """The strategy for handling multiple :data:`sys.path` sources.
 
-        :return LoadStrategy: The strategy for handling multiple :var:`sys.path` sources.
+        :return LoadStrategy: The strategy for handling multiple :data:`sys.path` sources.
         """
         return self._load_strategy
 
     @property
     def paths(self) -> tuple[Path, ...]:
-        """The final resolved paths that were added to :var:`sys.path`.
+        """The final resolved paths that were added to :data:`sys.path`.
 
         :return tuple[Path, ...]: The final resolved paths.
         """
@@ -481,9 +481,9 @@ class _ConfigPyPath:
 
     @property
     def path_resolution_order(self) -> tuple[_PathResolution, ...]:
-        """The order in which to resolve :var:`sys.path` sources.
+        """The order in which to resolve :data:`sys.path` sources.
 
-        :return tuple[PathResolution, ...]: The order in which to resolve :var:`sys.path` sources.
+        :return tuple[PathResolution, ...]: The order in which to resolve :data:`sys.path` sources.
         """
         return self._path_resolution_order
 
@@ -500,7 +500,7 @@ class _ConfigPyPath:
         """The file path of the script that is configuring the Python path.
 
         This is the file that was used as the context for determining the repository root
-        and configuring :var:`sys.path` accordingly. It is typically the script being executed.
+        and configuring :data:`sys.path` accordingly. It is typically the script being executed.
 
         :return Path: The context file path.
         """
@@ -547,17 +547,17 @@ class _ConfigPyPath:
 
     @property
     def original_sys_path(self) -> tuple[str, ...]:
-        """The original :var:`sys.path` before any modifications.
+        """The original :data:`sys.path` before any modifications.
 
-        :return tuple[str, ...]: The original :var:`sys.path`.
+        :return tuple[str, ...]: The original :data:`sys.path`.
         """
         return tuple(self._original_sys_path)
 
     @property
     def updated_sys_path(self) -> tuple[str, ...]:
-        """The updated :var:`sys.path` after modifications.
+        """The updated :data:`sys.path` after modifications.
 
-        :return tuple[str, ...]: The updated :var:`sys.path`.
+        :return tuple[str, ...]: The updated :data:`sys.path`.
         """
         return self._updated_paths
 

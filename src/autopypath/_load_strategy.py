@@ -12,9 +12,9 @@ __all__ = ['_LoadStrategy']
 
 @enum_docstrings
 class _LoadStrategy(str, Enum):
-    """Defines the strategy for loading :func:`sys.path` from multiple sources.
+    """Defines the strategy for loading :data:`sys.path` from multiple sources.
 
-    - PREPEND: Combine paths from all sources in priority order and prepend them to :func:`sys.path`.
+    - PREPEND: Combine paths from all sources in priority order and prepend them to :data:`sys.path`.
 
         Default priority order is:
             1. `manual_paths` (highest priority)
@@ -23,9 +23,9 @@ class _LoadStrategy(str, Enum):
             3. `.env` file in repository root
 
     - PREPEND_HIGHEST_PRIORITY: Use only the paths from the highest priority source
-        and prepend them to :func:`sys.path`.
+        and prepend them to :data:`sys.path`.
 
-    - REPLACE: Replace `sys.path` entirely with the merged :func:`sys.path` sources.
+    - REPLACE: Replace `sys.path` entirely with the merged :data:`sys.path` sources.
         .. warning:: This may break standard library and installed package imports
 
             Not recommended unless you understand the implications. This strategy

@@ -10,7 +10,7 @@ __all__ = ['_PathResolution']
 
 
 class _PathResolution(str, Enum):
-    """Defines the order in which :func:`sys.path` sources are resolved.
+    """Defines the order in which :data:`sys.path` sources are resolved.
 
     - MANUAL: Paths provided directly to the configuration function.
     - AUTOPYPATH: Paths specified in a `autopypath.toml` file.

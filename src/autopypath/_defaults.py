@@ -108,7 +108,7 @@ _PATH_RESOLUTION_ORDER: Final[tuple[Union[_PathResolution, PathResolutionLiteral
     _PathResolution.DOTENV,
 )
 
-"""Default resolution order for :func:`sys.path` sources.
+"""Default resolution order for :data:`sys.path` sources.
 
 This is used if there is no specific resolution order provided in pyproject.toml
 or other configuration.
@@ -119,7 +119,7 @@ or by configuring it in `pyproject.toml` under the
 
 If overridden, it should be provided as a sequence of strings.
 The overrides will replace the entire default resolution order
-and define a new prioritization order for resolving :func:`sys.path` sources.
+and define a new prioritization order for resolving :data:`sys.path` sources.
 
 
 Overrides can use any combination of the following values.
@@ -161,7 +161,7 @@ These examples apply the following path prioritization order:
 """
 
 _LOAD_STRATEGY: Union[_LoadStrategy, LoadStrategyLiterals] = _LoadStrategy.PREPEND
-"""Default load strategy for :func:`sys.path` sources.
+"""Default load strategy for :data:`sys.path` sources.
 
 This is used if there is no specific load strategy provided in pyproject.toml
 or other configuration.
@@ -238,7 +238,7 @@ The default paths, in order of priority, are:
 - `lib`: Common source directory for library code.
 - `src/test`: Alternate test source directory.
 
-These directories are added to :var:`sys.path` if they exist in the repository root.
+These directories are added to :data:`sys.path` if they exist in the repository root.
 
 They can be customized by the `paths` parameter to `configure_pypath()` or
 configured in a `.env` file in the repository root, or in `pyproject.toml` or

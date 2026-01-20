@@ -1,4 +1,29 @@
-"""Config from a toml file for autopypath."""
+"""Config from a toml file for autopypath.
+
+
+It handles loading and parsing configuration options from a specified toml file,
+such as `pyproject.toml` or `autopypath.toml`. The configuration options include
+repository markers, additional paths to include in PYTHONPATH, load strategy,
+and path resolution order.
+
+This module defines the :class:`_TomlConfig` class, which extends the
+base :class:`_Config` class to provide toml-specific configuration loading.
+
+
+The toml configuration is expected to be in a specific section of the toml file,
+for example, `[tool.autopypath]` in `pyproject.toml`. The class reads this section
+and extracts the relevant configuration options, validating their types and values.
+
+The formats for the configuration options in the toml file are as follows:
+
+.. code-block:: toml
+    [tool.autopypath]
+    repo_markers = { '.git' = 'dir', 'setup.py' = 'file' }
+    paths = ['src', 'tests']
+    load_strategy = 'prepend'
+    path_resolution_order = ['manual', 'pyproject', 'dotenv']
+
+"""
 
 import datetime
 from pathlib import Path

@@ -28,9 +28,9 @@ class _Config:
 
 
     :property repo_markers: Mapping of repository markers to their MarkerType.
-    :property paths: Additional paths to include in :var:`sys.path`.
-    :property load_strategy: The load strategy for handling multiple :var:`sys.path` sources.
-    :property path_resolution_order: The order in which to resolve :var:`sys.path` sources.
+    :property paths: Additional paths to include in :data:`sys.path`.
+    :property load_strategy: The load strategy for handling multiple :data:`sys.path` sources.
+    :property path_resolution_order: The order in which to resolve :data:`sys.path` sources.
     """
 
     __slots__ = ('_repo_markers', '_paths', '_load_strategy', '_path_resolution_order')
@@ -48,8 +48,8 @@ class _Config:
         :param Mapping[str, MarkerType | Literal['dir', 'file']] | None repo_markers: Markers to identify the repository root.
             Mapping of file or directory names to their MarkerType.
 
-        :param Sequence[Path | str] | None paths: Additional paths to include in :var:`sys.path`.
-            Sequence of paths relative to the repository root to be added to :var:`sys.path`.
+        :param Sequence[Path | str] | None paths: Additional paths to include in :data:`sys.path`.
+            Sequence of paths relative to the repository root to be added to :data:`sys.path`.
 
         :param LoadStrategy | Literal['prepend', 'prepend_highest_priority', 'replace'] | None load_strategy: The
             strategy for loading :func:`sys.path` sources.
@@ -109,10 +109,10 @@ class _Config:
 
     @property
     def paths(self) -> Union[tuple[Path, ...], None]:
-        """Additional paths to include in :var:`sys.path`.
+        """Additional paths to include in :data:`sys.path`.
 
         :return tuple[Path, ...] | None: A tuple of additional paths relative to the repository root
-            to be added to :var:`sys.path`. ``None`` if no additional paths are set.
+            to be added to :data:`sys.path`. ``None`` if no additional paths are set.
         """
         return self._paths
 

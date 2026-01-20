@@ -53,7 +53,7 @@ class _DefaultConfig(_Config):
 
     @property
     def load_strategy(self) -> _LoadStrategy:
-        """The load strategy for handling multiple :func:`sys.path` sources.
+        """The load strategy for handling multiple :data:`sys.path` sources.
 
         :return LoadStrategy | None: The strategy used when handling multiple sys.path sources.
             ``None`` if no custom load strategy is set.
@@ -62,7 +62,7 @@ class _DefaultConfig(_Config):
 
     @property
     def path_resolution_order(self) -> tuple[_PathResolution, ...]:
-        """The order in which to resolve :func:`sys.path` sources.
+        """The order in which to resolve :data:`sys.path` sources.
 
         :return tuple[PathResolution, ...] | None: A tuple defining the order of resolution for sys.path sources.
             ``None`` if no custom resolution order is set.
@@ -71,10 +71,10 @@ class _DefaultConfig(_Config):
 
     @property
     def paths(self) -> tuple[Path, ...]:
-        """Additional paths to include in :var:`sys.path`.
+        """Additional paths to include in :data:`sys.path`.
 
         :return tuple[Path, ...] | None: A tuple of additional paths relative to the repository root
-            to be added to :var:`sys.path`. ``None`` if no additional paths are set.
+            to be added to :data:`sys.path`. ``None`` if no additional paths are set.
         """
         return self._paths
 
