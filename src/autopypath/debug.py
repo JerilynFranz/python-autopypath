@@ -64,4 +64,4 @@ else:  # pragma: no cover  # Wierd case I don't even know how to trigger: could 
     _context_name = None
     _path_adjusted = False
     _log.error('could not determine context file; no sys.path changes will be applied.')
-    raise RuntimeError('could not determine context file for autopypath.debug import')
+    raise AutopypathError('could not determine context file for autopypath.debug import')

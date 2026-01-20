@@ -114,7 +114,7 @@ def configure_pypath(
         Conditions that normally trigger logged warnings include:
             - Imported from a non-`__main__` context.
 
-    :raises RuntimeError: If the context file cannot be determined or if `strict` is set to ``True``
+    :raises AutopypathError: If the context file cannot be determined or if `strict` is set to ``True``
         and a condition that would normally log a warning occurs.
     """
     global _ran_once
@@ -127,11 +127,11 @@ def configure_pypath(
 
     if _context_file is None:
         _log.error('could not determine context file; cannot configure sys.path.')
-        raise RuntimeError('could not determine context file; cannot configure sys.path.')
+        raise AutopypathError('could not determine context file; cannot configure sys.path.')
     elif _context_name != '__main__':
         if strict:
             _log.error(_NOT_MAIN_CONTEXT_WARNING)
-            raise RuntimeError(
+            raise AutopypathError(
                 f'autopypath.custom imported from non-__main__ context ({_context_name}); cannot configure sys.path.'
             )
         _log.warning(_NOT_MAIN_CONTEXT_WARNING)
