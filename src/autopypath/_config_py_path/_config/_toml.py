@@ -248,7 +248,8 @@ class _TomlConfig(_Config):
 
         return load_strategy
 
-    def _toml_path_resolution_order(self, autopypath_config: dict[str, Any]) -> Union[tuple[_PathResolution, ...], None]:
+    def _toml_path_resolution_order(
+            self, autopypath_config: dict[str, Any]) -> Union[tuple[_PathResolution, ...], None]:
         """Collects path resolution order from toml configuration.
 
         Example

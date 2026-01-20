@@ -24,7 +24,8 @@ repo_markers = {".git" = "dir", "autopypath.toml" = "file"}
     import autopypath.debug
     from autopypath._log import _log
 
-    assert _log.level == logging.DEBUG, 'AUTOPYPATH_001 Log level should be set to DEBUG upon importing autopypath.debug'
+    assert _log.level == logging.DEBUG, (
+        'AUTOPYPATH_001 Log level should be set to DEBUG upon importing autopypath.debug')
     assert autopypath.debug._context_name != '__main__', (
         'AUTOPYPATH_002 autopypath.debug._context_name should not be __main__ when imported from inside a function; '
         f'got context name: {autopypath.debug._context_name!r}'
@@ -72,7 +73,8 @@ repo_markers = {".git" = "dir", "autopypath.toml" = "file"}
     finally:
         __name__ = original_name
 
-    assert _log.level == logging.DEBUG, 'AUTOPYPATH_001 Log level should be set to DEBUG upon importing autopypath.debug'
+    assert _log.level == logging.DEBUG, (
+        'AUTOPYPATH_001 Log level should be set to DEBUG upon importing autopypath.debug')
     assert autopypath.debug._context_name == '__main__', (
         'AUTOPYPATH_002 autopypath.debug._context_name should be __main__ because we invoked deep magic; '
         f'got context name: {autopypath.debug._context_name!r}'
