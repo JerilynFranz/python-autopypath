@@ -30,9 +30,10 @@ from typing import Optional
 
 from ._config_py_path import _ConfigPyPath
 from ._context import _context_frameinfo
+from ._exceptions import AutopypathError
 from ._log import _log
 
-__all__ = []
+__all__ = ['AutopypathError']
 
 _log.setLevel(logging.DEBUG)
 

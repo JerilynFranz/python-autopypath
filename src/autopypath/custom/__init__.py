@@ -49,8 +49,11 @@ from typing import Optional, Union
 
 from .._config_py_path import _ConfigPyPath
 from .._context import _context_frameinfo
+from .._exceptions import AutopypathError
 from .._log import _log
 from .._types import LoadStrategyLiterals, PathResolutionLiterals, RepoMarkerLiterals
+
+__all__ = ['configure_pypath', 'AutopypathError']
 
 _NOT_MAIN_CONTEXT_WARNING = 'autopypath.custom imported from non-__main__ context; no sys.path changes will be applied.'
 _context_file: Optional[Path] = None

@@ -269,7 +269,13 @@ from typing import Optional
 
 from ._config_py_path import _ConfigPyPath
 from ._context import _context_frameinfo
+from ._exceptions import AutopypathError
 from ._log import _log
+
+__all__ = [
+    'AutopypathError',
+]
+
 
 # Only run if directly imported by a script being executed as __main__
 # If there is any doubt, does not run automatically
