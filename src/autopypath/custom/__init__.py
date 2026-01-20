@@ -73,6 +73,8 @@ else:  # pragma: no cover  # Wierd case I don't even know how to trigger: could 
     _context_name = None
     _log.warning('could not determine context file; no sys.path changes will be applied.')
 
+_ran_once: bool = False
+"""Indicates whether :func:`configure_pypath` has been called already."""
 
 def configure_pypath(
     *,
@@ -114,6 +116,11 @@ def configure_pypath(
     :raises RuntimeError: If the context file cannot be determined or if `strict` is set to ``True``
         and a condition that would normally log a warning occurs.
     """
+    global _ran_once
+    if _ran_once:
+        _log.info('configure_pypath has already been called once; subsequent calls are no-ops.')
+        return
+
     if isinstance(log_level, int):  # Set as early as possible
         _log.setLevel(log_level)
 
@@ -139,4 +146,5 @@ def configure_pypath(
             log_level=log_level,
             strict=strict,
         )
+        _ran_once = True
         _log.debug('sys.path adjusted automatically for %s', _context_file)

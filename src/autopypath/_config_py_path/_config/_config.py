@@ -134,7 +134,7 @@ class _Config:
         markers_list: list[str] = []
         if self.repo_markers is not None:
             for key, value in self.repo_markers.items():
-                marker_str = f'MarkerType.{value.name}'
+                marker_str = f'_MarkerType.{value.name}'
                 markers_list.append(f'{key!r}: {marker_str}')
             markers_repr = '{' + ', '.join(markers_list) + '}'
         else:
@@ -143,12 +143,12 @@ class _Config:
         path_resolution_list: list[str] = []
         if self.path_resolution_order is not None:
             for order in self.path_resolution_order:
-                path_resolution_list.append(f'PathResolution.{order.name}')
+                path_resolution_list.append(f'_PathResolution.{order.name}')
             path_resolution_repr = '[' + ', '.join(path_resolution_list) + ']'
         else:
             path_resolution_repr = 'None'
 
-        load_strategy_repr = f'LoadStrategy.{self.load_strategy.name}' if self.load_strategy is not None else 'None'
+        load_strategy_repr = f'_LoadStrategy.{self.load_strategy.name}' if self.load_strategy is not None else 'None'
 
         return (
             f'{cls}(repo_markers={markers_repr}, '
