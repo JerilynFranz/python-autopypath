@@ -27,7 +27,7 @@ keywords = [
 ]
 
 classifiers = [
-    "Development Status :: 2 - Pre-Alpha",
+    "Development Status :: 5 - Production/Stable",
     "Intended Audience :: Developers",
     "License :: OSI Approved :: Apache Software License",
     "Operating System :: OS Independent",
@@ -138,7 +138,6 @@ env_list = [
     "py312",
     "py313",
     "py314",
-    "pypy310",
     "pypy311",
     "lint"
 ]
@@ -146,7 +145,7 @@ install_command = ["uv", "pip", "install", "{opts}", "{packages}"]
 
 # labels table for grouping environments
 [tool.tox.labels]
-test = ["py39", "py310", "py311", "py312", "py313", "py314", "pypy310", "pypy311", "lint"]
+test = ["py39", "py310", "py311", "py312", "py313", "py314", "pypy311", "lint"]
 
 # --- Base Test Environment for automation of 'run' from env_list -
 
@@ -206,14 +205,6 @@ commands = [
 ]
 
 # mypy excluded from pypy envs due to lack of support
-[tool.tox.env.pypy310]
-description = "Run tests on PyPy 3.10"
-base_python = ["pypy3.10"]
-dependency_groups = ["test", "tools"]  # omit "lint"
-commands = [
-    ["coverage", "run", "-m", "pytest", { replace = "posargs", extend = true }],
-    ["coverage", "report"],
-]
 
 [tool.tox.env.pypy311]
 description = "Run tests on PyPy 3.11"
