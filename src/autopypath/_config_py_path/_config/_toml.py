@@ -8,6 +8,7 @@ from typing import Any, Union
 import tomli
 
 from ... import _validate
+from ..._exceptions import AutopypathError
 from ..._load_strategy import _LoadStrategy
 from ..._log import _log
 from ..._marker_type import _MarkerType
@@ -47,8 +48,8 @@ class _TomlConfig(_Config):
             :attr:`path_resolution_order`) will all be set to ``None`` in this case.
         :param str toml_filename: The name of the toml file to load (e.g., 'pyproject.toml', 'autopypath.toml').
         :param str toml_section: The section in the toml file to load (e.g., 'tool.autopypath').
-        :raises TypeError: If any configuration value is of an invalid type (ex. string instead of table).
-        :raises ValueError: If any configuration value is invalid.
+        :raises AutopypathError: If any configuration value is of an invalid type (ex. string instead of table).
+        :raises AutopypathError: If any configuration value is invalid.
         :raises FileNotFoundError: If the toml file does not exist.
         """
         self._repo_root_path: Path = _NoPath()
@@ -128,8 +129,11 @@ class _TomlConfig(_Config):
             _log.debug(f'No {self._toml_filepath} file found at {toml_path}.')
             return {}
 
-        with toml_path.open('rb') as f:
-            toml_data = tomli.load(f)
+        try:
+            with toml_path.open('rb') as f:
+                toml_data = tomli.load(f)
+        except tomli.TOMLDecodeError as e:
+            raise AutopypathError(f'Error parsing {toml_path}: {e}') from e
         return toml_data
 
     def _toml_autopypath(self, toml_data: dict[str, Any]) -> dict[str, Any]:
@@ -147,12 +151,12 @@ class _TomlConfig(_Config):
 
         :param dict[str, Any] pyproject_data: The parsed pyproject.toml data.
         :return dict[str, Any]: The autopypath configuration section.
-        :raises TypeError: If the configuration for [tool.autopypath] is invalid.
+        :raises AutopypathError: If the configuration for [tool.autopypath] is invalid.
         """
         autopypath_config = toml_data.get('tool', {}).get('autopypath', {})
         if not isinstance(autopypath_config, dict):
             toml_type = _TOML_TYPES.get(type(autopypath_config), 'unknown')
-            raise TypeError(
+            raise AutopypathError(
                 'Invalid [tool.autopypath] section in pyproject.toml: expected table, '
                 f'got {toml_type}: {autopypath_config}'
             )
@@ -173,13 +177,13 @@ class _TomlConfig(_Config):
 
         :param autopypath_config: The autopypath configuration section from the toml data.
         :return MappingProxyType[str, MarkerType] | None: A mapping of repository markers or ``None``.
-        :raises TypeError: If the configuration is invalid.
-        :raises ValueError: If any marker type is invalid (not 'file' or 'dir').
+        :raises AutopypathError: If the configuration is invalid.
+        :raises AutopypathError: If any marker type is invalid (not 'file' or 'dir').
         """
         raw_repo_markers = autopypath_config.get('repo_markers', None)
         if not isinstance(raw_repo_markers, (type(None), dict)):
             toml_type = _TOML_TYPES.get(type(raw_repo_markers), 'unknown')
-            raise TypeError(
+            raise AutopypathError(
                 f'Invalid repo_markers in pyproject.toml: expected table, got {toml_type}: {raw_repo_markers}'
             )
         collected_repo_markers: dict[str, _MarkerType] = {}
@@ -187,8 +191,14 @@ class _TomlConfig(_Config):
             for key, value in raw_repo_markers.items():
                 if not isinstance(value, str):
                     toml_type = _TOML_TYPES.get(type(raw_repo_markers), 'unknown')
-                    raise TypeError(f'Invalid repo_marker value for {key}: expected string, got {toml_type}: {value}')
-                collected_repo_markers[key] = _MarkerType(value)
+                    raise AutopypathError(
+                        f'Invalid repo_marker value for {key}: expected string, got {toml_type}: {value}')
+                try:
+                    collected_repo_markers[key] = _MarkerType(value)
+                except ValueError as e:
+                    raise AutopypathError(
+                        f'Invalid repo_marker value for {key}: expected "file" or "dir", got {value}'
+                    ) from e
 
         repo_markers = _validate.repo_markers(collected_repo_markers)
         return repo_markers
@@ -204,13 +214,14 @@ class _TomlConfig(_Config):
 
         :param autopypath_config: The autopypath configuration section from toml.
         :return tuple[Path, ...] | None: A tuple of paths or ``None``.
-        :raises TypeError: If the configuration is invalid.
+        :raises AutopypathError: If the configuration is invalid.
         """
         # example: paths = ['src', 'tests']
         raw_paths = autopypath_config.get('paths', None)
         if not isinstance(raw_paths, (type(None), list)):
             toml_type = _TOML_TYPES.get(type(raw_paths), 'unknown')
-            raise TypeError(f'Invalid paths in {self._toml_filepath}: expected array, got {toml_type}: {raw_paths}')
+            raise AutopypathError(f'Invalid paths in {self._toml_filepath}: '
+                                  f'expected array, got {toml_type}: {raw_paths}')
         requested_paths = _validate.paths(raw_paths)
         filtered_paths: list[Path] = []
         if requested_paths is not None:
@@ -231,20 +242,22 @@ class _TomlConfig(_Config):
 
         :param autopypath_config: The autopypath configuration section from toml.
         :return LoadStrategy | None: The load strategy or ``None``.
-        :raises TypeError: If the configuration is invalid.
+        :raises AutopypathError: If the configuration is invalid.
         """
         raw_load_strategy = autopypath_config.get('load_strategy', None)
         if not isinstance(raw_load_strategy, (type(None), str)):
             toml_type = _TOML_TYPES.get(type(raw_load_strategy), 'unknown')
-            raise TypeError(
+            raise AutopypathError(
                 f'Invalid load_strategy in {self._toml_filepath}: expected string, got {toml_type}: {raw_load_strategy}'
             )
         if raw_load_strategy is None:
             return None
         try:
             load_strategy = _LoadStrategy(raw_load_strategy)
+        except AutopypathError as e:
+            raise AutopypathError(f'Invalid load_strategy: {raw_load_strategy}') from e
         except ValueError as e:
-            raise ValueError(f'Invalid load_strategy: {raw_load_strategy}') from e
+            raise AutopypathError(f'Invalid load_strategy: {raw_load_strategy}') from e
 
         return load_strategy
 
@@ -260,12 +273,12 @@ class _TomlConfig(_Config):
 
         :param autopypath_config: The autopypath configuration section from toml.
         :return tuple[str, ...] | None: The path resolution order or ``None``.
-        :raises TypeError: If the configuration is invalid.
+        :raises AutopypathError: If the configuration is invalid.
         """
         raw_order = autopypath_config.get('path_resolution_order', None)
         if not isinstance(raw_order, (type(None), list)):
             toml_type = _TOML_TYPES.get(type(raw_order), 'unknown')
-            raise TypeError(
+            raise AutopypathError(
                 f'Invalid path_resolution_order in {self._toml_filepath}: expected array, got {toml_type}: {raw_order}'
             )
         path_resolution_order = _validate.path_resolution_order(raw_order)

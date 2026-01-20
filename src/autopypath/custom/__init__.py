@@ -66,10 +66,8 @@ _context_info: Optional[tuple[Path, str]] = _context_frameinfo()
 if _context_info is not None:
     _context_file, _context_name = _context_info
     if _context_name != '__main__':
-        _log.debug(
-            _NOT_MAIN_CONTEXT_WARNING,
-            _context_name,
-        )
+        message = _NOT_MAIN_CONTEXT_WARNING.format(_context_name)
+        _log.debug(message)
 
 else:  # pragma: no cover  # Wierd case I don't even know how to trigger: could not determine context file at all
     _context_file = None

@@ -13,7 +13,6 @@ Subpackages
    :maxdepth: 4
 
    autopypath.custom
-   autopypath.types
 
 Submodules
 ----------

@@ -9,6 +9,7 @@ from typing import Union
 import dotenv
 
 from ... import _validate
+from ..._exceptions import AutopypathError
 from ..._log import _log
 from ._config import _Config
 
@@ -38,7 +39,7 @@ class _DotEnvConfig(_Config):
 
         :param Path repo_root_path: The root path of the repository containing a .env file.
         :param bool strict: (default: ``False``) Indicates whether strict mode is enabled for error handling.
-        :raises ValueError: If the provided repo_root_path is not a valid directory.
+        :raises AutopypathError: If the provided repo_root_path is not a valid directory.
         """
         _log.debug('Initializing DotEnvConfig with repo_root_path: %s', repo_root_path)
         self._repo_root_path = _validate.root_repo_path(repo_root_path)
@@ -58,7 +59,7 @@ class _DotEnvConfig(_Config):
             if strict:
                 formatted_message = self._NOT_A_FILE_MESSAGE.format(dotenv_path)
                 _log.error(formatted_message)
-                raise ValueError(formatted_message)
+                raise AutopypathError(formatted_message)
             _log.warning(message, dotenv_path)
             super().__init__(
                 repo_markers=None, paths=None, load_strategy=None, path_resolution_order=None, strict=strict

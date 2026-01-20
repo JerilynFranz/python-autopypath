@@ -2,7 +2,7 @@
 
 Use by importing the module and calling the desired validation function.
 
-The validation functions raise `TypeError` or `ValueError` if the input
+The validation functions raise `AutopypathError` or `AutopypathError` if the input
 is invalid.
 
 They return the validated and possibly transformed value if valid."""
@@ -18,6 +18,7 @@ from typing import Any, Union
 
 __all__ = []
 
+from ._exceptions import AutopypathError
 from ._load_strategy import _LoadStrategy, resolve_load_strategy_literal
 from ._log import _log
 from ._marker_type import _MarkerType, resolve_marker_type_literal
@@ -41,8 +42,8 @@ def log_level(value: Any) -> int:
 
     :param Any value: The log level to validate.
     :return int: A validated log level.
-    :raises TypeError: If the input is not an integer or None.
-    :raises ValueError: If the log level is not a valid logging level.
+    :raises AutopypathError: If the input is not an integer or None.
+    :raises AutopypathError: If the log level is not a valid logging level.
     """
     import logging
 
@@ -50,7 +51,7 @@ def log_level(value: Any) -> int:
         return logging.NOTSET
 
     if not isinstance(value, int):
-        raise TypeError(f'Invalid log_level: expected int, got {type(value)}')
+        raise AutopypathError(f'Invalid log_level: expected int, got {type(value)}')
 
     valid_levels = {
         logging.NOTSET,
@@ -62,7 +63,7 @@ def log_level(value: Any) -> int:
     }
 
     if value not in valid_levels:
-        raise ValueError(f'Invalid log_level: {value} is not a valid logging level')
+        raise AutopypathError(f'Invalid log_level: {value} is not a valid logging level')
 
     return value
 
@@ -72,10 +73,10 @@ def strict(value: Any) -> bool:
 
     :param Any value: The strict value to validate.
     :return bool: A validated boolean value for strict.
-    :raises TypeError: If the input is not a boolean.
+    :raises AutopypathError: If the input is not a boolean.
     """
     if not isinstance(value, bool):
-        raise TypeError(f'Invalid strict: expected bool, got {type(value)}')
+        raise AutopypathError(f'Invalid strict: expected bool, got {type(value)}')
     return value
 
 
@@ -84,15 +85,15 @@ def toml_filename(value: Any) -> Path:
 
     :param Any value: The TOML filename to validate.
     :return Path: A validated TOML Path object.
-    :raises TypeError: If the input is not a string.
-    :raises ValueError: If the filename is invalid.
-    :raises ValueError: If the filename does not end with .toml
+    :raises AutopypathError: If the input is not a string.
+    :raises AutopypathError: If the filename is invalid.
+    :raises AutopypathError: If the filename does not end with .toml
     """
     if not isinstance(value, str):
-        raise TypeError(f'Invalid toml_filename: expected str, got {type(value)}')
+        raise AutopypathError(f'Invalid toml_filename: expected str, got {type(value)}')
     validate_file_or_dir_name(value)
     if not value.lower().endswith('.toml'):
-        raise ValueError(f'Invalid toml_filename: {value!r} does not end with .toml')
+        raise AutopypathError(f'Invalid toml_filename: {value!r} does not end with .toml')
     return Path(value)
 
 
@@ -117,17 +118,19 @@ def toml_section(value: Any) -> str:
 
     :param Any value: The TOML section name to validate.
     :return str: A validated TOML section name.
-    :raises TypeError: If the input is not a string.
-    :raises ValueError: If the section name is invalid.
+    :raises AutopypathError: If the input is not a string.
+    :raises AutopypathError: If the section name is invalid.
     """
     if not isinstance(value, str):
-        raise TypeError(f'Invalid toml_section: expected str, got type {type(value)}')
+        raise AutopypathError(f'Invalid toml_section: expected str, got type {type(value)}')
     if value.strip() == '':
-        raise ValueError('Invalid toml_section: section name cannot be empty')
+        raise AutopypathError('Invalid toml_section: section name cannot be empty')
     if not _TOML_SECTION_RE.match(value):
-        raise ValueError(f'Invalid toml_section name: {value!r} does not match required pattern for toml section names')
+        raise AutopypathError(f'Invalid toml_section name: {value!r} does not '
+                              'match required pattern for toml section names')
     if _ADJACENT_INVALID_SEQUENCES_RE.search(value):
-        raise ValueError(f'Invalid toml_section name: {value!r} cannot have adjacent dots, dashes, or underscores')
+        raise AutopypathError(f'Invalid toml_section name: {value!r} '
+                              'cannot have adjacent dots, dashes, or underscores')
     return value
 
 
@@ -136,11 +139,11 @@ def root_repo_path(value: Any) -> Path:
 
     :param Any value: The repository root path to validate.
     :return Path: A validated Path object representing the repository root.
-    :raises TypeError: If the input is not a Path or string.
+    :raises AutopypathError: If the input is not a Path or string.
     """
     repo_path = validate_path_or_str(value)
     if not repo_path.exists() or not repo_path.is_dir():
-        raise ValueError(f'Repository root path does not exist or is not a directory: {repo_path}')
+        raise AutopypathError(f'Repository root path does not exist or is not a directory: {repo_path}')
     return repo_path
 
 
@@ -149,13 +152,13 @@ def context_file(value: Any) -> Path:
 
     :param Any value: The context file path to validate.
     :return Path: A validated Path object representing the context file.
-    :raises TypeError: If the input is not a Path or string.
-    :raises ValueError: If the file does not exist or is not a file.
-    :raises ValueError: If the path is invalid.
+    :raises AutopypathError: If the input is not a Path or string.
+    :raises AutopypathError: If the file does not exist or is not a file.
+    :raises AutopypathError: If the path is invalid.
     """
     context_file_path = validate_path_or_str(value)
     if not context_file_path.exists() or not context_file_path.is_file():
-        raise ValueError(f'Context file does not exist or is not a file: {context_file_path}')
+        raise AutopypathError(f'Context file does not exist or is not a file: {context_file_path}')
     return context_file_path
 
 
@@ -166,26 +169,26 @@ def repo_markers(value: Any) -> Union[MappingProxyType[str, _MarkerType], None]:
         that indicate the repository root, and values are of type `MarkerType` or strings.
     :return MappingProxyType[str, MarkerType] | None: A validated immutable mapping of repository markers.
         or None if the input is None.
-    :raises TypeError: If the input is not a mapping, keys are not strings,
+    :raises AutopypathError: If the input is not a mapping, keys are not strings,
         or values are not strings.
-    :raises ValueError: If any value is not a valid `MarkerType`.
+    :raises AutopypathError: If any value is not a valid `MarkerType`.
     """
     if value is None:
         return None
 
     if not isinstance(value, Mapping):
-        raise TypeError(f'Invalid repo_markers: expected a mapping, got {type(value)}')
+        raise AutopypathError(f'Invalid repo_markers: expected a mapping, got {type(value)}')
     validated_markers: dict[str, _MarkerType] = {}
     for key, val in value.items():
         if isinstance(val, str):
             resolved_val = resolve_marker_type_literal(val)
             if resolved_val is None:
-                raise ValueError(f'Invalid MarkerType: {val} is not a valid MarkerType')
+                raise AutopypathError(f'Invalid MarkerType: {val} is not a valid MarkerType')
             val = resolved_val
         if not isinstance(val, _MarkerType):
-            raise TypeError(f'Invalid repo_markers value: expected MarkerType or string, got {type(val)}')
+            raise AutopypathError(f'Invalid repo_markers value: expected MarkerType or string, got {type(val)}')
         if not isinstance(key, str):
-            raise TypeError(f'Invalid repo_markers key: expected str, got {type(key)}')
+            raise AutopypathError(f'Invalid repo_markers key: expected str, got {type(key)}')
         validate_file_or_dir_name(key)
         validated_markers[key] = val
 
@@ -205,13 +208,13 @@ def paths(value: Any) -> Union[tuple[Path, ...], None]:
 
     :param Any value: A sequence of Path objects or strings.
     :return tuple[Path, ...] | None: A validated tuple of :class:`Path` objects or None if the input is None.
-    :raises TypeError: If the input is not a sequence or contains non-Path or non-str items
+    :raises AutopypathError: If the input is not a sequence or contains non-Path or non-str items
     """
     if value is None:
         return None
 
     if not isinstance(value, Sequence):
-        raise TypeError(f'Invalid paths: expected a sequence, got {type(value)}')
+        raise AutopypathError(f'Invalid paths: expected a sequence, got {type(value)}')
 
     if len(value) == 0:
         return None
@@ -227,8 +230,8 @@ def load_strategy(value: Any) -> Union[_LoadStrategy, None]:
 
     :param Any value: A LoadStrategy value or string matching a LoadStrategy value.
     :return LoadStrategy | None: A validated LoadStrategy value or None if the input is None.
-    :raises ValueError: If the input string does not match any LoadStrategy value
-    :raises TypeError: If the input is not a LoadStrategy or a string.
+    :raises AutopypathError: If the input string does not match any LoadStrategy value
+    :raises AutopypathError: If the input is not a LoadStrategy or a string.
     """
     if value is None:
         return None
@@ -236,11 +239,11 @@ def load_strategy(value: Any) -> Union[_LoadStrategy, None]:
     if isinstance(value, str):
         resolved_value = resolve_load_strategy_literal(value)
         if resolved_value is None:
-            raise ValueError(f'Invalid LoadStrategy: {value} is not a valid LoadStrategy: {list(_LoadStrategy)}')
+            raise AutopypathError(f'Invalid LoadStrategy: {value} is not a valid LoadStrategy: {list(_LoadStrategy)}')
         value = resolved_value
 
     if not isinstance(value, _LoadStrategy):
-        raise TypeError(f'Invalid load_strategy: expected LoadStrategy, got {type(value)}')
+        raise AutopypathError(f'Invalid load_strategy: expected LoadStrategy, got {type(value)}')
     return value
 
 
@@ -250,17 +253,17 @@ def path_resolution_order(value: Any) -> Union[tuple[_PathResolution, ...], None
     :param Any value: A sequence of PathResolution values or strings matching PathResolution values.
     :return tuple[PathResolution, ...] | None: A validated sequence of PathResolution values or None
         if the input is None or empty.
-    :raises TypeError: If the input is not a sequence or contains non-PathResolution items
-    :raises ValueError: If there are duplicate PathResolution values
+    :raises AutopypathError: If the input is not a sequence or contains non-PathResolution items
+    :raises AutopypathError: If there are duplicate PathResolution values
     """
     if value is None:
         return None
 
     if isinstance(value, (str, bytes)):
-        raise TypeError(f'Invalid path_resolution_order: expected a sequence, got {type(value)}')
+        raise AutopypathError(f'Invalid path_resolution_order: expected a sequence, got {type(value)}')
 
     if not isinstance(value, Sequence):
-        raise TypeError(f'Invalid path_resolution_order: expected a sequence, got {type(value)}')
+        raise AutopypathError(f'Invalid path_resolution_order: expected a sequence, got {type(value)}')
 
     if len(value) == 0:
         return None
@@ -271,17 +274,17 @@ def path_resolution_order(value: Any) -> Union[tuple[_PathResolution, ...], None
         if isinstance(item, str):
             resolved_item = resolve_path_resolution_literal(item)
             if resolved_item is None:
-                raise ValueError(
+                raise AutopypathError(
                     f'Invalid PathResolution: {item} is not a valid PathResolution: {list(_PathResolution)}'
                 )
             item = resolved_item
         if not isinstance(item, _PathResolution):
-            raise TypeError(f'Invalid path_resolution_order item: expected PathResolution, got {item}')
+            raise AutopypathError(f'Invalid path_resolution_order item: expected PathResolution, got {item}')
         validated_orders.append(item)
         seen_orders[item] = seen_orders.get(item, 0) + 1
     if len(seen_orders) != len(validated_orders):
         duplicates = set(order for order in validated_orders if seen_orders[order] > 1)
-        raise ValueError(f'Duplicate PathResolution values are not allowed: Duplicated {duplicates}')
+        raise AutopypathError(f'Duplicate PathResolution values are not allowed: Duplicated {duplicates}')
 
     return tuple(validated_orders)
 
@@ -298,26 +301,26 @@ def validate_path_or_str(path: Union[Path, str]) -> Path:
     - Each segment cannot be an invalid file or directory name.
 
     :param Path | str path: The Path object or string path to validate.
-    :raises ValueError: If the path is invalid.
-    :raises TypeError: If the input is not a Path or string.
+    :raises AutopypathError: If the path is invalid.
+    :raises AutopypathError: If the input is not a Path or string.
     :return Path: The validated Path object.
     """
     if not isinstance(path, (Path, str)):
-        raise TypeError(f'Invalid path: expected Path or str, got {type(path)}')
+        raise AutopypathError(f'Invalid path: expected Path or str, got {type(path)}')
     item_str: str = str(path) if isinstance(path, Path) else path
     _log.debug('Validating path: %s', item_str)
     if '\000' in item_str:
-        raise ValueError('Invalid path item: path cannot contain null byte')
+        raise AutopypathError('Invalid path item: path cannot contain null byte')
     if item_str.strip() == '':
-        raise ValueError('Invalid path item: path cannot be empty or only whitespace')
+        raise AutopypathError('Invalid path item: path cannot be empty or only whitespace')
     if item_str.lstrip() != item_str:
-        raise ValueError('Invalid path item: path cannot have leading whitespace ')
+        raise AutopypathError('Invalid path item: path cannot have leading whitespace ')
     if item_str.rstrip() != item_str:
-        raise ValueError('Invalid path item: path cannot have trailing whitespace')
+        raise AutopypathError('Invalid path item: path cannot have trailing whitespace')
     if item_str.replace('\\', '') == '':
-        raise ValueError('Invalid path item: path cannot be only backslashes')
+        raise AutopypathError('Invalid path item: path cannot be only backslashes')
     if item_str.replace('/', '') == '':
-        raise ValueError('Invalid path item: path cannot be only forward slashes')
+        raise AutopypathError('Invalid path item: path cannot be only forward slashes')
     validated_path = Path(item_str) if isinstance(path, str) else path
     for offset, segment in enumerate(validated_path.parts):
         if offset == 0 and segment.endswith(':'):
@@ -344,23 +347,23 @@ def validate_file_or_dir_name(name: str) -> None:
     - Cannot exceed 64 characters in length.
 
     :param str name: The file or directory name to validate.
-    :raises ValueError: If the name is invalid.
+    :raises AutopypathError: If the name is invalid.
 
     """
     _log.debug('Validating file or directory name: %s', name)
     if name.strip() == '':
-        raise ValueError(f'Invalid file/dir name: cannot be empty or whitespace: {name!r}')
+        raise AutopypathError(f'Invalid file/dir name: cannot be empty or whitespace: {name!r}')
     if name.lstrip() != name:
-        raise ValueError(f'Invalid file/dir name: cannot have leading whitespace: {name!r}')
+        raise AutopypathError(f'Invalid file/dir name: cannot have leading whitespace: {name!r}')
     if name.rstrip() != name:
-        raise ValueError(f'Invalid file/dir name: cannot have trailing whitespace: {name!r}')
+        raise AutopypathError(f'Invalid file/dir name: cannot have trailing whitespace: {name!r}')
     if posix_pathsep in name or nt_pathsep in name or path_sep in name:
-        raise ValueError(f'Invalid file/dir name: cannot contain path separators: {name!r}')
+        raise AutopypathError(f'Invalid file/dir name: cannot contain path separators: {name!r}')
     if has_forbidden_chars(name) or is_windows_reserved(name):
-        raise ValueError(f'Invalid file/dir name: {name!r} is not allowed')
+        raise AutopypathError(f'Invalid file/dir name: {name!r} is not allowed')
     if len(name) > _MAX_FILE_DIR_NAME_LENGTH:
         message = f'Invalid file/dir name: {name!r} exceeds maximum length of {_MAX_FILE_DIR_NAME_LENGTH} characters'
-        raise ValueError(message)
+        raise AutopypathError(message)
 
 
 def has_forbidden_chars(name: str) -> bool:
@@ -397,8 +400,8 @@ def dry_run(value: Any) -> bool:
 
     :param Any value: The dry_run value to validate.
     :return bool: A validated boolean value for dry_run.
-    :raises TypeError: If the input is not a boolean.
+    :raises AutopypathError: If the input is not a boolean.
     """
     if not isinstance(value, bool):
-        raise TypeError(f'Invalid dry_run: expected bool, got {type(value)}')
+        raise AutopypathError(f'Invalid dry_run: expected bool, got {type(value)}')
     return value

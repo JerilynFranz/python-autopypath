@@ -20,7 +20,7 @@ class _PyProjectConfig(_TomlConfig):
         autopypath configuration under the ``[tool.autopypath]`` section.
 
         :param Path repo_root_path: The root path of the repository containing a pyproject.toml file.
-        :raises ValueError: If the provided repo_root_path is not a valid directory.
+        :raises AutopypathError: If the provided repo_root_path is not a valid directory.
         """
         super().__init__(repo_root_path=repo_root_path, toml_filename='pyproject.toml', toml_section='tool.autopypath')
 

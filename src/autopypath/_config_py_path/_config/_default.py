@@ -20,7 +20,7 @@ class _DefaultConfig(_Config):
         The default configuration uses the default values defined in
         :mod:`autopypath.defaults`. It validates that these defaults are not None
         or empty where applicable and initializes the class with these default values.
-        :raises ValueError: If any of the default values are None or empty where not allowed.
+        :raises AutopypathError: If any of the default values are None or empty where not allowed.
         """
 
         _log.debug('Initializing DefaultConfig with default values from autopypath.defaults')

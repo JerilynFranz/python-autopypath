@@ -4,6 +4,7 @@ from pathlib import Path
 import pytest
 
 from autopypath._config_py_path._config._toml import _TomlConfig
+from autopypath._exceptions import AutopypathError
 from autopypath._marker_type import _MarkerType
 
 
@@ -68,9 +69,9 @@ repo_markers = 'should_be_a_table_not_a_string'
 """)
     try:
         _TomlConfig(repo_root_path=repo_root, toml_filename=toml_filename, toml_section='tool.autopypath')
-    except TypeError:
+    except AutopypathError:
         return
-    pytest.fail('TOML_007 Expected TypeError when repo_markers has invalid syntax')
+    pytest.fail('TOML_007 Expected AutopypathError when repo_markers has invalid syntax')
 
 
 def test_toml_invalid_path_resolution_order_value(tmp_path: Path) -> None:
@@ -84,9 +85,9 @@ path_resolution_order = ['invalid_value']
 """)
     try:
         _TomlConfig(repo_root_path=repo_root, toml_filename=toml_filename, toml_section='tool.autopypath')
-    except ValueError:
+    except AutopypathError:
         return
-    pytest.fail('TOML_008 Expected ValueError when path_resolution_order has an invalid value')
+    pytest.fail('TOML_008 Expected AutopypathError when path_resolution_order has an invalid value')
 
 
 def test_toml_invalid_load_strategy_value(tmp_path: Path) -> None:
@@ -100,9 +101,9 @@ load_strategy = 'invalid_strategy'
 """)
     try:
         _TomlConfig(repo_root_path=repo_root, toml_filename=toml_filename, toml_section='tool.autopypath')
-    except ValueError:
+    except AutopypathError:
         return
-    pytest.fail('TOML_009 Expected ValueError when load_strategy has an invalid value')
+    pytest.fail('TOML_009 Expected AutopypathError when load_strategy has an invalid value')
 
 
 def test_toml_invalid_load_strategy_syntax(tmp_path: Path) -> None:
@@ -116,9 +117,9 @@ load_strategy = ['should_be_a_string_not_a_list']
 """)
     try:
         _TomlConfig(repo_root_path=repo_root, toml_filename=toml_filename, toml_section='tool.autopypath')
-    except TypeError:
+    except AutopypathError:
         return
-    pytest.fail('TOML_010 Expected TypeError when load_strategy has invalid syntax')
+    pytest.fail('TOML_010 Expected AutopypathError when load_strategy has invalid syntax')
 
 
 def test_toml_invalid_paths_syntax(tmp_path: Path) -> None:
@@ -132,9 +133,9 @@ paths = 'should_be_a_list_not_a_string'
 """)
     try:
         _TomlConfig(repo_root_path=repo_root, toml_filename=toml_filename, toml_section='tool.autopypath')
-    except TypeError:
+    except AutopypathError:
         return
-    pytest.fail('TOML_011 Expected TypeError when paths has invalid syntax')
+    pytest.fail('TOML_011 Expected AutopypathError when paths has invalid syntax')
 
 
 def test_toml_invalid_repo_markers_value(tmp_path: Path) -> None:
@@ -148,9 +149,9 @@ repo_markers = {'.git': 'should_be_MarkerType_not_general_string'}
 """)
     try:
         _TomlConfig(repo_root_path=repo_root, toml_filename=toml_filename, toml_section='tool.autopypath')
-    except ValueError:
+    except AutopypathError:
         return
-    pytest.fail('TOML_012 Expected ValueError when repo_markers has an invalid value')
+    pytest.fail('TOML_012 Expected AutopypathError when repo_markers has an invalid value')
 
 
 def test_toml_invalid_paths_value(tmp_path: Path) -> None:
@@ -164,9 +165,9 @@ paths = ['src', 123]
 """)
     try:
         _TomlConfig(repo_root_path=repo_root, toml_filename=toml_filename, toml_section='tool.autopypath')
-    except TypeError:
+    except AutopypathError:
         return
-    pytest.fail('TOML_013 Expected TypeError when paths has an invalid type of value')
+    pytest.fail('TOML_013 Expected AutopypathError when paths has an invalid type of value')
 
 
 def test_toml_invalid_path_resolution_order_syntax(tmp_path: Path) -> None:
@@ -180,9 +181,9 @@ path_resolution_order = 'should_be_a_list_not_a_string'
 """)
     try:
         _TomlConfig(repo_root_path=repo_root, toml_filename=toml_filename, toml_section='tool.autopypath')
-    except TypeError:
+    except AutopypathError:
         return
-    pytest.fail('TOML_014 Expected TypeError when path_resolution_order has invalid syntax')
+    pytest.fail('TOML_014 Expected AutopypathError when path_resolution_order has invalid syntax')
 
 
 def test_toml_invalid_repo_markers_filename_type(tmp_path: Path) -> None:
@@ -196,9 +197,9 @@ repo_markers = {123='DIR'}
 """)
     try:
         _TomlConfig(repo_root_path=repo_root, toml_filename=toml_filename, toml_section='tool.autopypath')
-    except ValueError:
+    except AutopypathError:
         return
-    pytest.fail('TOML_015 Expected ValueError when repo_markers has an invalid type for the filename')
+    pytest.fail('TOML_015 Expected AutopypathError when repo_markers has an invalid type for the filename')
 
 
 def test_toml_invalid_repo_markers_filename_value(tmp_path: Path) -> None:
@@ -212,9 +213,9 @@ repo_markers = {'*invalid*': 'DIR'}
 """)
     try:
         _TomlConfig(repo_root_path=repo_root, toml_filename=toml_filename, toml_section='tool.autopypath')
-    except ValueError:
+    except AutopypathError:
         return
-    pytest.fail('TOML_016 Expected ValueError when repo_markers has an invalid filename value')
+    pytest.fail('TOML_016 Expected AutopypathError when repo_markers has an invalid filename value')
 
 
 def test_toml_misconfigured_section_name(tmp_path: Path) -> None:
@@ -228,9 +229,9 @@ paths = ['src', 'lib']
 """)
     try:
         _TomlConfig(repo_root_path=repo_root, toml_filename=toml_filename, toml_section='tool..autopypath')
-    except ValueError:
+    except AutopypathError:
         return
-    pytest.fail('TOML_017 Expected ValueError when toml_section has an invalid syntax')
+    pytest.fail('TOML_017 Expected AutopypathError when toml_section has an invalid syntax')
 
 
 def test_toml_incorrect_section_table_syntax(tmp_path: Path) -> None:
@@ -247,9 +248,9 @@ autopypath = 'hello'
 """)
     try:
         _TomlConfig(repo_root_path=repo_root, toml_filename=toml_filename, toml_section='tool.autopypath')
-    except TypeError:
+    except AutopypathError:
         return
-    pytest.fail('TOML_018 Expected ValueError when toml_section is misdefined in the TOML file')
+    pytest.fail('TOML_018 Expected AutopypathError when toml_section is misdefined in the TOML file')
 
 
 def test_toml_repo_markers_table_syntax(tmp_path: Path) -> None:
@@ -263,9 +264,9 @@ repo_markers = ['.git', 'DIR', 'setup.py', 'FILE']
 """)
     try:
         _TomlConfig(repo_root_path=repo_root, toml_filename=toml_filename, toml_section='tool.autopypath')
-    except TypeError:
+    except AutopypathError:
         return
-    pytest.fail('TOML_019 Expected TypeError when repo_markers is not a table/dictionary')
+    pytest.fail('TOML_019 Expected AutopypathError when repo_markers is not a table/dictionary')
 
 
 def test_toml_repo_markers_table_value_type(tmp_path: Path) -> None:
@@ -279,8 +280,9 @@ repo_markers = {'.git'=['should_be_string_not_list']}
 """)
     try:
         config = _TomlConfig(repo_root_path=repo_root, toml_filename=toml_filename, toml_section='tool.autopypath')
-        pytest.fail(f'TOML_020 Expected TypeError when repo_markers has non-string value type: {config.repo_markers}')
-    except TypeError:
+        pytest.fail('TOML_020 Expected AutopypathError when repo_markers has '
+                    f'non-string value type: {config.repo_markers}')
+    except AutopypathError:
         pass
 
 
@@ -344,7 +346,7 @@ repo_markers = {'.git'='dir', 'setup.py'='file'}
 
 
 def test_toml_filename_value(tmp_path: Path) -> None:
-    """Test that providing an invalid toml_filename raises ValueError."""
+    """Test that providing an invalid toml_filename raises AutopypathError."""
     repo_root = tmp_path / 'my_repo'
     repo_root.mkdir()
     toml_filename = 'toml_file.toml '  # Exists, but invalid name due to trailing space
@@ -357,13 +359,13 @@ paths = ['src', 'lib']
     toml_section = 'tool.autopypath'
     try:
         _TomlConfig(repo_root_path=repo_root, toml_filename=toml_filename, toml_section=toml_section)
-    except ValueError:
+    except AutopypathError:
         return
-    pytest.fail('TOML_035 Expected ValueError when toml_filename has invalid value')
+    pytest.fail('TOML_035 Expected AutopypathError when toml_filename has invalid value')
 
 
 def test_toml_filename_type(tmp_path: Path) -> None:
-    """Test that providing a non-string toml_filename raises TypeError."""
+    """Test that providing a non-string toml_filename raises AutopypathError."""
     toml_section = 'tool.autopypath'
 
     # Create a temporary TOML file to satisfy the existence check
@@ -384,13 +386,13 @@ paths = ['src', 'lib']
             toml_filename=bad_toml_filename,  # type: ignore
             toml_section=toml_section,
         )
-    except TypeError:
+    except AutopypathError:
         return
-    pytest.fail('TOML_036 Expected TypeError when toml_filename has invalid type')
+    pytest.fail('TOML_036 Expected AutopypathError when toml_filename has invalid type')
 
 
 def test_tome_filename_not_toml_suffix(tmp_path: Path) -> None:
-    """Test that providing a toml_filename without .toml suffix raises ValueError."""
+    """Test that providing a toml_filename without .toml suffix raises AutopypathError."""
     repo_root = tmp_path / 'my_repo'
     repo_root.mkdir()
     toml_filename = 'config.txt'  # Invalid suffix
@@ -403,13 +405,13 @@ paths = ['src', 'lib']
 
     try:
         _TomlConfig(repo_root_path=repo_root, toml_filename=toml_filename, toml_section=toml_section)
-    except ValueError:
+    except AutopypathError:
         return
-    pytest.fail('TOML_037 Expected ValueError when toml_filename does not have .toml suffix')
+    pytest.fail('TOML_037 Expected AutopypathError when toml_filename does not have .toml suffix')
 
 
 def test_toml_section_cannot_be_empty_string(tmp_path: Path) -> None:
-    """Test that providing an empty string for toml_section raises ValueError."""
+    """Test that providing an empty string for toml_section raises AutopypathError."""
     repo_root = tmp_path / 'my_repo'
     repo_root.mkdir()
     toml_filename = 'toml_file.toml'
@@ -421,13 +423,13 @@ paths = ['src', 'lib']
     bad_toml_section = ''  # Invalid empty string for section name
     try:
         _TomlConfig(repo_root_path=repo_root, toml_filename=toml_filename, toml_section=bad_toml_section)
-    except ValueError:
+    except AutopypathError:
         return
-    pytest.fail('TOML_038 Expected ValueError when toml_section is an empty string')
+    pytest.fail('TOML_038 Expected AutopypathError when toml_section is an empty string')
 
 
 def test_toml_section_type(tmp_path: Path) -> None:
-    """Test that providing a non-string toml_section raises TypeError."""
+    """Test that providing a non-string toml_section raises AutopypathError."""
     repo_root = tmp_path / 'my_repo'
     repo_root.mkdir()
     toml_filename = 'toml_file.toml'
@@ -443,13 +445,13 @@ paths = ['src', 'lib']
             toml_filename=toml_filename,
             toml_section=bad_toml_section,  # type: ignore
         )
-    except TypeError:
+    except AutopypathError:
         return
-    pytest.fail('TOML_039 Expected TypeError when toml_section has invalid type')
+    pytest.fail('TOML_039 Expected AutopypathError when toml_section has invalid type')
 
 
 def test_toml_section_invalid_adjacent_dots(tmp_path: Path) -> None:
-    """Test that providing a toml_section with adjacent special chars raises ValueError."""
+    """Test that providing a toml_section with adjacent special chars raises AutopypathError."""
     repo_root = tmp_path / 'my_repo'
     repo_root.mkdir()
     toml_filename = 'toml_file.toml'
@@ -472,18 +474,19 @@ paths = ['src', 'lib']
     ]:
         try:
             _TomlConfig(repo_root_path=repo_root, toml_filename=toml_filename, toml_section=bad_toml_section)
-        except ValueError:
+        except AutopypathError:
             continue
         bad_passed_sections.append(bad_toml_section)
     if bad_passed_sections:
         bad_items = f'{bad_passed_sections!r}'
         pytest.fail(
-            f'TOML_040 Expected ValueError when toml_section is invalid: {bad_items} unexpectedly passed validation.'
+            'TOML_040 Expected AutopypathError when toml_section is invalid: '
+            f'{bad_items} unexpectedly passed validation.'
         )
 
 
 def test_toml_section_invalid_start_end_chars(tmp_path: Path) -> None:
-    """Test that providing a toml_section with invalid start/end chars raises ValueError."""
+    """Test that providing a toml_section with invalid start/end chars raises AutopypathError."""
     repo_root = tmp_path / 'my_repo'
     repo_root.mkdir()
     toml_filename = 'toml_file.toml'
@@ -493,10 +496,10 @@ paths = ['src', 'lib']
 """)
     try:
         _TomlConfig(repo_root_path=repo_root, toml_filename=toml_filename, toml_section='-tool.autopypath')
-    except ValueError:
+    except AutopypathError:
         return
 
-    pytest.fail('TOML_041 Expected ValueError when toml_section starts with invalid character')
+    pytest.fail('TOML_041 Expected AutopypathError when toml_section starts with invalid character')
 
 
 def test_toml_repo_root_path_is_none() -> None:

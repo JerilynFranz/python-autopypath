@@ -8,6 +8,7 @@ from pathlib import Path
 import pytest
 
 from autopypath._config_py_path._config._dotenv import _DotEnvConfig
+from autopypath._exceptions import AutopypathError
 from autopypath._log import _log
 
 
@@ -25,13 +26,13 @@ def test_dotenv_config_init_no_file(tmp_path: Path) -> None:
 
 
 def test_dotenv_config_init_with_bad_directory() -> None:
-    """Test that DotEnvConfig raises ValueError when provided a non-directory path."""
+    """Test that DotEnvConfig raises AutopypathError when provided a non-directory path."""
     bad_path = Path('non_existent_directory')
 
     try:
         _DotEnvConfig(repo_root_path=bad_path)
-        pytest.fail('DOTENV_006 Expected ValueError when initializing DotEnvConfig with non-directory path')
-    except ValueError:
+        pytest.fail('DOTENV_006 Expected AutopypathError when initializing DotEnvConfig with non-directory path')
+    except AutopypathError:
         pass
 
 
@@ -145,12 +146,12 @@ def test_dotenv_config_with_not_a_file_dotenv(tmp_path: Path, caplog: pytest.Log
         'DOTENV_030 Expected a warning about .env path not being a file'
     )
 
-    # Test strict mode raises ValueError
+    # Test strict mode raises AutopypathError
     try:
         _DotEnvConfig(repo_root_path=tmp_path, strict=True)
-    except ValueError as e:
+    except AutopypathError as e:
         assert str(e).startswith(_DotEnvConfig._NOT_A_FILE_MESSAGE), (
-            'DOTENV_035 Expected ValueError about .env path not being a file in strict mode'
+            'DOTENV_035 Expected AutopypathError about .env path not being a file in strict mode'
         )
 
 

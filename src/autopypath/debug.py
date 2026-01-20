@@ -19,6 +19,7 @@ Otherwise, it is functionally equivalent to importing :mod:`autopypath`.
 This is useful for troubleshooting and understanding the internal workings of autopypath.
 
 .. code-block:: python
+
     import autopypath.debug
     # sys.path was adjusted automatically with debug logging and exceptions enabled
 

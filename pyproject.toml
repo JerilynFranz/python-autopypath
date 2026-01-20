@@ -300,7 +300,7 @@ omit = [
 
 [tool.coverage.report]
 # Regexes for lines to exclude from consideration
-fail_under = 95
+fail_under = 98.0
 exclude_also = [
     # Don't complain about missing debug-only code:
     "if self\\.debug",
