@@ -539,3 +539,17 @@ paths = ["src", "tests"]
     assert str(config.paths[1].name) == 'tests', 'TOML_051 Expected second path to be "tests"'
     assert config.paths[0] == src_path, 'TOML_052 Expected first path to be match the path to src directory'
     assert config.paths[1] == tests_path, 'TOML_053 Expected second path to be match the path to tests directory'
+
+def test_toml_path_cannot_contain_backslashes(tmp_path: Path) -> None:
+    repo_root = tmp_path / 'my_repo'
+    repo_root.mkdir()
+    toml_filename = 'toml_file.toml'
+    toml_path = repo_root / toml_filename
+    toml_path.write_text("""[tool.autopypath]
+paths = ['src\\lib']
+""")
+    try:
+        _TomlConfig(repo_root_path=repo_root, toml_filename=toml_filename, toml_section='tool.autopypath')
+    except AutopypathError:
+        return
+    pytest.fail('TOML_054 Expected AutopypathError when path contains backslashes')

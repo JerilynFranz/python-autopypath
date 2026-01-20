@@ -81,8 +81,6 @@ def configure_pypath(
     *,
     repo_markers: Optional[Mapping[str, RepoMarkerLiterals]] = None,
     paths: Optional[Sequence[Union[Path, str]]] = None,
-    posix_paths: Optional[Sequence[Union[Path, str]]] = None,
-    windows_paths: Optional[Sequence[Union[Path, str]]] = None,
     load_strategy: Optional[LoadStrategyLiterals] = None,
     path_resolution_order: Optional[Sequence[PathResolutionLiterals]] = None,
     log_level: Optional[int] = None,
@@ -98,10 +96,6 @@ def configure_pypath(
     :param Mapping[str, Literal['dir', 'file']] | None repo_markers: A mapping of file or directory names to
         their MarkerType used to identify the repository root.
     :param Sequence[Path | str] | None paths: A sequence of paths to include in the :data:`sys.path`.
-    :param Sequence[Path | str] | None posix_paths: A sequence of POSIX-specific paths to include in
-                        the :data:`sys.path`.
-    :param Sequence[Path | str] | None windows_paths: A sequence of Windows-specific paths to include in
-                        the :data:`sys.path`.
     :param Literal['prepend', 'prepend_highest_priority', 'replace'] | None load_strategy: The strategy
         for loading :data:`sys.path` entries.
     :param Sequence[Literal['manual', 'autopypath', 'pyproject', 'dotenv']] | None path_resolution_order: The order
@@ -140,8 +134,6 @@ def configure_pypath(
             context_file=_context_file,
             repo_markers=repo_markers,
             paths=paths,
-            posix_paths=posix_paths,
-            windows_paths=windows_paths,
             load_strategy=load_strategy,
             path_resolution_order=path_resolution_order,
             log_level=log_level,

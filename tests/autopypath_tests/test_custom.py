@@ -2,6 +2,7 @@
 
 import logging
 import sys
+from pathlib import Path
 
 import pytest
 
@@ -39,8 +40,6 @@ def test_configure_pypath_all_options() -> None:
         configure_pypath(
             repo_markers={'pyproject.toml': 'file', '.git': 'dir'},
             paths=['src', 'lib'],
-            posix_paths=['posix_dir'],
-            windows_paths=['windows_dir'],
             load_strategy='prepend',
             path_resolution_order=['autopypath', 'pyproject'],
             log_level=logging.INFO,
@@ -113,4 +112,25 @@ def test_import_non_main_context() -> None:
 
     finally:
         sys.path = _ORIGINAL_SYS_PATH.copy()
+        sys.modules.pop('autopypath.custom', None)
+
+def test_noop_on_multiple_calls(tmp_path: Path) -> None:
+    """Test that configure_pypath is a no-op on multiple calls."""
+    global __name__
+    try:
+        sys.path = _ORIGINAL_SYS_PATH.copy()
+        sys.modules.pop('autopypath.custom', None)
+        __name__ = '__main__'
+        from autopypath.custom import configure_pypath
+
+        configure_pypath(log_level=logging.DEBUG,
+                         paths=['docs_source'])  # First call - we are using the 'docs_source' path for testing
+        assert sys.path != _ORIGINAL_SYS_PATH, "sys.path should be modified on first call to configure_pypath"
+
+        updated_path = sys.path.copy()
+        configure_pypath(paths=['docs_source'])  # Second call should be a no-op
+        assert sys.path == updated_path, "sys.path should remain unchanged on second call to configure_pypath"
+    finally:
+        sys.path = _ORIGINAL_SYS_PATH.copy()
+        __name__ = _ORIGINAL_NAME
         sys.modules.pop('autopypath.custom', None)

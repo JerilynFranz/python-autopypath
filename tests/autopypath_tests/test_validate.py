@@ -21,7 +21,7 @@ from autopypath._path_resolution import _PathResolution
         PytestAction('CONTEXT_001',
             name='valid context file',
             action=_validate.context_file, args=[__file__],
-            expected=Path(__file__).resolve()),
+            exception=AutopypathError),
         PytestAction('CONTEXT_002',
             name='non-existent context file',
             action=_validate.context_file, args=['non_existent_file.cfg'],
@@ -33,6 +33,14 @@ from autopypath._path_resolution import _PathResolution
         PytestAction('CONTEXT_004',
             name='Context file is a directory',
             action=_validate.context_file, args=[Path('.')],
+            exception=AutopypathError),
+        PytestAction('CONTEXT_005',
+            name='context file as string relative to cwd',
+            action=_validate.context_file, args=['data'],
+            exception=AutopypathError),  # Relative to cwd
+        PytestAction('CONTEXT_006',
+            name='context file as None',
+            action=_validate.context_file, args=[None],
             exception=AutopypathError),
     ])
 def test_context_file(testspec: TestSpec) -> None:

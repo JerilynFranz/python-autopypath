@@ -279,8 +279,6 @@ class _TomlConfig(_Config):
             return None
         try:
             load_strategy = _LoadStrategy(raw_load_strategy)
-        except AutopypathError as e:
-            raise AutopypathError(f'Invalid load_strategy: {raw_load_strategy}') from e
         except ValueError as e:
             raise AutopypathError(f'Invalid load_strategy: {raw_load_strategy}') from e
 

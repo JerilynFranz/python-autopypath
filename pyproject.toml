@@ -419,16 +419,13 @@ docstring-code-line-length = "dynamic"
 repo_markers = { 'pyproject.toml' = 'file', '.git' = 'dir', '.hg' = 'dir' }
 
 # Additional paths to add to sys.path relative to the repo root.
-#
+# Paths must be specified as relative paths (POSIX-style, eg. 'src/main.py')
+# from the repository root.
+# Multiple paths can be specified.
 # Default is ['src', 'tests'] if not specified.
 #
 paths = ['src', 'tests']
 
-# Override paths based on platform. This is optional and can be omitted.
-# The paths specified here will be added instead of the general paths on
-# the respective platforms.
-# posix_paths = ['src', 'lib/posix']  # POSIX systems
-# windows_paths = ['src', 'lib\windows', "otherlib\\windows"]  # Windows systems
 
 # Strategy for handling multiple PYTHONPATH sources.
 # Options:

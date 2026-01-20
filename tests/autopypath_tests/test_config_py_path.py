@@ -7,7 +7,8 @@ from pathlib import Path
 
 import pytest
 
-from autopypath import _defaults as defaults, AutopypathError
+from autopypath import AutopypathError
+from autopypath import _defaults as defaults
 from autopypath._config_py_path._config_py_path import _EMPTY_AUTOPYPATH_CONFIG, _NON_RESOLVABLE_SYS_PATH, _ConfigPyPath
 from autopypath._types import _NoPath
 
@@ -70,7 +71,7 @@ repo_markers = {".git" = "dir", "setup.py" = "file"}
 paths=["src", "tests"]
 """)
     config = _ConfigPyPath(
-        context_file=str(root_path / 'some_file.txt'),
+        context_file=root_path / 'some_file.txt',
         dry_run=True,
     )
     autopypath_config = config.autopypath_config
@@ -121,7 +122,7 @@ def test_default_config(tmp_path: Path) -> None:
 """)
 
     config = _ConfigPyPath(
-        context_file=str(root_path / 'some_file.txt'),
+        context_file=root_path / 'some_file.txt',
         dry_run=True,
     )
 
@@ -151,7 +152,7 @@ def test_no_pyproject_toml_file(tmp_path: Path) -> None:
     git_path.mkdir()
 
     config = _ConfigPyPath(
-        context_file=str(root_path / 'some_file.txt'),
+        context_file=root_path / 'some_file.txt',
         dry_run=True,
     )
 
@@ -178,7 +179,7 @@ def test_empty_pyproject_config(tmp_path: Path) -> None:
 [tool.some_other_tool]
 """)
     config = _ConfigPyPath(
-        context_file=str(root_path / 'some_file.txt'),
+        context_file=root_path / 'some_file.txt',
         dry_run=True,
     )
 
@@ -223,7 +224,7 @@ repo_markers = {".git" = "dir", "setup.py" = "file"}
 paths=["src", "tests"]
 """)
     config = _ConfigPyPath(
-        context_file=str(root_path / 'some_file.txt'),
+        context_file=root_path / 'some_file.txt',
         dry_run=True,
     )
     pyproject_config = config.pyproject_config
@@ -276,7 +277,7 @@ def test_no_autopypath_toml_file(tmp_path: Path) -> None:
 [tool.some_other_tool]
 """)
     config = _ConfigPyPath(
-        context_file=str(root_path / 'some_file.txt'),
+        context_file=root_path / 'some_file.txt',
         dry_run=True,
     )
 
@@ -307,7 +308,7 @@ def test_no_dotenv_file(tmp_path: Path) -> None:
 [tool.some_other_tool]
 """)
     config = _ConfigPyPath(
-        context_file=str(root_path / 'some_file.txt'),
+        context_file=root_path / 'some_file.txt',
         dry_run=True,
     )
     dotenv_config = config.dotenv_config
@@ -337,7 +338,7 @@ def test_empty_dotenv_config(tmp_path: Path) -> None:
 SOME_OTHER_ENV_VAR=some_value
 """)
     config = _ConfigPyPath(
-        context_file=str(root_path / 'some_file.txt'),
+        context_file=root_path / 'some_file.txt',
         dry_run=True,
     )
     dotenv_config = config.dotenv_config
@@ -373,7 +374,7 @@ def test_configured_dotenv_config(tmp_path: Path) -> None:
 PYTHONPATH=src:tests
 """)
     config = _ConfigPyPath(
-        context_file=str(root_path / 'some_file.txt'),
+        context_file=root_path / 'some_file.txt',
         dry_run=True,
     )
     dotenv_config = config.dotenv_config
@@ -416,7 +417,7 @@ def test_manual_config(tmp_path: Path) -> None:
     hg_path.mkdir()
 
     config = _ConfigPyPath(
-        context_file=str(root_path / 'some_file.txt'),
+        context_file=root_path / 'some_file.txt',
         dry_run=True,
         load_strategy='prepend',
         path_resolution_order=['manual', 'autopypath'],
@@ -467,7 +468,7 @@ def test_replace_strategy_live(tmp_path: Path) -> None:
     sys_path_before: list[str] = sys.path.copy()
     try:
         _ConfigPyPath(
-            context_file=str(root_path / 'some_file.txt'),
+            context_file=root_path / 'some_file.txt',
             load_strategy='replace',
             path_resolution_order=['manual'],
             paths=['src', 'tests'],
@@ -486,7 +487,7 @@ def test_replace_strategy_live(tmp_path: Path) -> None:
         src_path.mkdir()
 
         _ConfigPyPath(
-            context_file=str(root_path / 'some_file.txt'),
+            context_file=root_path / 'some_file.txt',
             load_strategy='replace',
             path_resolution_order=['manual'],
             paths=['src', 'tests'],
@@ -522,7 +523,7 @@ def test_prepend_strategy_live(tmp_path: Path) -> None:
     sys_path_before: list[str] = sys.path.copy()
     try:
         _ConfigPyPath(
-            context_file=str(root_path / 'some_file.txt'),
+            context_file=root_path / 'some_file.txt',
             load_strategy='prepend',
             path_resolution_order=['manual'],
             paths=['src', 'tests'],
@@ -541,7 +542,7 @@ def test_prepend_strategy_live(tmp_path: Path) -> None:
         src_path.mkdir()
 
         _ConfigPyPath(
-            context_file=str(root_path / 'some_file.txt'),
+            context_file=root_path / 'some_file.txt',
             load_strategy='prepend',
             path_resolution_order=['manual'],
             paths=['src', 'tests'],
@@ -580,7 +581,7 @@ def test_prepend_highest_priority_strategy_live(tmp_path: Path) -> None:
     sys_path_before: list[str] = sys.path.copy()
     try:
         _ConfigPyPath(
-            context_file=str(root_path / 'some_file.txt'),
+            context_file=root_path / 'some_file.txt',
             load_strategy='prepend_highest_priority',
             path_resolution_order=['manual'],
             paths=['src', 'tests'],
@@ -603,7 +604,7 @@ def test_prepend_highest_priority_strategy_live(tmp_path: Path) -> None:
         src_path.mkdir()
 
         _ConfigPyPath(
-            context_file=str(root_path / 'some_file.txt'),
+            context_file=root_path / 'some_file.txt',
             load_strategy='prepend_highest_priority',
             path_resolution_order=['manual'],
             paths=['src', 'tests'],
@@ -644,7 +645,7 @@ paths=["tests"]
         tests_path.mkdir()
 
         _ConfigPyPath(
-            context_file=str(root_path / 'some_file.txt'),
+            context_file=root_path / 'some_file.txt',
             load_strategy='prepend_highest_priority',
             path_resolution_order=['manual', 'autopypath'],
             paths=['src'],
@@ -690,7 +691,7 @@ paths=["src", "tests"]
 """)
     try:
         _ConfigPyPath(
-            context_file=str(root_path / 'some_file.txt'),
+            context_file=root_path / 'some_file.txt',
             dry_run=True,
             strict=True,
         )
@@ -701,7 +702,7 @@ paths=["src", "tests"]
     # Now test that a warning is logged for non-strict mode
     caplog.clear()
     _ConfigPyPath(
-        context_file=str(root_path / 'some_file.txt'),
+        context_file=root_path / 'some_file.txt',
         dry_run=True,
         strict=False,
     )
@@ -729,7 +730,7 @@ paths = ["symlinked_path"]
     try:
         sys.path = _ORIGINAL_SYS_PATH.copy()
         _ConfigPyPath(
-            context_file=str(root_path / 'some_file.txt'),
+            context_file=root_path / 'some_file.txt',
         )
         new_path_entry = str((root_path / 'symlinked_path').resolve())
         assert new_path_entry in sys.path, 'SYMLINKED_PATHS_001 The resolved symlinked path should be in sys.path'
@@ -741,7 +742,7 @@ paths = ["symlinked_path"]
     try:
         sys.path = _ORIGINAL_SYS_PATH.copy()
         _ConfigPyPath(
-            context_file=str(root_path / 'some_file.txt'),
+            context_file=root_path / 'some_file.txt',
         )
         new_path_entry = str((root_path / 'symlinked_path').resolve())
         assert new_path_entry not in sys.path, (
@@ -767,7 +768,7 @@ def test_non_resolvable_sys_path_entry(tmp_path: Path, caplog: pytest.LogCapture
         sys.path = _ORIGINAL_SYS_PATH.copy() + [bogus_path]
         caplog.clear()
         _ConfigPyPath(
-            context_file=str(root_path / 'some_file.txt'),
+            context_file=root_path / 'some_file.txt',
             log_level=logging.DEBUG,
         )
         messages = [record.message for record in caplog.records]
@@ -793,7 +794,7 @@ def test_non_file_autopypath_toml(tmp_path: Path) -> None:
     try:
         sys.path = _ORIGINAL_SYS_PATH.copy()
         config = _ConfigPyPath(
-            context_file=str(context_file),
+            context_file=context_file,
         )
         autopypath_config = config.autopypath_config
         assert autopypath_config == _EMPTY_AUTOPYPATH_CONFIG, (
@@ -807,7 +808,7 @@ def test_non_file_autopypath_toml(tmp_path: Path) -> None:
     try:
         sys.path = _ORIGINAL_SYS_PATH.copy()
         _ConfigPyPath(
-            context_file=str(context_file),
+            context_file=context_file,
             strict=True,
         )
         pytest.fail(
@@ -852,7 +853,7 @@ def test_restore_sys_path(tmp_path: Path) -> None:
     try:
         sys.path = _ORIGINAL_SYS_PATH.copy()
         config = _ConfigPyPath(
-            context_file=str(context_file),
+            context_file=context_file,
             load_strategy='prepend',
             path_resolution_order=['manual'],
             paths=['src'],
@@ -873,7 +874,7 @@ def test_restore_sys_path(tmp_path: Path) -> None:
     try:
         sys.path = _ORIGINAL_SYS_PATH.copy()
         config = _ConfigPyPath(
-            context_file=str(context_file),
+            context_file=context_file,
             load_strategy='prepend',
             path_resolution_order=['manual'],
             paths=['src'],
@@ -908,7 +909,7 @@ def test_updated_sys_path_property(tmp_path: Path) -> None:
     try:
         sys.path = _ORIGINAL_SYS_PATH.copy()
         config = _ConfigPyPath(
-            context_file=str(context_file),
+            context_file=context_file,
             load_strategy='prepend',
             path_resolution_order=['manual'],
             paths=['src'],
@@ -976,7 +977,7 @@ PYTHONPATH=dotenv_src
 """)
 
     config = _ConfigPyPath(
-        context_file=str(root_path / 'some_file.txt'),
+        context_file=root_path / 'some_file.txt',
         load_strategy='prepend',
         path_resolution_order=['manual', 'autopypath', 'pyproject', 'dotenv'],
         paths=['manual_src'],
@@ -1007,7 +1008,7 @@ PYTHONPATH=dotenv_src
 
     # reverse the order to verify it wasn't a fluke
     config = _ConfigPyPath(
-        context_file=str(root_path / 'some_file.txt'),
+        context_file=root_path / 'some_file.txt',
         load_strategy='prepend',
         path_resolution_order=['dotenv', 'pyproject', 'autopypath', 'manual'],
         paths=['manual_src'],
@@ -1036,7 +1037,7 @@ PYTHONPATH=dotenv_src
     # Finally, test with only autopypath.toml and pyproject.toml configs
     # manual and dotenv configs are not in the resolution order
     config = _ConfigPyPath(
-        context_file=str(root_path / 'some_file.txt'),
+        context_file=root_path / 'some_file.txt',
         load_strategy='prepend',
         path_resolution_order=['autopypath', 'pyproject'],
         repo_markers={'.git': 'dir'},
@@ -1090,7 +1091,7 @@ repo_markers = {".git" = "dir"}
 paths=["src"]
 """)
     config = _ConfigPyPath(
-        context_file=str(root_path / 'some_file.txt'),
+        context_file=root_path / 'some_file.txt',
         load_strategy='prepend_highest_priority',
         path_resolution_order=['manual', 'autopypath', 'pyproject'],
         dry_run=True,
@@ -1105,7 +1106,7 @@ paths=["src"]
 
     # autopypath.toml config should winner as second precedence without a manual load_strategy
     config = _ConfigPyPath(
-        context_file=str(root_path / 'some_file.txt'),
+        context_file=root_path / 'some_file.txt',
         path_resolution_order=['autopypath', 'pyproject'],
         dry_run=True,
         paths=['src'],
@@ -1127,7 +1128,7 @@ repo_markers = {".git" = "dir"}
 paths=["src"]
 """)
     config = _ConfigPyPath(
-        context_file=str(root_path / 'some_file.txt'),
+        context_file=root_path / 'some_file.txt',
         path_resolution_order=['autopypath', 'pyproject'],
         dry_run=True,
         paths=['src'],
@@ -1144,7 +1145,7 @@ paths=["src"]
 
     # default load_strategy should be winner without manual, autopypath, or pyproject load_strategy
     config = _ConfigPyPath(
-        context_file=str(root_path / 'some_file.txt'),
+        context_file=root_path / 'some_file.txt',
         path_resolution_order=['autopypath', 'pyproject'],
         dry_run=True,
         paths=['src'],
@@ -1188,7 +1189,7 @@ repo_markers = {".git" = "dir"}
 paths=["src"]
 """)
     config = _ConfigPyPath(
-        context_file=str(root_path / 'some_file.txt'),
+        context_file=root_path / 'some_file.txt',
         path_resolution_order=['manual', 'autopypath', 'pyproject'],
         dry_run=True,
         paths=['src'],
@@ -1201,7 +1202,7 @@ paths=["src"]
     )
     # autopypath.toml config should winner as second precedence without a manual path_resolution_order
     config = _ConfigPyPath(
-        context_file=str(root_path / 'some_file.txt'),
+        context_file=root_path / 'some_file.txt',
         path_resolution_order=['autopypath', 'pyproject'],
         dry_run=True,
         paths=['src'],
@@ -1214,7 +1215,7 @@ paths=["src"]
     # pyproject.toml config should be winner as third precedence without manual or autopypath path_resolution_order
     autopypath_path.unlink()  # Remove autopypath.toml to test pyproject.toml precedence
     config = _ConfigPyPath(
-        context_file=str(root_path / 'some_file.txt'),
+        context_file=root_path / 'some_file.txt',
         path_resolution_order=['pyproject'],
         dry_run=True,
         paths=['src'],
@@ -1226,7 +1227,7 @@ paths=["src"]
     # finally, defaults should be winner without any path_resolution_order configured
     pyproject_path.unlink()  # Remove pyproject.toml to test default precedence
     config = _ConfigPyPath(
-        context_file=str(root_path / 'some_file.txt'),
+        context_file=root_path / 'some_file.txt',
         dry_run=True,
         paths=['src'],
         repo_markers={'.git': 'dir'},

@@ -155,13 +155,20 @@ def context_file(value: Any) -> Path:
     :raises AutopypathError: If the file does not exist or is not a file.
     :raises AutopypathError: If the path is invalid.
     """
-    if isinstance(value, Path):
+    try:
+        if isinstance(value, Path):
+            _log.debug('Validating context file path: %s', value)
+        elif isinstance(value, str):
+            value = validate_path_or_str(value)
+            value = Path(value)
         _log.debug('Validating context file path: %s', value)
-    elif isinstance(value, str):
-        value = Path(value)
-        _log.debug('Validating context file path: %s', value)
-    if not value.exists() or not value.is_file():
-        raise AutopypathError(f'Context file does not exist or is not a file: {value}')
+        if not value.exists() or not value.is_file():
+            raise AutopypathError(f'Context file does not exist or is not a file: {value}')
+    except AutopypathError:
+        raise
+    except BaseException as e:
+        raise AutopypathError(f'Invalid context file path: {e}') from e
+
     return value
 
 
@@ -367,9 +374,6 @@ def validate_path_or_str(path: Union[Path, str]) -> Path:
         raise AutopypathError('Invalid path item: path cannot be only forward slashes')
     validated_path = _normalize_path_string_to_platform(item_str) if isinstance(path, str) else path
     for offset, segment in enumerate(validated_path.parts):
-        if offset == 0 and segment.endswith(':'):
-            # Skip drive letter for Windows even on non-Windows platforms
-            continue
         if offset == 0 and segment == '/':
             # Skip root '/' for POSIX even on non-POSIX platforms
             continue

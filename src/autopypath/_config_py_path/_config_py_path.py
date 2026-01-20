@@ -54,8 +54,6 @@ class _ConfigPyPath:
         context_file: Union[Path, str],
         repo_markers: Optional[Mapping[str, RepoMarkerLiterals]] = None,
         paths: Optional[Sequence[Union[Path, str]]] = None,
-        posix_paths: Optional[Sequence[Union[Path, str]]] = None,
-        windows_paths: Optional[Sequence[Union[Path, str]]] = None,
         load_strategy: Optional[LoadStrategyLiterals] = None,
         path_resolution_order: Optional[Sequence[PathResolutionLiterals]] = None,
         dry_run: bool = False,
@@ -75,6 +73,8 @@ class _ConfigPyPath:
         `AutopypathError` if the inputs are invalid.
 
         :param Path | str context_file: The file path of the script that is configuring the Python path.
+            If passed as a string, it must be passed as a POSIX-style relative path (e.g., "src/main.py").
+            If passed as a Path, it can be either absolute or relative.
         :param Mapping[str, MarkerType | Literal['dir', 'file']] | None repo_markers: (default: ``None``) A
             dictionary where keys are filenames or directory names that indicate the repository root.
             The values should be `file` or `dir`. It is case-sensitive.
@@ -85,18 +85,6 @@ class _ConfigPyPath:
             the repo root to add to :data:`sys.path`.
 
             If ``None``, defaults to :var:`~autopypath.defaults.PATHS`.
-
-        :param Sequence[Path | str] | None posix_paths: (default: ``None``) A list of Path objects or strings
-            relative to the repo root to add to :data:`sys.path` only on POSIX systems.
-            These override the paths in `paths` (only on POSIX systems) if provided.
-
-            If ``None``, the paths in `paths` are used on POSIX systems.
-
-        :param Sequence[Path | str] | None windows_paths: (default: ``None``) A list of Path objects or strings
-            relative to the repo root to add to :data:`sys.path` only on Windows systems.
-            These override the paths in `paths` (only on Windows systems) if provided.
-
-            If ``None``, the paths in `paths` are used on Windows systems.
 
         :param LoadStrategy | Literal['prepend', 'prepend_highest_priority', 'replace'] | None load_strategy: (default:
             ``None``) The strategy for handling multiple :data:`sys.path` sources.
