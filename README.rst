@@ -4,13 +4,12 @@ autopypath
 Table of Contents
 -----------------
 
-    `Usage <https://python-autopypath.readthedocs.io/en/latest/usage.html>`
-    `Configuration <https://python-autopypath.readthedocs.io/en/latest/configuration.html>` 
-    `Contributing <https://python-autopypath.readthedocs.io/en/latest/contributing.html>`
-    `Code of Conduct <https://python-autopypath.readthedocs.io/en/latest/code_of_conduct.html>`
-    `Index <https://python-autopypath.readthedocs.io/en/latest/genindex.html>`
-    `Module Index <hhttps://python-autopypath.readthedocs.io/en/latest/py-modindex.html>`
-    `Source <https://python-autopypath.readthedocs.io/en/latest/source/modules.html>`
+- `Usage <https://python-autopypath.readthedocs.io/en/latest/usage.html>`_
+- `Configuration <https://python-autopypath.readthedocs.io/en/latest/configuration.html>`_
+- `Contributing <https://python-autopypath.readthedocs.io/en/latest/contributing.html>`_
+- `Code of Conduct <https://python-autopypath.readthedocs.io/en/latest/code_of_conduct.html>`_
+- `Index <https://python-autopypath.readthedocs.io/en/latest/genindex.html>`_
+- `Module Index <hhttps://python-autopypath.readthedocs.io/en/latest/py-modindex.html>`_
 
 What is autopypath?
 --------------------
