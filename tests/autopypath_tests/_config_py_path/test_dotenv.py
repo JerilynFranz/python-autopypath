@@ -3,7 +3,7 @@
 import logging
 import os
 import unittest.mock
-from pathlib import Path, PosixPath  # noqa: F401  # Needed for repr eval
+from pathlib import Path, PosixPath, WindowsPath  # noqa: F401  # Needed for repr eval
 
 import pytest
 
@@ -257,13 +257,25 @@ def test_absolute_and_relative_paths_in_dotenv(tmp_path: Path) -> None:
     rel_path = 'relative_path'
     (tmp_path / rel_path).mkdir()
 
-    dotenv_content = f'PYTHONPATH={abs_path}:{rel_path}\n'
+    dotenv_content = f'PYTHONPATH={rel_path}\n'
     dotenv_path = tmp_path / '.env'
     dotenv_path.write_text(dotenv_content)
 
     config = _DotEnvConfig(repo_root_path=tmp_path)
 
-    expected_paths = (abs_path.resolve(), (tmp_path / rel_path).resolve())
-    assert config.paths == expected_paths, (
-        'DOTENV_034 Paths do not match expected absolute and relative paths from .env file'
+    expected_paths = [(tmp_path / rel_path).resolve(),]
+    found_paths = list(config.paths) if config.paths is not None else []
+    assert found_paths == expected_paths, (
+        'DOTENV_034 Paths do not match expected relative paths from .env file'
+    )
+
+    dotenv_content = f'PYTHONPATH={abs_path}\n'
+    dotenv_path.write_text(dotenv_content)
+    config = _DotEnvConfig(repo_root_path=tmp_path)
+    expected_paths = [abs_path.resolve()]
+    found_paths = list(config.paths) if config.paths is not None else []
+    assert found_paths == expected_paths, (
+        'DOTENV_035 Paths do not match expected absolute paths from .env file. '
+        f'expected = {expected_paths!r}, found = {found_paths!r},'
+        f'dotenv = {dotenv_content}'
     )

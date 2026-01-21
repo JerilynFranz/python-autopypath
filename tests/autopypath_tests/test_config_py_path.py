@@ -1,6 +1,7 @@
 """Tests for :mod:`autopypath._config_py_path._config_py_path`."""
 
 import logging
+import os
 import sys
 from collections.abc import Sequence
 from pathlib import Path
@@ -714,6 +715,8 @@ paths=["src", "tests"]
 
 def test_symlinked_paths(tmp_path: Path) -> None:
     """Test Config with symlinked paths."""
+    if os.name == 'nt':
+        pytest.skip('SYMLINKED_PATHS tests are skipped on Windows due to symlink permission issues.')
     root_path = tmp_path / 'repo'
     root_path.mkdir()
     root_path.joinpath('some_file.txt').write_text('Just a test file.')

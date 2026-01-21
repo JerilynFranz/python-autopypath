@@ -1,5 +1,5 @@
 from collections.abc import Sequence
-from pathlib import Path, PosixPath  # noqa: F401  # Needed for repr eval
+from pathlib import Path, PosixPath, WindowsPath  # noqa: F401  # Needed for repr eval
 
 import pytest
 

@@ -2,7 +2,7 @@
 
 Use by importing the module and calling the desired validation function.
 
-The validation functions raise `AutopypathError` or `AutopypathError` if the input
+The validation functions raise `AutopypathError` if the input
 is invalid.
 
 They return the validated and possibly transformed value if valid."""
@@ -15,13 +15,13 @@ from posixpath import pathsep as posix_pathsep
 from types import MappingProxyType
 from typing import Any, Union
 
-__all__ = []
-
 from ._exceptions import AutopypathError
 from ._load_strategy import _LoadStrategy, resolve_load_strategy_literal
 from ._log import _log
 from ._marker_type import _MarkerType, resolve_marker_type_literal
 from ._path_resolution import _PathResolution, resolve_path_resolution_literal
+
+__all__: Sequence[str] = []  # No exports; functions are used internally.
 
 _MAX_FILE_DIR_NAME_LENGTH: int = 64
 """Maximum length for file or directory names.
@@ -376,6 +376,9 @@ def validate_path_or_str(path: Union[Path, str]) -> Path:
     for offset, segment in enumerate(validated_path.parts):
         if offset == 0 and segment == '/':
             # Skip root '/' for POSIX even on non-POSIX platforms
+            continue
+        if offset == 0 and (re.match(r'^[A-Za-z]:$', segment) or re.match(r'^[A-Za-z]:\\$', segment)):
+            # Skip Windows drive letter root even on non-Windows platforms
             continue
         validate_file_or_dir_name(segment)
     return validated_path

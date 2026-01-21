@@ -9,7 +9,7 @@ initializes correctly and that __repr__ and __str__ methods work as expected for
 """
 
 from collections.abc import Sequence
-from pathlib import Path, PosixPath  # noqa: F401  # Needed for repr eval
+from pathlib import Path, PosixPath, WindowsPath  # noqa: F401  # Needed for repr eval
 
 from autopypath._config_py_path._config._config import _Config
 from autopypath._config_py_path._config._pyproject import _PyProjectConfig

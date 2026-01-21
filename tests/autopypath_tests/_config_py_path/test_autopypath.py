@@ -8,7 +8,7 @@ Since the main logic is in TomlConfig, these tests just ensure that AutopypathCo
 initializes correctly and that __repr__ and __str__ methods work as expected for the subclass.
 """
 
-from pathlib import Path, PosixPath  # noqa: F401  # Needed for repr eval
+from pathlib import Path, PosixPath, WindowsPath  # noqa: F401  # Needed for repr eval
 
 from autopypath._config_py_path._config._autopypath import _AutopypathConfig
 from autopypath._config_py_path._config._config import _Config

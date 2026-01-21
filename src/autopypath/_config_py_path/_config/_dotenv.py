@@ -1,6 +1,6 @@
 """Config from dotenv files for autopypath."""
 
-import os
+import re
 from ntpath import pathsep as nt_pathsep
 from pathlib import Path
 from posixpath import pathsep as posix_pathsep
@@ -71,6 +71,85 @@ class _DotEnvConfig(_Config):
         paths = self._dotenv_pythonpaths(repo_root=self._repo_root_path, dotenv_path=self._dotenv_path)
         super().__init__(repo_markers=None, paths=paths, load_strategy=None, path_resolution_order=None, strict=strict)
 
+    def _determine_separator(self, value: str) -> Union[str, None]:
+        """
+        Heuristically determines the path separator in a PYTHONPATH string by scoring patterns.
+        This is platform-agnostic.
+
+        :param str value: The PYTHONPATH string from the .env file.
+        :return: The determined separator (';' or ':'), None for a single path,
+                 or a sentinel object for an ambiguous path.
+        """
+        # Scores for nt (;) vs posix (:) separators
+        nt_score = 0
+        posix_score = 0
+
+        # Pattern matching to adjust scores
+        # `C:\` at the start is a very strong indicator of a windows path component.
+
+        nt_drive_letter_list_count: int = 0
+        if re.search(r"^[a-zA-Z]:[\\/]", value):
+            nt_drive_letter_list_count += 1
+
+        # Count `;` followed by a drive letter as a strong indicator of a windows path list.
+        nt_drive_letter_list_count += len(re.findall(r";[a-zA-Z]:[\\/]", value))
+
+        # Adjust scores based on found nt drive letter patterns
+        nt_score += nt_drive_letter_list_count * 4
+
+        posix_score -= nt_drive_letter_list_count  # Correct for colon in drive letter
+
+        # `/` at the start is a strong indicator of a posix path.
+        posix_absolute_path_count: int = 0
+        if value.startswith('/'):
+            posix_absolute_path_count += 1
+
+        # Count `:/` as a strong indicator of a posix path list.
+        posix_absolute_path_count += len(re.findall(r":/", value))
+
+        # Adjust scores based on found posix absolute path patterns
+        posix_score += posix_absolute_path_count * 4
+
+        # Count backslashes as a strong indicator of an NT path, but avoid double-counting.
+        # Subtract backslashes that are already part of the scored drive-letter patterns.
+        backslash_count = value.count('\\') - nt_drive_letter_list_count
+
+        # Adjust score based on corrected backslash count
+        nt_score += max(0, backslash_count) * 2
+
+        # Presence of separators as a weaker indicator
+        nt_count = value.count(nt_pathsep)
+        posix_count = value.count(posix_pathsep)
+
+        if nt_count > 0:
+            nt_score += 1
+        if posix_count > 0:
+            posix_score += 1
+
+        _log.debug('Separator determination scores: NT=%d, POSIX=%d', nt_score, posix_score)
+
+        # Determine the winner
+        if nt_score > posix_score:
+            return nt_pathsep
+        if posix_score > nt_score:
+            # If we think it's posix, but it looks like a single windows path, it's not a separator.
+            if re.match(r"^[a-zA-Z]:[\\/]", value) and posix_count == 1:
+                return None
+            return posix_pathsep
+
+        # Handle ties or ambiguity
+        if nt_score > 0 and nt_score == posix_score:
+            _log.warning(
+                'Ambiguous PYTHONPATH in .env: contains patterns for both Windows (;) and POSIX (:) separators. '
+                'Falling back to separator count to break the tie. PYTHONPATH="%s"',
+                value,
+            )
+            # As a final tie-breaker, prefer the separator that appears more often.
+            return nt_pathsep if value.count(nt_pathsep) > value.count(posix_pathsep) else posix_pathsep
+
+        # If scores are both 0, it's likely a single path with no separator.
+        return None
+
     def _dotenv_pythonpaths(self, *, repo_root: Path, dotenv_path: Path) -> Union[tuple[Path, ...], None]:
         """Parses PYTHONPATH from the .env file and returns the list of directory paths as a tuple.
 
@@ -82,37 +161,43 @@ class _DotEnvConfig(_Config):
         """
         pythonpath_value = dotenv.get_key(dotenv_path, 'PYTHONPATH', encoding='utf-8')
         _log.info('Read PYTHONPATH from .env file at %s: PYTHONPATH=%s', dotenv_path, pythonpath_value)
-        if pythonpath_value is None:
-            _log.info('PYTHONPATH not set in .env file at %s', dotenv_path)
+        if not pythonpath_value:
+            _log.info('PYTHONPATH not set or is empty in .env file at %s', dotenv_path)
             return None
-        has_posix_pathsep: bool = posix_pathsep in pythonpath_value
-        has_nt_pathsep: bool = nt_pathsep in pythonpath_value
-        is_nt: bool = os.name == 'nt'
-        is_posix: bool = os.name == 'posix'
 
-        if is_nt and has_posix_pathsep:
-            _log.info(self._FOUND_POSIX_SEP_MESSAGE)
-        elif is_posix and has_nt_pathsep:
-            _log.info(self._FOUND_NT_SEP_MESSAGE)
+        separator: Union[str, None] = self._determine_separator(pythonpath_value)
+        _log.debug('Determined path separator to be %r', separator)
 
-        python_path_str = pythonpath_value.strip()
-
-        subdirs_to_add = []
-        if python_path_str:
-            _log.debug('PYTHONPATH from environment: %s', python_path_str)
-            normalized_path = python_path_str.replace(posix_pathsep, os.pathsep).replace(nt_pathsep, os.pathsep)
-            subdirs_to_add = [p.strip() for p in normalized_path.split(os.pathsep) if p]
+        segments = pythonpath_value.split(separator) if separator is not None else [pythonpath_value]
 
         paths: list[Path] = []
-        for subdir in subdirs_to_add:
-            subdir_path = Path(subdir)
-            if not subdir_path.is_absolute():
-                subdir_path = repo_root / subdir_path
-            paths.append(subdir_path.resolve())
+        for seg in segments:
+            seg = seg.strip()
+            if not seg:
+                continue
+
+            if re.search(r'["\']', seg):
+                _log.warning(
+                    'Quotes detected in PYTHONPATH segment: %r. '
+                    'Quotes are not typically used in .env files and may indicate incorrect path parsing.',
+                    seg,
+                )
+
+            seg_path = Path(seg)
+            if seg_path.is_absolute():
+                _log.warning(
+                    'Absolute path detected in PYTHONPATH segment: %r. '
+                    'Absolute paths are not supported. Skipping.',
+                    seg,
+                )
+                continue
+
+            # Path is relative, resolve it against the repo root.
+            full_path = (repo_root / seg_path).resolve()
+            paths.append(full_path)
+
         _log.debug('Resolved PYTHONPATH directories from .env: %s', paths)
-        if not paths:
-            return None
-        return tuple(paths)
+        return tuple(paths) if paths else None
 
     def __repr__(self) -> str:
         """String representation of the DefaultConfig object.
