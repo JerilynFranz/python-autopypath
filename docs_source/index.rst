@@ -31,6 +31,9 @@ with popular testing frameworks like `pytest <https://docs.pytest.org/en/stable/
 `unittest <https://docs.python.org/3/library/unittest.html>`_,
 and supports standard project structures out of the box as well as custom configurations.
 
+It does *not* use `PYTHONPATH`` from `.env` files because there is no way to reliably parse it
+in cross-platform environments and they are not designed for this purpose.
+
 It is not a replacement for `virtual environments <https://docs.python.org/3/library/venv.html>`_ but
 rather a tool to dynamically adjust :data:`sys.path` in tests or scripts on load, making it easier
 to work with possibly broken build or development setups where the testing framework cannot be run
@@ -106,21 +109,33 @@ make it work.
 It automatically resolves the paths based on the configuration files and adds
 them to :data:`sys.path` before running the tests.
 
-Configuration
--------------
+
+Configuring
+-----------
 
 If you already use `pyproject.toml <https://packaging.python.org/en/latest/guides/writing-pyproject-toml/>`_ to define
 your project structure, autopypath has first-class support for it and will automatically
 detect it and use a ``[tool.autopypath]`` section if present to configure itself.
 
+Example:
+
+.. code-block:: toml
+    :caption: pyproject.toml
+
+      [tool.autopypath]
+      paths = ['lib', 'src/tests', '.']
+
 If you do not use `pyproject.toml <https://packaging.python.org/en/latest/guides/writing-pyproject-toml/>`_ or
 want to have a separate configuration file, you can create an `autopypath.toml` file in the root of your project
-using the same configuration format.
+or in any parent directory (inside the repo and containing your scripts) to configure autopypath.
+
+It is cross-platform and works reliably on Windows, macOS, and Linux.
 
 Example:
 
     .. code-block:: toml
+      :caption: autopypath.toml
 
         [tool.autopypath]
         repo_markers = {".git" = "dir"}
-        paths = ["src", "lib"]
+        paths = ["src", "src/lib", "tests"]

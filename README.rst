@@ -9,7 +9,7 @@ Table of Contents
 - `Contributing <https://python-autopypath.readthedocs.io/en/latest/contributing.html>`_
 - `Code of Conduct <https://python-autopypath.readthedocs.io/en/latest/code_of_conduct.html>`_
 - `Index <https://python-autopypath.readthedocs.io/en/latest/genindex.html>`_
-- `Module Index <hhttps://python-autopypath.readthedocs.io/en/latest/py-modindex.html>`_
+- `Module Index <https://python-autopypath.readthedocs.io/en/latest/py-modindex.html>`_
 
 What is autopypath?
 --------------------
@@ -21,6 +21,9 @@ in the project's root directory, works
 with popular testing frameworks like `pytest <https://docs.pytest.org/en/stable/>`_ and
 `unittest <https://docs.python.org/3/library/unittest.html>`_,
 and supports standard project structures out of the box as well as custom configurations.
+
+It does *not* use `PYTHONPATH`` from `.env` files because there is no way to reliably parse it
+in cross-platform environments and they are not designed for this purpose.
 
 It is not a replacement for `virtual environments <https://docs.python.org/3/library/venv.html>`_ but
 rather a tool to dynamically adjust sys.path in tests or scripts on load, making it easier
@@ -95,16 +98,26 @@ make it work.
 It automatically resolves the paths based on the configuration files and adds
 them to `sys.path` before running the tests.
 
-Configuration
--------------
+Configuring
+-----------
 
 If you already use `pyproject.toml <https://packaging.python.org/en/latest/guides/writing-pyproject-toml/>`_ to define
 your project structure, autopypath has first-class support for it and will automatically
 detect it and use a ``[tool.autopypath]`` section if present to configure itself.
 
+
+Example:
+
+.. code-block:: toml
+
+      [tool.autopypath]
+      paths = ['lib', 'src/tests', '.']
+
 If you do not use `pyproject.toml <https://packaging.python.org/en/latest/guides/writing-pyproject-toml/>`_ or
 want to have a separate configuration file, you can create an `autopypath.toml` file in the root of your project
-using the same configuration format.
+or in any parent directory containing your scripts to configure autopypath.
+
+It is cross-platform and works reliably on Windows, macOS, and Linux.
 
 Example:
 
@@ -112,4 +125,4 @@ Example:
 
         [tool.autopypath]
         repo_markers = {".git" = "dir"}
-        paths = ["src", "lib"]
+        paths = ["src", "src/lib", "tests"]
