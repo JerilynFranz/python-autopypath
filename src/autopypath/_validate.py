@@ -384,7 +384,8 @@ def validate_path_or_str(path: Union[Path, str]) -> Path:
 
     # Code here will work on any OS, but won't be fully tested on a single OS.
     # On POSIX platforms the root '/' is skipped. On Windows the drive letter root is skipped.
-    # There is a need to write a monkeypatched test to fully cover this on all platforms.
+    # There is a need to write a monkeypatched test to fully cover this from a
+    # single OS.
     for offset, segment in enumerate(validated_path.parts):
         if offset == 0 and segment == '/':
             # Skip root '/' for POSIX even on non-POSIX platforms
