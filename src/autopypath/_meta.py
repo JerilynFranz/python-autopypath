@@ -7,8 +7,8 @@ It is parsed by the build system and should only contain simple assignments
 
 __author__ = 'Jerilyn Franz'
 __copyright__ = '2026, Jerilyn Franz'
-__version__ = '0.9.0'
-__release__ = '0.9.0'
+__version__ = '0.9.1'
+__release__ = '0.9.1'
 __project__ = 'autopypath'
 __license__ = 'Apache-2.0'
 __url__ = 'https://github.com/snowhare/python-autopypath'
