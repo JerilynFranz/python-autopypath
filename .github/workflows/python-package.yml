@@ -28,21 +28,18 @@ jobs:
         enable-cache: true
         cache-dependency-glob: "uv.lock"
 
-    - name: Install dependencies
+    - name: Run tox
       run: |
-        uv sync --all-groups
+        # Strip the dot from the version (3.12 -> 312)
+        PY_KEY=$(echo "${{ matrix.python-version }}" | tr -d .)
+        
+        # Construct the environment name (py312)
+        TOX_ENV="py$PY_KEY"
 
-    - name: Lint
-      run: |
-        # stop the build if there are Python syntax errors or undefined names
-        uv run ruff check tests src
-
-    - name: Test with pytest
-      run: |
-        # stop the build if there are test failures
-        uv run pytest
-
-    - name: Type checking with mypy
-      run: |
-        # stop the build if static type checking fails
-        uv run mypy src tests
+        # If you want to include linting on a specific version (e.g. 3.12), you can append it:
+        # if [ "${{ matrix.python-version }}" = "3.9" ]; then TOX_ENV="$TOX_ENV,lint"; fi
+        
+        echo "Running tox environment: $TOX_ENV"
+        
+        # Run tox with uv plugin, specifying the environment explicit
+        uvx --with tox-uv tox -e "$TOX_ENV"
