@@ -120,10 +120,10 @@ detect it and use a ``[tool.autopypath]`` section if present to configure itself
 Example:
 
 .. code-block:: toml
-    :caption: pyproject.toml
+  :caption: pyproject.toml
 
-      [tool.autopypath]
-      paths = ['lib', 'src/tests', '.']
+    [tool.autopypath]
+    paths = ['lib', 'src/tests', '.']
 
 If you do not use `pyproject.toml <https://packaging.python.org/en/latest/guides/writing-pyproject-toml/>`_ or
 want to have a separate configuration file, you can create an `autopypath.toml` file in the root of your project
@@ -133,9 +133,9 @@ It is cross-platform and works reliably on Windows, macOS, and Linux.
 
 Example:
 
-    .. code-block:: toml
-      :caption: autopypath.toml
+.. code-block:: toml
+  :caption: autopypath.toml
 
-        [tool.autopypath]
-        repo_markers = {".git" = "dir"}
-        paths = ["src", "src/lib", "tests"]
+    [tool.autopypath]
+    repo_markers = {".git" = "dir"}
+    paths = ["src", "src/lib", "tests"]
