@@ -14,7 +14,7 @@ Table of Contents
 What is autopypath?
 --------------------
 
-autopypath is a small library that simplifies the management of the Python module search path (`sys.path``)
+autopypath is a small library that simplifies the management of the Python module search path (`sys.path` )
 for testing and development environments. It automatically finds and adds relevant directories to sys.path
 based on configuration files such as `pyproject.toml <https://packaging.python.org/en/latest/guides/writing-pyproject-toml/>`_
 in the project's root directory, works
