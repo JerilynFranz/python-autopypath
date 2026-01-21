@@ -11,12 +11,12 @@ from your code.
 
 It will automatically detect the project root and add relevant paths
 to :data:`sys.path` based on standard project structures or configuration files
-such as `pyproject.toml` or `.env`.
+such as `pyproject.toml`.
 
 It does not require any additional setup for standard project layouts
 as long as the project root can be detected using common repository markers
-(such as `.git`, `.hg`, or `.svn` directories, a `pyproject.toml` file, or a `.env` file)
-and the source and test directories are in standard locations.
+(such as `.git`, `.hg`, or `.svn` directories, a `pyproject.toml` file,
+or a `autopypath` file) and the source and test directories are in standard locations.
 
 .. code-block:: python
     :caption: test_my_stuff.py
@@ -42,7 +42,6 @@ The default repository markers it looks for are:
 - `.cvs` directory
 - `_darcs` directory
 - `.fossil` directory
-- `.env` file
 - `pyproject.toml` file
 - `autopypath.toml` file
 
@@ -65,10 +64,6 @@ in the following order: `src`, `tests`, `lib`, `src/test`.
 
 The default paths are **ONLY** used if no other path configuration
 sources are found.
-
-If your project has a `.env` file in the root of the project, autopypath
-will load PYTHONPATH entries from it instead of using the defaults
-and prepend those directories to :data:`sys.path`.
 
 It only adds directories that actually exist. Non-existent directories
 are logged at 'INFO' level and skipped.
@@ -96,7 +91,7 @@ A detailed explanation of the configuration options can be found in the
     paths = ['lib', 'src/tests', '.']
     repo_markers = {'.git' = 'dir', 'pyproject.toml' = 'file', '.env' = 'file'}
     load_strategy = 'prepend'
-    path_resolution_order = ['autopypath', 'pyproject', 'dotenv']
+    path_resolution_order = ['autopypath', 'pyproject'']
 
 Debugging Mode
 --------------

@@ -26,7 +26,7 @@ What is autopypath?
 autopypath is a small Python library that simplifies the management of the Python module search path (:data:`sys.path`)
 for testing and development environments. It automatically finds and adds relevant directories to :data:`sys.path`
 based on configuration files such as `pyproject.toml <https://packaging.python.org/en/latest/guides/writing-pyproject-toml/>`_
-and `.env <https://saurabh-kumar.com/python-dotenv/>`_ files in the project's root directory, works
+in the project's root directory, works
 with popular testing frameworks like `pytest <https://docs.pytest.org/en/stable/>`_ and
 `unittest <https://docs.python.org/3/library/unittest.html>`_,
 and supports standard project structures out of the box as well as custom configurations.
@@ -39,9 +39,9 @@ loaded due to breakage from ongoing development.
 
 It works by detecting the root of the project repository using common version control system markers
 (such as `.git <https://git-scm.com/>`_, `.hg <https://www.mercurial-scm.org/>`_, or
-`.svn <https://subversion.apache.org/>`_ directories, a
-`pyproject.toml  <https://packaging.python.org/en/latest/guides/writing-pyproject-toml/>`_ file, or
-a `.env <https://saurabh-kumar.com/python-dotenv/>`_ file) or a custom configuration file (`autopypath.toml`),
+`.svn <https://subversion.apache.org/>`_ directories, or a
+`pyproject.toml  <https://packaging.python.org/en/latest/guides/writing-pyproject-toml/>`_ file,
+or a custom configuration file (`autopypath.toml`),
 and then adding specified subdirectories (such as `src/`, `src/tests/`, `tests/`,  `lib/` or
 others defined in configuration files) to :data:`sys.path` at runtime. The detection of the repository root
 and the addition of paths to :data:`sys.path` happens automatically when `autopypath` is imported in a test script.
@@ -69,7 +69,7 @@ Even if your test script is located deep in a repo test subdirectory, you can st
 to ensure that the necessary paths are added to :data:`sys.path` without any manual intervention.
 
 Here is an example of how a test script named `my_test_script.py` might look
-after integrating autopypath (and assuming the project structure uses .env or pyproject.toml
+after integrating autopypath (and assuming the project structure uses a pyproject.toml
 or has configured an autopypath.toml file if the project structure is non-standard):
 
 .. code-block:: python

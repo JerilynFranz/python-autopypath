@@ -11,8 +11,8 @@ even in unrelated modules).
 
 It detects the project root by looking for specific marker files or directories
 (such as `pyproject.toml`, `.git`, or `.hg`) and adjusts `sys.path` to include
-relevant subdirectories based on configurations found in `autopypath.toml`,
-`pyproject.toml`, and `.env` files.
+relevant subdirectories based on configurations found in `autopypath.toml` or
+`pyproject.toml` files.
 
 It recursively searches parent directories looking for marker files and directories
 to identify the project root. Once found, it reads configuration settings to determine
@@ -102,11 +102,6 @@ It looks for a `pyproject.toml` file in the project root directory. If it contai
 a `[tool.autopypath]` section, it uses that configuration unless overridden
 by direct manual configuration or `autopypath.toml`.
 
-**.env file**
--------------
-
-It checks for a `.env` file in the project root. It reads any `PYTHONPATH` entries defined there.
-
 **default configuration**
 -------------------------
 
@@ -152,7 +147,6 @@ For easy reference, here are the defaults:
 1. `manual` (uses any manually specified paths first)
 2. `autopypath` (appends paths from `autopypath.toml` file after manual paths)
 3. `pyproject` (appends paths from `pyproject.toml` file after `autopypath.toml` paths)
-4. `dotenv` (appends paths from `.env` file after `pyproject.toml` paths)
 
 Behavior When No Valid Configuration is Found
 =============================================
@@ -191,8 +185,7 @@ Modes of Operation
 ------------------------
 
 When imported from a script, it automatically adjusts `sys.path` based on
-`autopypath.toml` file, `pyproject.toml` file, `.env` file, and
-`PYTHONPATH` environment variables.
+`autopypath.toml` file or a `pyproject.toml` file.
 
 This ensures that modules can be imported correctly when running scripts directly.
 

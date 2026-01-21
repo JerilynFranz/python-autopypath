@@ -21,7 +21,7 @@ The formats for the configuration options in the toml file are as follows:
     repo_markers = { '.git' = 'dir', 'setup.py' = 'file' }
     paths = ['src', 'tests']
     load_strategy = 'prepend'
-    path_resolution_order = ['manual', 'pyproject', 'dotenv']
+    path_resolution_order = ['manual', 'pyproject']
 
 """
 
@@ -108,7 +108,7 @@ class _TomlConfig(_Config):
         # example: load_strategy = 'prepend'
         load_strategy = self._toml_load_strategy(autopypath_config)
 
-        # example: path_resolution_order = ['manual', 'pyproject', 'dotenv']
+        # example: path_resolution_order = ['manual', 'pyproject']
         path_resolution_order = self._toml_path_resolution_order(autopypath_config)
 
         super().__init__(
@@ -172,7 +172,7 @@ class _TomlConfig(_Config):
             [tool.autopypath]
             repo_markers = { '.git' = 'dir', 'setup.py' = 'file' }
             paths = ['src', 'tests']
-            path_resolution_order = ['manual', 'pyproject', 'dotenv']
+            path_resolution_order = ['manual', 'pyproject']
 
         :param dict[str, Any] pyproject_data: The parsed pyproject.toml data.
         :return dict[str, Any]: The autopypath configuration section.
@@ -292,7 +292,7 @@ class _TomlConfig(_Config):
         -------
         .. code-block:: toml
             [tool.autopypath]
-            path_resolution_order = ['manual', 'pyproject', 'dotenv']
+            path_resolution_order = ['manual', 'pyproject']
 
         :param autopypath_config: The autopypath configuration section from toml.
         :return tuple[str, ...] | None: The path resolution order or ``None``.

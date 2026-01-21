@@ -5,7 +5,6 @@ from ._config import (
     _AutopypathConfig,
     _Config,
     _DefaultConfig,
-    _DotEnvConfig,
     _ManualConfig,
     _PyProjectConfig,
     _TomlConfig,

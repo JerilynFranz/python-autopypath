@@ -17,7 +17,6 @@ keywords = [
     "import",
     "dynamic import",
     "configuration",
-    "dotenv",
     "environment",
     "testing",
     "tooling",
@@ -51,7 +50,6 @@ classifiers = [
 ]
 
 dependencies = [
-    "python-dotenv>=1.2.1",
     "tomli",
     "typing-extensions >= 3.10.0.0"  # for Literal, Final, and other typing features on older Pythons
 ]
@@ -79,7 +77,6 @@ dev = [
        "tox-uv>=1.13.1",
        "uv>=0.9.18",
        "tomli",
-       "python-dotenv>=1.2.1",
        "typing-extensions >= 3.10.0.0"
       ]
 
@@ -437,8 +434,7 @@ load_strategy = 'prepend' # options: 'prepend', 'prepend_highest_priority', 'rep
 #
 #   pyproject: paths specified in this pyproject.toml file in the [tool.autopypath] section.
 #
-#   dotenv: paths specified in a PYTHONPATH variable in an .env file in the repo root.
-##
-# Default order if not specified is: ['manual', 'pyproject', 'dotenv']
 #
-path_resolution_order = ['manual', 'pyproject', 'dotenv'] # order to load PYTHONPATH sources, highest priority first
+# Default order if not specified is: ['manual', 'pyproject']
+#
+path_resolution_order = ['manual', 'pyproject'] # order to load PYTHONPATH sources, highest priority first

@@ -5,7 +5,7 @@ Configuration
 autopypath can be configured in several ways to suit different project structures
 and user preferences. The configuration sources include:
 
-- Configuration files: `autopypath.toml`, `pyproject.toml`, and `.env` files.
+- Configuration files: `autopypath.toml` and `pyproject.toml`.
 - Function parameters: Directly passing configuration options to the `configure_pypath()` function.
 - Default settings: Built-in defaults used when no other configuration is provided.
 
@@ -105,8 +105,8 @@ These directories are added to :data:`sys.path` if they exist in the repository 
 but only if no other paths are provided.
 
 You can customize the paths added to `sys.path` using the `paths` parameter
-to `configure_pypath()` or configured in a `.env` file in the repository root, or in
-`pyproject.toml` or a `autopypath.toml` file in the `[tool.autopypath]` section.
+to `configure_pypath()`, in a `pyproject.toml`, or a `autopypath.toml` file
+in the `[tool.autopypath]` section.
 
 This is just the 'out-of-the-box' default configuration and is intended to cover
 the most common project layouts. You can (and **should**) customize it as needed for your project.

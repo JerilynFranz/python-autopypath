@@ -67,7 +67,7 @@ def test_configured_autopypath_config(tmp_path: Path) -> None:
     autopypath_path.write_text("""
 [tool.autopypath]
 load_strategy = "replace"
-path_resolution_order = ["manual", "autopypath", "pyproject", "dotenv"]
+path_resolution_order = ["manual", "autopypath", "pyproject"]
 repo_markers = {".git" = "dir", "setup.py" = "file"}
 paths=["src", "tests"]
 """)
@@ -83,10 +83,9 @@ paths=["src", "tests"]
         'manual',
         'autopypath',
         'pyproject',
-        'dotenv',
     ), (
         'AUTOPYPATH_CONFIGURED_002 autopypath_config.path_resolution_order should match the configured '
-        ' path resolution order: ["manual", "autopypath", "pyproject", "dotenv"]'
+        ' path resolution order: ["manual", "autopypath", "pyproject"]'
     )
     assert autopypath_config.repo_markers == {'.git': 'dir', 'setup.py': 'file'}, (
         'AUTOPYPATH_CONFIGURED_003 autopypath_config.repo_markers should match the configured repo markers'
@@ -220,7 +219,7 @@ def test_configured_pyproject_config(tmp_path: Path) -> None:
     pyproject_path.write_text("""
 [tool.autopypath]
 load_strategy = "prepend_highest_priority"
-path_resolution_order = ["manual", "autopypath", "pyproject", "dotenv"]
+path_resolution_order = ["manual", "autopypath", "pyproject"]
 repo_markers = {".git" = "dir", "setup.py" = "file"}
 paths=["src", "tests"]
 """)
@@ -236,10 +235,9 @@ paths=["src", "tests"]
         'manual',
         'autopypath',
         'pyproject',
-        'dotenv',
     ), (
         'PYPROJECT_CONFIGURED_002 pyproject_config.path_resolution_order should match the configured '
-        ' path resolution order: ["manual", "autopypath", "pyproject", "dotenv"]'
+        ' path resolution order: ["manual", "autopypath", "pyproject"]'
     )
     assert pyproject_config.repo_markers == {'.git': 'dir', 'setup.py': 'file'}, (
         'PYPROJECT_CONFIGURED_003 pyproject_config.repo_markers should match the configured repo markers'
@@ -293,116 +291,6 @@ def test_no_autopypath_toml_file(tmp_path: Path) -> None:
         'NO_AUTOPYPATH_FILE_003 autopypath_config.repo_markers should be None'
     )
     assert autopypath_config.paths is None, 'NO_AUTOPYPATH_FILE_004 autopypath_config.paths should be None'
-
-
-def test_no_dotenv_file(tmp_path: Path) -> None:
-    """Tests that _ConfigPyPath.dotenv_config returns an empty config when
-    no .env configuration file exists
-
-    Uses a temporary directory to simulate a repository without a .env file.
-    """
-    root_path = tmp_path / 'repo'
-    root_path.mkdir()
-    root_path.joinpath('some_file.txt').write_text('Just a test file.')
-    pyproject_path = root_path / 'pyproject.toml'
-    pyproject_path.write_text("""
-[tool.some_other_tool]
-""")
-    config = _ConfigPyPath(
-        context_file=root_path / 'some_file.txt',
-        dry_run=True,
-    )
-    dotenv_config = config.dotenv_config
-    assert dotenv_config.load_strategy is None, 'NO_DOTENV_FILE_001 dotenv_config.load_strategy should be None'
-    assert dotenv_config.path_resolution_order is None, (
-        'NO_DOTENV_FILE_002 dotenv_config.path_resolution_order should be None'
-    )
-    assert dotenv_config.repo_markers is None, 'NO_DOTENV_FILE_003 dotenv_config.repo_markers should be None'
-    assert dotenv_config.paths is None, 'NO_DOTENV_FILE_004 dotenv_config.paths should be None'
-
-
-def test_empty_dotenv_config(tmp_path: Path) -> None:
-    """Tests that _ConfigPyPath.dotenv_config returns an empty config when .env
-    exists but has no PYTHONPATH configuration.
-
-    Uses a temporary directory to simulate a repository with an empty autopypath config in .env.
-    """
-    root_path = tmp_path / 'repo'
-    root_path.mkdir()
-    root_path.joinpath('some_file.txt').write_text('Just a test file.')
-    pyproject_path = root_path / 'pyproject.toml'
-    pyproject_path.write_text("""
-[tool.some_other_tool]
-""")
-    dotenv_path = root_path / '.env'
-    dotenv_path.write_text("""
-SOME_OTHER_ENV_VAR=some_value
-""")
-    config = _ConfigPyPath(
-        context_file=root_path / 'some_file.txt',
-        dry_run=True,
-    )
-    dotenv_config = config.dotenv_config
-    assert dotenv_config.load_strategy is None, 'EMPTY_DOTENV_CONFIG_001 dotenv_config.load_strategy should be None'
-    assert dotenv_config.path_resolution_order is None, (
-        'EMPTY_DOTENV_CONFIG_002 dotenv_config.path_resolution_order should be None'
-    )
-    assert dotenv_config.repo_markers is None, 'EMPTY_DOTENV_CONFIG_003 dotenv_config.repo_markers should be None'
-    assert dotenv_config.paths is None, 'EMPTY_DOTENV_CONFIG_004 dotenv_config.paths should be None'
-
-
-def test_configured_dotenv_config(tmp_path: Path) -> None:
-    """Tests that _ConfigPyPath.dotenv_config returns the correct configuration
-    when a .env file exists in the root of the repository.
-
-    We want to test various combinations of existing and non-existing paths
-    specified in the .env file.
-
-    'src' exists, 'tests' does not exist.
-
-    Uses a temporary directory to simulate a repository with an autopypath.toml file.
-    """
-    root_path = tmp_path / 'repo'
-    root_path.mkdir()
-    root_path.joinpath('some_file.txt').write_text('Just a test file.')
-    src_path = root_path / 'src'
-    src_path.mkdir()
-    git_path = root_path / '.git'
-    git_path.mkdir()
-    dotenv_path = root_path / '.env'
-    # Note: only "src" exists, "tests" does not exist
-    dotenv_path.write_text("""
-PYTHONPATH=src:tests
-""")
-    config = _ConfigPyPath(
-        context_file=root_path / 'some_file.txt',
-        dry_run=True,
-    )
-    dotenv_config = config.dotenv_config
-    assert dotenv_config.load_strategy is None, 'DOTENV_CONFIGURED_001 dotenv_config.load_strategy should be None'
-    assert dotenv_config.path_resolution_order is None, (
-        'DOTENV_CONFIGURED_002 dotenv_config.path_resolution_order should be None'
-    )
-    assert dotenv_config.repo_markers is None, 'DOTENV_CONFIGURED_003 dotenv_config.repo_markers should be None'
-    if isinstance(dotenv_config.paths, Sequence):
-        assert len(dotenv_config.paths) == 2, (
-            'DOTENV_CONFIGURED_004 dotenv_config.paths should have length 2 '
-            f'because src and tests were configured: {dotenv_config.paths}'
-        )
-        assert str(dotenv_config.paths[0].name) == 'src', (
-            'DOTENV_CONFIGURED_005 dotenv_config.paths should match the configured paths'
-        )
-        assert str(dotenv_config.paths[1].name) == 'tests', (
-            'DOTENV_CONFIGURED_006 dotenv_config.paths should match the configured paths'
-        )
-        assert dotenv_config.paths[0].is_dir(), (
-            'DOTENV_CONFIGURED_007 dotenv_config.paths[0] should be match the path to src directory'
-        )
-        assert src_path.resolve() == dotenv_config.paths[0].resolve(), (
-            'DOTENV_CONFIGURED_008 dotenv_config.paths[0] should resolve to the src directory path'
-        )
-    else:
-        pytest.fail('DOTENV_CONFIGURED_009 dotenv_config.paths should be a list')
 
 
 def test_manual_config(tmp_path: Path) -> None:
@@ -686,7 +574,7 @@ def test_strict(tmp_path: Path, caplog: pytest.LogCaptureFixture) -> None:
     autopypath_path.write_text("""
 [tool.autopypath]
 load_strategy = "prepend"
-path_resolution_order = ["manual", "autopypath", "pyproject", "dotenv"]
+path_resolution_order = ["manual", "autopypath", "pyproject"]
 repo_markers = {".git" = "dir"}
 paths=["src", "tests"]
 """)
@@ -950,15 +838,12 @@ def test_path_order_resolution(tmp_path: Path) -> None:
     autopypath_src_path = root_path / 'autopypath_src'
     autopypath_src_path.mkdir()
 
-    dotenv_src_path = root_path / 'dotenv_src'
-    dotenv_src_path.mkdir()
-
     # Create pyproject.toml with some configuration
     pyproject_path = root_path / 'pyproject.toml'
     pyproject_path.write_text("""
 [tool.autopypath]
 load_strategy = "prepend"
-path_resolution_order = ["pyproject", "dotenv"]
+path_resolution_order = ["pyproject"]
 repo_markers = {".git" = "dir"}
 paths=["pyproject_src"]
 """)
@@ -973,16 +858,10 @@ repo_markers = {".git" = "dir"}
 paths=["autopypath_src"]
 """)
 
-    # Create .env with some configuration
-    dotenv_path = root_path / '.env'
-    dotenv_path.write_text("""
-PYTHONPATH=dotenv_src
-""")
-
     config = _ConfigPyPath(
         context_file=root_path / 'some_file.txt',
         load_strategy='prepend',
-        path_resolution_order=['manual', 'autopypath', 'pyproject', 'dotenv'],
+        path_resolution_order=['manual', 'autopypath', 'pyproject'],
         paths=['manual_src'],
         repo_markers={'.git': 'dir'},
     )
@@ -1002,43 +881,34 @@ PYTHONPATH=dotenv_src
         f'PATH_ORDER_RESOLUTION_003 pyproject_src should be third in updated_sys_path: {sys.path!r}'
     )
 
-    # dotenv config should be fourth precedence
-    assert sys.path[3] == str(dotenv_src_path), (
-        f'PATH_ORDER_RESOLUTION_004 dotenv_src should be fourth in updated_sys_path: {sys.path!r}'
-    )
-
     config.restore_sys_path()
 
     # reverse the order to verify it wasn't a fluke
     config = _ConfigPyPath(
         context_file=root_path / 'some_file.txt',
         load_strategy='prepend',
-        path_resolution_order=['dotenv', 'pyproject', 'autopypath', 'manual'],
+        path_resolution_order=['pyproject', 'autopypath', 'manual'],
         paths=['manual_src'],
         repo_markers={'.git': 'dir'},
     )
 
-    # dotenv config should be highest precedence and thus first in sys.path
-    assert sys.path[0] == str(dotenv_src_path), (
-        f'PATH_ORDER_RESOLUTION_005 dotenv_src should be first in updated_sys_path: {sys.path!r}'
-    )
-    # pyproject.toml config should be second precedence
-    assert sys.path[1] == str(pyproject_src_path), (
-        f'PATH_ORDER_RESOLUTION_006 pyproject_src should be second in updated_sys_path: {sys.path!r}'
+    # pyproject.toml config should be first precedence
+    assert sys.path[0] == str(pyproject_src_path), (
+        f'PATH_ORDER_RESOLUTION_006 pyproject_src should be first in updated_sys_path: {sys.path!r}'
     )
     # autopypath.toml config should be third precedence
-    assert sys.path[2] == str(autopypath_src_path), (
-        f'PATH_ORDER_RESOLUTION_007 autopypath_src should be third in updated_sys_path: {sys.path!r}'
+    assert sys.path[1] == str(autopypath_src_path), (
+        f'PATH_ORDER_RESOLUTION_007 autopypath_src should be second in updated_sys_path: {sys.path!r}'
     )
     # manual config should be fourth precedence
-    assert sys.path[3] == str(manual_src_path), (
-        f'PATH_ORDER_RESOLUTION_008 manual_src should be fourth in updated_sys_path: {sys.path!r}'
+    assert sys.path[2] == str(manual_src_path), (
+        f'PATH_ORDER_RESOLUTION_008 manual_src should be third in updated_sys_path: {sys.path!r}'
     )
 
     sys.path = []  # Clear sys.path for next test
 
     # Finally, test with only autopypath.toml and pyproject.toml configs
-    # manual and dotenv configs are not in the resolution order
+    # manual is not in the resolution order
     config = _ConfigPyPath(
         context_file=root_path / 'some_file.txt',
         load_strategy='prepend',

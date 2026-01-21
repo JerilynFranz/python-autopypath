@@ -57,11 +57,11 @@ class _Config:
             It is expected to be one of `prepend`, `prepend_highest_priority`, or `replace` (as defined
             in :class:`LoadStrategy`). It can use either the enum value or its string representation.
 
-        :param Sequence[PathResolution | Literal['manual', 'autopypath', 'pyproject', 'dotenv']]] | None path_resolution_order: The order in which to
+        :param Sequence[PathResolution | Literal['manual', 'autopypath', 'pyproject']]] | None path_resolution_order: The order in which to
             resolve :func:`sys.path` sources.
 
             It is expected to be a sequence containing any of the following values:
-            `manual`, `autopypath`, `pyproject`, or `dotenv` as defined in :class:`PathResolution`.
+            `manual`, `autopypath`, `pyproject` as defined in :class:`PathResolution`.
             It can use either the enum values or their string representations.
         :param bool strict: (default: ``False``) Indicates whether strict mode is enabled for error handling.
         """

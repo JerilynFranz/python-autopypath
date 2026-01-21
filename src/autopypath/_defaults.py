@@ -105,7 +105,6 @@ _PATH_RESOLUTION_ORDER: Final[tuple[Union[_PathResolution, PathResolutionLiteral
     _PathResolution.MANUAL,
     _PathResolution.AUTOPYPATH,
     _PathResolution.PYPROJECT,
-    _PathResolution.DOTENV,
 )
 
 """Default resolution order for :data:`sys.path` sources.
@@ -126,7 +125,6 @@ Overrides can use any combination of the following values.
 - `manual`: Paths provided directly via the `paths` parameter to `configure_pypath()`.
 - `autopypath`: Paths specified in an `autopypath.toml` file.
 - `pyproject`: Paths specified in the `pyproject.toml` file in the repository root.
-- `dotenv`: Paths specified in a `.env` file in the repository root.
 
 Override Example
 ----------------
@@ -137,7 +135,7 @@ Manual Override
 .. code-block:: python
     from autopypath.custom import configure_pypath, PathResolution
     configure_pypath(
-        path_resolution_order=['manual', 'autopypath', 'pyproject', 'dotenv']
+        path_resolution_order=['manual', 'autopypath', 'pyproject']
     )
 
 pyproject.toml or autopypath.toml Override
@@ -150,14 +148,13 @@ Omitted path resolution types will not be used for resolution at runtime.
 
 .. code-block:: toml
     [tool.autopypath]
-    path_resolution_order = ['manual', 'autopypath', 'pyproject', 'dotenv']
+    path_resolution_order = ['manual', 'autopypath', 'pyproject']
 
 These examples apply the following path prioritization order:
 
 1. `paths` manually specified in a :func:`~autopypath.custom.configure_pypath` call (highest priority)
 2. Paths specified in an `autopypath.toml` file
 3. Paths specified in a `pyproject.toml` file in the repository root
-4. Paths from ``PYTHONPATH`` specified in a `.env` file in the repository root
 """
 
 _LOAD_STRATEGY: Union[_LoadStrategy, LoadStrategyLiterals] = _LoadStrategy.PREPEND
@@ -241,8 +238,7 @@ The default paths, in order of priority, are:
 These directories are added to :data:`sys.path` if they exist in the repository root.
 
 They can be customized by the `paths` parameter to `configure_pypath()` or
-configured in a `.env` file in the repository root, or in `pyproject.toml` or
-a `autopypath.toml` file in the `[tool.autopypath]` section.
+configured in a `pyproject.toml` or `autopypath.toml` file in the `[tool.autopypath]` section.
 
 This is just the 'out-of-the-box' default configuration and is intended to cover
 the most common project layouts. You can (and **should**) customize it as needed for your project.

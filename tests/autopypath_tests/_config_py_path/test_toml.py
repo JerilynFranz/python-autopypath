@@ -22,7 +22,7 @@ def test_toml_config_init(tmp_path: Path) -> None:
 [tool.autopypath]
 paths = ['src', 'lib']
 load_strategy = 'prepend'
-path_resolution_order = ['manual', 'autopypath', 'pyproject', 'dotenv']
+path_resolution_order = ['manual', 'autopypath', 'pyproject']
 """)
     try:
         _TomlConfig(repo_root_path=repo_root, toml_filename=toml_filename, toml_section='tool.autopypath')

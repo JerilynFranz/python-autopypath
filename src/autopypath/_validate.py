@@ -377,9 +377,6 @@ def validate_path_or_str(path: Union[Path, str]) -> Path:
         if offset == 0 and segment == '/':
             # Skip root '/' for POSIX even on non-POSIX platforms
             continue
-        if offset == 0 and (re.match(r'^[A-Za-z]:$', segment) or re.match(r'^[A-Za-z]:\\$', segment)):
-            # Skip Windows drive letter root even on non-Windows platforms
-            continue
         validate_file_or_dir_name(segment)
     return validated_path
 

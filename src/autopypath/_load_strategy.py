@@ -20,7 +20,6 @@ class _LoadStrategy(str, Enum):
             1. `manual_paths` (highest priority)
             2. `autopypath.toml`
             2. `pyproject.toml` in repository root
-            3. `.env` file in repository root
 
     - PREPEND_HIGHEST_PRIORITY: Use only the paths from the highest priority source
         and prepend them to :data:`sys.path`.

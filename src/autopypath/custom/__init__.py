@@ -103,7 +103,7 @@ def configure_pypath(
         If passed as :class:`pathlib.Path` objects, they can be either absolute or relative paths.
     :param Literal['prepend', 'prepend_highest_priority', 'replace'] | None load_strategy: The strategy
         for loading :data:`sys.path` entries.
-    :param Sequence[Literal['manual', 'autopypath', 'pyproject', 'dotenv']] | None path_resolution_order: The order
+    :param Sequence[Literal['manual', 'autopypath', 'pyproject']] | None path_resolution_order: The order
         in which to resolve :data:`sys.path` sources.
     :param log_level: Optional[int] = None
         The logging level to use during configuration. If None, the current log level is used.

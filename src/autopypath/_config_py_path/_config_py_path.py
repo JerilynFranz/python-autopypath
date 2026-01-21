@@ -13,7 +13,7 @@ from .._log import _log
 from .._marker_type import _MarkerType
 from .._path_resolution import _PathResolution
 from .._types import LoadStrategyLiterals, PathResolutionLiterals, RepoMarkerLiterals
-from ._config import _AutopypathConfig, _DefaultConfig, _DotEnvConfig, _ManualConfig, _PyProjectConfig
+from ._config import _AutopypathConfig, _DefaultConfig, _ManualConfig, _PyProjectConfig
 
 __all__ = []
 
@@ -28,7 +28,7 @@ _NON_RESOLVABLE_PATH: str = 'non-resolvable configured path found'
 
 
 class _ConfigPyPath:
-    """Configures :data:`sys.path` based on manual settings, pyproject.toml, and .env files."""
+    """Configures :data:`sys.path` based on manual settings, pyproject.toml, and autopypath.toml."""
 
     __slots__ = (
         '_context_file',
@@ -36,7 +36,6 @@ class _ConfigPyPath:
         '_manual',
         '_pyproject',
         '_autopypath',
-        '_dotenv',
         '_default',
         '_path_resolution_order',
         '_load_strategy',
@@ -60,7 +59,7 @@ class _ConfigPyPath:
         strict: bool = False,
         log_level: Optional[int] = None,
     ) -> None:
-        """Configures :data:`sys.path` based on manual settings, .env files, and pyproject.toml.
+        """Configures :data:`sys.path` based on manual settings, autopypath.toml, and pyproject.toml.
 
         Usage
         -----
@@ -94,11 +93,11 @@ class _ConfigPyPath:
 
             If ``None``, defaults to :var:`~autopypath.defaults.LOAD_STRATEGY`.
 
-        :param PathResolution | Literal['manual', 'autopypath', 'pyproject', 'dotenv'] | None path_resolution_order: (default:
+        :param PathResolution | Literal['manual', 'autopypath', 'pyproject'] | None path_resolution_order: (default:
             ``None``) The order in which to resolve :data:`sys.path` sources.
 
             It is expected to be a sequence containing any of the following values:
-            ``manual``, ``autopypath``, ``pyproject``, ``dotenv`` as defined in :class:`PathResolution`.
+            ``manual``, ``autopypath``, ``pyproject`` as defined in :class:`PathResolution`.
             If ``None``, the default order from :var:`~autopypath.defaults.PATH_RESOLUTION_ORDER` is used.
 
             It can use either the enum values or their string representations.
@@ -163,9 +162,6 @@ class _ConfigPyPath:
             self._pyproject = _PyProjectConfig(self.repo_root_path)
             """Configuration loaded from pyproject.toml (if present)."""
 
-            self._dotenv = _DotEnvConfig(self.repo_root_path, strict=strict)
-            """Configuration loaded from .env file (if present)."""
-
             self._path_resolution_order: tuple[_PathResolution, ...] = self._determine_path_resolution_order()
             """The order in which to resolve :data:`sys.path` sources."""
 
@@ -226,7 +222,7 @@ class _ConfigPyPath:
         """Determines the final resolved paths and returns them.
 
         It follows the configured path resolution order and load strategy to
-        combine paths from manual settings, pyproject.toml, and .env files.
+        combine paths from manual settings, pyproject.toml, and autopypath.toml.
 
         Paths that are already in :data:`sys.path` are not duplicated.
 
@@ -259,9 +255,6 @@ class _ConfigPyPath:
             elif source == _PathResolution.PYPROJECT:
                 source_paths = self.pyproject_config.paths
                 _log.debug('Resolving paths from PYPROJECT source: %s', source_paths)
-            elif source == _PathResolution.DOTENV:
-                source_paths = self.dotenv_config.paths
-                _log.debug('Resolving paths from DOTENV source: %s', source_paths)
             else:  # pragma: no cover  # This is future-proofing for new sources that may be added
                 if self._strict:
                     _log.error('Unknown path resolution source: %s', source)
@@ -516,14 +509,6 @@ class _ConfigPyPath:
         :return PyProjectConfig: The pyproject.toml configuration.
         """
         return self._pyproject
-
-    @property
-    def dotenv_config(self) -> _DotEnvConfig:
-        """Configuration loaded from .env file.
-
-        :return DotEnvConfig: The .env file configuration.
-        """
-        return self._dotenv
 
     @property
     def default_config(self) -> _DefaultConfig:
