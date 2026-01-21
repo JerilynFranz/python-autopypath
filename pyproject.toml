@@ -208,7 +208,6 @@ description = "Run tests on PyPy 3.11"
 base_python = ["pypy3.11"]
 dependency_groups = ["test", "tools"]  # omit "lint"
 commands = [
-    ["ruff", "check", "tests", "src"],
     ["coverage", "run", "-m", "pytest", { replace = "posargs", extend = true }],
     ["coverage", "report"],
 ]
