@@ -357,27 +357,44 @@ def validate_path_or_str(path: Union[Path, str]) -> Path:
     :return Path: The validated Path object.
     """
     if not isinstance(path, (Path, str)):
-        raise AutopypathError(f'Invalid path: expected Path or str, got {type(path)}')
+        raise AutopypathError(
+            f'Invalid path: expected Path or str, got {type(path)}')
     item_str: str = str(path) if isinstance(path, Path) else path
     _log.debug('Validating path: %s', item_str)
     if '\000' in item_str:
-        raise AutopypathError('Invalid path item: path cannot contain null byte')
+        raise AutopypathError(
+            'Invalid path item: path cannot contain null byte')
     if item_str.strip() == '':
-        raise AutopypathError('Invalid path item: path cannot be empty or only whitespace')
+        raise AutopypathError(
+            'Invalid path item: path cannot be empty or only whitespace')
     if item_str.lstrip() != item_str:
-        raise AutopypathError('Invalid path item: path cannot have leading whitespace ')
+        raise AutopypathError(
+            'Invalid path item: path cannot have leading whitespace ')
     if item_str.rstrip() != item_str:
-        raise AutopypathError('Invalid path item: path cannot have trailing whitespace')
+        raise AutopypathError(
+            'Invalid path item: path cannot have trailing whitespace')
     if item_str.replace('\\', '') == '':
-        raise AutopypathError('Invalid path item: path cannot be only backslashes')
+        raise AutopypathError(
+            'Invalid path item: path cannot be only backslashes')
     if item_str.replace('/', '') == '':
-        raise AutopypathError('Invalid path item: path cannot be only forward slashes')
-    validated_path = _normalize_path_string_to_platform(item_str) if isinstance(path, str) else path
+        raise AutopypathError(
+            'Invalid path item: path cannot be only forward slashes')
+    validated_path = _normalize_path_string_to_platform(
+        item_str) if isinstance(path, str) else path
+
+    # Code here will work on any OS, but won't be fully tested on a single OS.
+    # On POSIX platforms the root '/' is skipped. On Windows the drive letter root is skipped.
+    # There is a need to write a monkeypatched test to fully cover this on all platforms.
     for offset, segment in enumerate(validated_path.parts):
         if offset == 0 and segment == '/':
             # Skip root '/' for POSIX even on non-POSIX platforms
             continue
+        if offset == 0 and (re.match(r'^[A-Za-z]:$', segment)
+                            or re.match(r'^[A-Za-z]:\\$', segment)):
+            # Skip Windows drive letter root even on non-Windows platforms
+            continue
         validate_file_or_dir_name(segment)
+
     return validated_path
 
 
