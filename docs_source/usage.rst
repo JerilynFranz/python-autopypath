@@ -87,11 +87,11 @@ A detailed explanation of the configuration options can be found in the
 .. code-block:: toml
     :caption: pyproject.toml or autopypath.toml
 
-    [tool.autopypath]
-    paths = ['lib', 'src/tests', '.']
-    repo_markers = {'.git' = 'dir', 'pyproject.toml' = 'file', '.env' = 'file'}
-    load_strategy = 'prepend'
-    path_resolution_order = ['autopypath', 'pyproject'']
+      [tool.autopypath]
+      paths = ['lib', 'src/tests', '.']
+      repo_markers = {'.git' = 'dir', 'pyproject.toml' = 'file', '.env' = 'file'}
+      load_strategy = 'prepend'
+      path_resolution_order = ['autopypath', 'pyproject']
 
 Debugging Mode
 --------------

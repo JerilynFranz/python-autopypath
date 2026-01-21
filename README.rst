@@ -1,326 +1,116 @@
-==========
 autopypath
 ==========
 
-A library to automatically configure the Python path for a test script in a repo.
+Table of Contents
+-----------------
 
-Overview
-========
+    `Usage <https://python-autopypath.readthedocs.io/en/latest/usage.html>`
+    `Configuration <https://python-autopypath.readthedocs.io/en/latest/configuration.html>` 
+    `Contributing <https://python-autopypath.readthedocs.io/en/latest/contributing.html>`
+    `Code of Conduct <https://python-autopypath.readthedocs.io/en/latest/code_of_conduct.html>`
+    `Index <https://python-autopypath.readthedocs.io/en/latest/genindex.html>`
+    `Module Index <hhttps://python-autopypath.readthedocs.io/en/latest/py-modindex.html>`
+    `Source <https://python-autopypath.readthedocs.io/en/latest/source/modules.html>`
 
-When writing test scripts for Python projects, it's common for a test runner like `pytest`
-to fail if it encounters broken code in unrelated modules during its import discovery phase.
-This can be especially problematic in monorepos or projects with complex directory structures.
-While workarounds like manually setting the `PYTHONPATH` environment variable or using IDE-specific
-features exist, they can be cumbersome and are not portable across different environments.
+What is autopypath?
+--------------------
 
-To make it easier to run a specific test script without worrying about unrelated import errors, autopypath
-automatically adjusts the Python path to include the necessary directories. This allows tests
-to be run directly from the file, bypassing the test framework's broad import discovery.
+autopypath is a small library that simplifies the management of the Python module search path (`sys.path``)
+for testing and development environments. It automatically finds and adds relevant directories to sys.path
+based on configuration files such as `pyproject.toml <https://packaging.python.org/en/latest/guides/writing-pyproject-toml/>`_
+in the project's root directory, works
+with popular testing frameworks like `pytest <https://docs.pytest.org/en/stable/>`_ and
+`unittest <https://docs.python.org/3/library/unittest.html>`_,
+and supports standard project structures out of the box as well as custom configurations.
 
-It works out of the box for common project structures, such as projects with `src/` and `tests/`
-directories that use a version control system (such as Git or Mercurial) and/or have a `pyproject.toml`
-file in the repository root.
+It is not a replacement for `virtual environments <https://docs.python.org/3/library/venv.html>`_ but
+rather a tool to dynamically adjust sys.path in tests or scripts on load, making it easier
+to work with possibly broken build or development setups where the testing framework cannot be run
+because it attempts to import modules that are not yet installed or where other tests cannot be
+loaded due to breakage from ongoing development.
 
-In such cases, simply import the `autopypath` module at the top of your test script and add
-an `if __name__ == "__main__":` block at the bottom to execute the tests when run directly.
-This setup will automatically adjust the Python path, allowing your tests to run without
-further configuration.
+It works by detecting the root of the project repository using common version control system markers
+(such as `.git <https://git-scm.com/>`_, `.hg <https://www.mercurial-scm.org/>`_, or
+`.svn <https://subversion.apache.org/>`_ directories, or a
+`pyproject.toml  <https://packaging.python.org/en/latest/guides/writing-pyproject-toml/>`_ file,
+or a custom configuration file (`autopypath.toml`),
+and then adding specified subdirectories (such as `src/`, `src/tests/`, `tests/`,  `lib/` or
+others defined in configuration files) to `sys.path` at runtime. The detection of the repository root
+and the addition of paths to :`sys.path` happens automatically when `autopypath` is imported in a test script.
+It is fully customizable via configuration files or parameters.
 
-It also provides a high degree of customization for more complex scenarios. It supports
-a wide range of project structures and configurations, making it easy to run test scripts directly
-without requiring manual per-file path adjustments.
+This allows test scripts
+to be executed directly from the command line or an IDE without requiring the entire project to be
+built or installed first as long as its dependencies are met.
 
-Even in complex cases, changes to the test scripts are often unnecessary beyond the initial import of `autopypath`
-and addition of the `if __name__ == "__main__":` block.
+It is designed to be lightweight and easy to integrate into existing testing setups, providing a
+seamless experience for developers working on Python projects and to "*just work*"
+without manually worrying about the intricacies of path resolution and IDE or test runner configurations
+except for the initial setup.
 
-Instead, configuration files like `autopypath.toml` and `pyproject.toml` can specify
-custom paths and loading strategies without further modifying the test scripts themselves.
+Usage
+-----
 
-This keeps the maintenance burden low and allows test scripts to remain clean and focused on testing logic.
+This is an example of how to use autopypath in your test scripts
+so that a single test can be run directly from the command line or an
+IDE without requiring the entire test suite to be executed even
+if the project is not fully built or installed as long as its
+dependencies are met .
 
-Installation
-============
+Even if your test script is located deep in a repo test subdirectory, you can still use autopypath
+to ensure that the necessary paths are added to `sys.path` without any manual intervention.
 
-You can install the package via pip:
+Here is an example of how a test script named `my_test_script.py` might look
+after integrating autopypath (and assuming the project structure uses a pyproject.toml
+or has configured an autopypath.toml file if the project structure is non-standard):
+
+.. code-block:: python
+
+   import autopypath
+   import pytest
+
+   import mypackage.my_module
+   from mypackage.subpackage import my_other_module
+
+   ### my tests
+   ...
+
+   if __name__ == '__main__':
+       pytest.main([__file__])
+
+It can then be run directly from the CLI or from your IDE *without having to install
+the package first*, run the full test suite, or manually mangling `sys.path`, or
+`PYTHONPATH <https://docs.python.org/3/using/cmdline.html#envvar-PYTHONPATH>`_ to
+make it work.
 
 .. code-block:: shell
 
-    pip install autopypath
-
-
-Documentation
-=============
-
-It allows automatic management of Python paths for project scripts so that
-they can be run directly without manual path adjustments or reliance on IDE features.
-
-It is **NOT** meant to replace normal package management or virtual environments,
-but to facilitate running scripts directly during development and testing when
-the build may be broken due to import errors in unrelated code that prevent the normal test
-runner from executing at all (`pytest`, for example, will refuse to run tests if import errors occur
-even in unrelated modules).
-
-It detects the project root by looking for specific marker files or directories
-(such as `pyproject.toml`, `.git`, or `.hg`) and adjusts `sys.path` to include
-relevant subdirectories based on configurations found in `autopypath.toml` and
-`pyproject.toml` files.
-
-It recursively searches parent directories looking for marker files and directories
-to identify the project root. Once found, it reads configuration settings to determine
-which paths to add to `sys.path`, how to load them, and in what order.
-
-Configuration Sources and Precedence
-====================================
-
-The module supports multiple configuration sources for determining which paths
-to add to `sys.path`:
-
-**direct manual configuration**
--------------------------------
-
-Users can specify repository markers, manual paths, load strategies, and
-path resolution orders directly via the `autopypath.custom.configure_pypath` function.
-
-This method has the highest precedence and overrides any file-based configurations
-that are set. It allows users to fully customize the behavior of autopypath
-in a single script for their specific project structure and requirements without
-relying on configuration files.
-
-Options that are NOT specified in the direct manual configuration will fall back
-to the next available configuration source in the precedence order.
-
-**autopypath.toml**
--------------------
-
-If present in a directory found during the root search, this file takes highest
-precedence for the file-based configurations but not over direct manual configuration.
-
-It can specify custom repository markers, paths, load strategies, and resolution orders.
-Again, any options not specified here will fall back to the next available configuration source.
-
-This is not meant to replace `pyproject.toml` but to provide a dedicated
-configuration file for autopypath settings that may need to be set before
-a `pyproject.toml` can even be located or parsed.
-
-A typical use case is from a script inside a project subdirectory such as ``tests/``
-but the project root does not contain one of the default marker files (e.g.,
-``pyproject.toml``, ``.git/``).
-
-In this case, an ``autopypath.toml`` file can be placed in the subdirectory
-to specify the necessary configuration to find the project root and paths.
-
-This allows for early configuration of the search for the project root and paths.
-
-While it can coexist with `pyproject.toml`, it is primarily intended for use
-cases where early configuration is necessary and not as a replacement for `pyproject.toml`.
-
-If it finds a `autopypath.toml` file while searching for the project root, it uses that
-configuration to update the marker files, paths, load strategy, and path resolution order
-but does not halt the search for the project root unless that directory also satisfies
-the newly updated markers - it continues searching upwards until it finds a recognized marker
-file or directory. It is not limited to using only the directory containing the
-`autopypath.toml` file as the project root.
-
-This is a special behavior unique to `autopypath.toml` files where it can influence
-the search for the project root itself during the upward search. Because it can change
-the markers used to identify the project root, it may cause the search to continue
-upwards beyond the directory containing the `autopypath.toml` file even if that directory
-would otherwise be considered the project root based on the original markers.
-
-For example, if the original markers were `pyproject.toml` and `.git`, but
-the `autopypath.toml` file changes the markers to only `.hg`, it will continue
-searching until it finds a `.hg` directory to use as the project root but will
-ignore any `pyproject.toml` or `.git` directories found along the way.
-
-e.g., if `autopypath.toml` specifies the `.git` directory as a marker, but
-the `.git` directory is located in a parent directory, it will continue
-searching upwards until it finds that `.git` directory and uses that as the project root.
-
-Scope Limitation
-~~~~~~~~~~~~~~~~
-
-Only the first `autopypath.toml` file found during the upward search is used;
-any others in parent directories are ignored. This scope-limited approach prevents
-conflicts from multiple configuration files in nested projects.
-
-This allows for flexible configuration at different levels of a project hierarchy and
-supports monorepos or multi-package repositories.
-
-**pyproject.toml**
-------------------
-
-It looks for a `pyproject.toml` file in the project root directory. If it contains
-a `[tool.autopypath]` section, it uses that configuration unless overridden
-by direct manual configuration or `autopypath.toml`.
-
-**default configuration**
--------------------------
-
-If no other configurations are found, it falls back to a default configuration
-that sets common source directories like `src/` and `test/` to include in `sys.path` and
-uses a standard load strategy and path resolution order and set of common repository markers
-(e.g., `pyproject.toml`, `.git`, etc.) to find the project root.
-
-The default markers, paths, load strategy, and resolution order can be found in the
-`autopypath.defaults` module.
-
-For easy reference, here are the defaults:
-
-**Default Repository Markers**
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-- `pyproject.toml` (file)
-- `autopypath.toml` (file)
-    Note that there is special behavior for this marker if found. If the
-    repo_markers settings are changed in the `autopypath.toml` file,
-    the repo root is re-evaluated using the new settings
-    and that may result in a different repository root being identified.
-- `.git/` (directory, Git version control)
-- `.hg/` (directory, Mercurial version control)
-- `.svn/` (directory, Subversion version control)
-- `.bzr/` (directory, Bazaar version control)
-- `.cvs/` (directory, CVS version control)
-- `_darcs/` (directory,  Darcs version control)
-- `.fossil/` (directory, Fossil version control)
-
-**Default Paths to Add**
-~~~~~~~~~~~~~~~~~~~~~~~~
-- `src/`
-- `tests/`
-
-**Default Load Strategy**
-~~~~~~~~~~~~~~~~~~~~~~~~~
-
-- `prepend` (loads all specified paths, merging them and prepending them to `sys.path`)
-
-**Default Path Resolution Order**
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-1. `manual` (uses any manually specified paths first)
-2. `autopypath` (appends paths from `autopypath.toml` file after manual paths)
-3. `pyproject` (appends paths from `pyproject.toml` file after `autopypath.toml` paths)
-
-Behavior When No Valid Configuration is Found
-=============================================
-
-If no valid project root or paths are found, it does not modify `sys.path` at all
-but instead logs warnings to inform the user. It only makes adjustments when it can
-confidently determine the correct paths to add and has been explicitly invoked
-directly from a script being run as `__main__`. It will not add paths to non-existent
-directories.
-
-If there is any doubt about whether to adjust the path, the module opts to do nothing.
-
-This is to avoid interfering with normal development workflows and to 'fail to safe'
-by preventing accidentally breaking the environment. A 'if in doubt, do nothing' approach.
+   python my_test_script.py
 
 .. note::
 
-   The automatic configuration only occurs when the module is imported
-   at the top level of a script that is run directly (i.e., `__name__ == "__main__"`).
+   While autopypath is primarily designed to be used in test scripts,
+   it can also be utilized in other Python scripts where dynamic
+   adjustment of `sys.path` is needed based on project configuration.
 
-   It cannot be used from inside functions or class definitions. If the module is imported
-   in any other context, it will log debug information but will not adjust `sys.path`.
+It automatically resolves the paths based on the configuration files and adds
+them to `sys.path` before running the tests.
 
-   It should be imported before any other imports that depend on the adjusted Python path.
+Configuration
+-------------
 
-   The custom configuration function also only works when called directly
-   from the top level of a script being executed as `__main__` - not from within
-   functions or classes.
+If you already use `pyproject.toml <https://packaging.python.org/en/latest/guides/writing-pyproject-toml/>`_ to define
+your project structure, autopypath has first-class support for it and will automatically
+detect it and use a ``[tool.autopypath]`` section if present to configure itself.
 
-   Again, the function should be called before any other imports that depend on the adjusted Python path.
+If you do not use `pyproject.toml <https://packaging.python.org/en/latest/guides/writing-pyproject-toml/>`_ or
+want to have a separate configuration file, you can create an `autopypath.toml` file in the root of your project
+using the same configuration format.
 
-Modes of Operation
-==================
+Example:
 
-**Fully Automatic Mode**
-------------------------
+    .. code-block:: toml
 
-When imported from a script, it automatically adjusts `sys.path` based on
-`autopypath.toml` files and `pyproject.toml` files.
-
-This ensures that modules can be imported correctly when running scripts directly.
-
-.. code-block:: python
-
-    import autopypath
-    # sys.path is now adjusted automatically
-
-**Fully Automatic Debug Mode**
-------------------------------
-
-By importing the `autopypath.debug` submodule,
-detailed debug logging is enabled to trace how the project root is determined,
-which paths are added to `sys.path`, and any issues encountered along the way.
-
-Additionally, it raises exceptions for things in autopypath that would normally only
-log warnings, making it easier to identify and fix configuration problems.
-
-This is useful for troubleshooting and understanding the internal workings of autopypath.
-
-.. code-block:: python
-
-    import autopypath.debug
-    # sys.path is now adjusted automatically with debug logging enabled and exceptions raised for issues
-
-**Custom Configured Mode**
---------------------------
-
-Users can call the `autopypath.custom.configure_pypath`
-function to specify custom repository markers, manual paths, and loading strategies.
-This provides flexibility for different project structures and requirements.
-
-The path is **NOT** adjusted automatically on import in this mode; the user must call the
-`configure_pypath` function explicitly. It can only be called from the top level
-of a script being executed as `__main__`, not from within functions or classes.
-It will not work if called from other contexts. The prevents it from accidentally
-modifying `sys.path` except when explicitly intended (such as when running a script directly
-rather than being imported as a module such as by pytest or other test runners).
-
-It should be called before any other imports that depend on the adjusted Python path.
-
-.. code-block:: python
-
-    import logging
-    from autopypath.custom import configure_pypath
-
-    configure_pypath(
-        repo_markers={'setup.py': 'file, '.git': 'dir'},
-        manual_paths=['src', 'tests'],
-        load_strategy='prepend',
-        log_level=logging.DEBUG
-    )
-    # sys.path is now adjusted based on custom configuration
-
-Example of usage with pytest
-============================
-
-To use autopypath with pytest, simply import it at the beginning of your test scripts
-and invoke pytest in the same script.
-
-For example, at the top of your test script, before imports of your own modules add:
-
-.. code-block:: python
-
-    import pytest
-    import autopypath
-
-and add the following at the bottom of the script:
-
-.. code-block:: python
-
-    if __name__ == "__main__":
-        pytest.main(__file__)
-
-It can now be run directly:
-
-.. code-block:: shell
-
-    python test_your_module.py
-
-This will automatically adjust the Python path to include the necessary directories
-to ensure your tests can find the modules they need without looking at unrelated code.
-
-If you run the test script directly, autopypath will configure the Python path
-before executing the tests. It will not interfere with normal pytest runs or
-change the environment except when the scripts
+        [tool.autopypath]
+        repo_markers = {".git" = "dir"}
+        paths = ["src", "lib"]

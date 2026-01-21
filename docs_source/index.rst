@@ -106,6 +106,21 @@ make it work.
 It automatically resolves the paths based on the configuration files and adds
 them to :data:`sys.path` before running the tests.
 
+Configuration
+-------------
+
 If you already use `pyproject.toml <https://packaging.python.org/en/latest/guides/writing-pyproject-toml/>`_ to define
 your project structure, autopypath has first-class support for it and will automatically
 detect it and use a ``[tool.autopypath]`` section if present to configure itself.
+
+If you do not use `pyproject.toml <https://packaging.python.org/en/latest/guides/writing-pyproject-toml/>`_ or
+want to have a separate configuration file, you can create an `autopypath.toml` file in the root of your project
+using the same configuration format.
+
+Example:
+
+    .. code-block:: toml
+
+        [tool.autopypath]
+        repo_markers = {".git" = "dir"}
+        paths = ["src", "lib"]
