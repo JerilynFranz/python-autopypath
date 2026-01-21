@@ -1,6 +1,36 @@
 autopypath
 ==========
 
+.. Badges
+
+.. image:: https://github.com/JerilynFranz/python-autopypath/actions/workflows/build.yml/badge.svg
+   :target: https://github.com/JerilynFranz/python-autopypath/actions/workflows/build.yml
+   :alt: Build Status
+
+.. image:: https://coveralls.io/repos/github/JerilynFranz/python-autopypath/badge.svg
+   :target: https://coveralls.io/github/JerilynFranz/python-autopypath
+   :alt: Coverage Status
+
+.. image:: https://readthedocs.org/projects/python-autopypath/badge/?version=latest
+   :target: https://python-autopypath.readthedocs.io/en/latest/?badge=latest
+   :alt: Documentation Status
+
+.. image:: https://img.shields.io/pypi/v/autopypath
+   :target: https://pypi.org/project/autopypath/
+   :alt: PyPI Version
+
+.. image:: https://img.shields.io/pypi/pyversions/autopypath
+   :target: https://pypi.org/project/autopypath/
+   :alt: Python Versions
+
+.. image:: https://img.shields.io/pypi/l/autopypath
+   :target: https://pypi.org/project/autopypath/
+   :alt: License
+
+.. image:: https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json
+   :target: https://github.com/astral-sh/ruff
+   :alt: Ruff
+
 Table of Contents
 -----------------
 
