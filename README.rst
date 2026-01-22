@@ -78,7 +78,7 @@ into the virtual environment after a structural change.
 - Other parts of the test suite are failing due to ongoing refactoring.
 
 It is not a replacement for `virtual environments <https://docs.python.org/3/library/venv.html>`_,
-but a resilience tool. It mitigates path-related :class:`ModuleNotFoundError` errors,
+but a resilience tool. It mitigates path-related ``ModuleNotFoundError`` errors,
 allowing you to debug a specific file without needing the entire project ecosystem to be in a perfect,
 deployable state.
 
