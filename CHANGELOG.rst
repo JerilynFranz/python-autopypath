@@ -5,6 +5,7 @@ Changelog for autopypath
 1.0.1 (2026-01-23)
 ------------------
 
+- Updated index.rst and README.rst for clarity and consistency.
 - Removed an unused `.env` file (no functional changes).
 - Removed editor- and workspace-specific files from the source distribution.
 - Clarified the purpose of `uv.lock` for reproducible builds.
