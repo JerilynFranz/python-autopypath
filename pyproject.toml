@@ -72,7 +72,6 @@ dev = [
        "ruff>=0.14.11",
        "hatch>=1.13",
        "hatchling>=1.27",
-       "pydeps>=1.23.2",
        "tox>=4.22.0",
        "tox-uv>=1.13.1",
        "uv>=0.9.18",
@@ -105,7 +104,6 @@ docs = [
 tools = [
     "hatch>=1.13",
     "hatchling>=1.27",
-    "pydeps>=1.23.2",
     "tox>=4.22.0",
     "tox-uv>=1.13.1",
     "uv>=0.9.18",
@@ -185,9 +183,8 @@ exclude = ["venv"]
 description = "Build the documentation"
 base_python = ["python3.12"]
 dependency_groups = ["docs", "test"]
-allowlist_externals = ["sphinx-build", "sphinx-apidoc", "pydeps"]
+allowlist_externals = ["sphinx-build"]
 commands = [
-    ["sphinx-apidoc", "--separate", "--remove-old", "--module-first", "-f", "-o", "docs_source/source", "src"],
     ["sphinx-build", "-b", "html", "docs_source/", "documentation/"],
 ]
 

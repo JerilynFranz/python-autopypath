@@ -34,7 +34,7 @@ from ._context import _context_frameinfo
 from ._exceptions import AutopypathError
 from ._log import _log
 
-__all__ = ['AutopypathError']
+__all__ = []
 
 _log.setLevel(logging.DEBUG)
 

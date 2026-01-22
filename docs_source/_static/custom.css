@@ -281,8 +281,6 @@ figure.caption-first figcaption {
 }
 
 
-
-
 .image-block-caption {
     font-size: var(--font-size--small);
     text-align: center;
@@ -351,6 +349,12 @@ div.content div.article-container article section dl.py.class dd dl.field-list.s
     color: #00a040;
     font-weight: bold;
     margin-top: .25rem
+}
+
+/* function parameters */
+dl.py.function dt.sig.sig-object.py dl dd em.sig-param  {
+    font-size: var(--font-size--small--2);
+
 }
 
 /* 'property' fields in class documentation */
