@@ -2,8 +2,16 @@
 Changelog for autopypath
 ========================
 
+1.0.1 (2026-01-23)
+------------------
+
+- Removed an unused `.env` file from the source distribution (no functional changes).
+- Removed editor- and workspace-specific files from the source distribution.
+- Clarified the purpose of `uv.lock` for reproducible builds.
+   
 1.0.0 (2026-01-22)
 ------------------
+
 - Official release of autopypath version 1.0.0.
 - Finalized documentation and public API.
 - Added detailed examples and usage instructions.
@@ -14,10 +22,12 @@ Changelog for autopypath
 
 0.9.1 (2026-01-21)
 ------------------------
+
 - Added pre-commit Git hooks for code quality checks and formatting on commit.
 - Updated index.rst and README.rst documentation.
 - Bumped version to 0.9.1.
 
 0.9.0 (2026-01-21)
 ------------------------
+
 - Initial release for version 0.9.0 to PyPI

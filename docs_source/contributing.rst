@@ -135,6 +135,13 @@ To contribute code or documentation updates to `autopypath`, follow these steps:
 
 10. Engage in the code review process and make any necessary changes based on feedback.
 
+
+uv.lock
+-------
+
+uv.lock is included in the source distribution to support reproducible
+builds and independent verification. Use of uv is optional for contributors.
+
 Need Help?
 ----------
 
