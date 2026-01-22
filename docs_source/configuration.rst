@@ -120,3 +120,33 @@ In either `pyproject.toml` or `autopypath.toml`, the configuration for paths loo
 
     [tool.autopypath]
     paths = ["src", "lib", "custom_dir"]
+
+Path Resolution Order
+=====================
+
+The order in which autopypath resolves paths can be customized using the
+`path_resolution_order` parameter to `configure_pypath()` or in a
+`pyproject.toml` or `autopypath.toml` file. This setting determines the sequence
+of configuration sources that autopypath checks for paths to add to `sys.path`.
+
+The available sources are:
+
+- `manual`: Paths provided directly via the `paths` parameter to `configure_pypath()`.
+- `autopypath`: Paths specified in `autopypath.toml` configuration files.
+- `pyproject`: Paths specified in `pyproject.toml` configuration files.
+
+The default resolution order is `['manual', 'autopypath', 'pyproject']`, meaning
+that manually provided paths take precedence over those specified in `autopypath.toml`,
+which in turn take precedence over those in `pyproject.toml`. '
+
+This primarily affect the order in which paths are added to `sys.path` when using
+the `prepend` load strategy.
+
+In either `pyproject.toml` or `autopypath.toml`, the configuration for path resolution
+order looks like this:
+
+.. code-block:: toml
+
+    [tool.autopypath]
+    path_resolution_order = ["manual", "autopypath", "pyproject"]
+

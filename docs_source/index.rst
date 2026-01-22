@@ -23,8 +23,8 @@ autopypath
    :target: https://pypi.org/project/autopypath/
    :alt: Python Versions
 
-.. image:: https://img.shields.io/pypi/l/autopypath
-   :target: https://pypi.org/project/autopypath/
+.. image:: https://img.shields.io/badge/License-Apache_2.0-green.svg
+   :target: https://opensource.org/licenses/Apache-2.0
    :alt: License
 
 .. image:: https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json
@@ -42,13 +42,9 @@ Table of Contents
    installation
    usage
    configuration
-   tutorials
-   faq
+   public_api
    contributing
    code_of_conduct
-   genindex
-   modindex
-   Source <source/modules>
 
 What is autopypath?
 -------------------

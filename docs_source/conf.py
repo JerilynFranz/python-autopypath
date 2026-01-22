@@ -37,6 +37,9 @@ release: str = _meta.__release__
 
 # -- General configuration ---------------------------------------------------
 
+
+python_maximum_signature_line_length = 20
+
 # If your documentation needs a minimal Sphinx version, state it here.
 #
 # needs_sphinx = '1.0'
@@ -47,7 +50,7 @@ release: str = _meta.__release__
 extensions = [
     # 'sphinx.ext.duration',
     'sphinx.ext.doctest',
-    'sphinx.ext.apidoc',
+    #'sphinx.ext.apidoc',
     # 'sphinx.ext.autodoc',
     # 'sphinx.ext.autosummary',
     'sphinx.ext.intersphinx',
@@ -60,11 +63,12 @@ extensions = [
 
 intersphinx_mapping = {
     'python': ('https://docs.python.org/3/', None),
+    'typing': ('https://typing.python.org/en/latest/', None),
     'sphinx': ('https://www.sphinx-doc.org/en/master/', None),
     'pytest': ('https://docs.pytest.org/en/latest/', None),
     'tox': ('https://tox.readthedocs.io/en/latest/', None),
 }
-intersphinx_disabled_domains = ['std']
+#intersphinx_disabled_domains = ['std']
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']

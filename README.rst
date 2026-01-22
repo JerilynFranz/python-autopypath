@@ -64,6 +64,7 @@ Documentation
 
 -  `Usage <https://python-autopypath.readthedocs.io/en/latest/usage.html>`_
 -  `Configuration <https://python-autopypath.readthedocs.io/en/latest/configuration.html>`_
+-  `Public API <https://python-autopypath.readthedocs.io/en/latest/public_api.html>`_
 -  `Contributing <https://python-autopypath.readthedocs.io/en/latest/contributing.html>`_
 -  `Code of Conduct <https://python-autopypath.readthedocs.io/en/latest/code_of_conduct.html>`_
 
