@@ -100,6 +100,12 @@ from pathlib import Path
 from typing import Any, NamedTuple
 from venv import create as create_venv
 
+
+def _is_windows() -> bool:
+    """Determines if the current platform is Windows."""
+    return sys.platform == 'win32'
+
+
 DEFAULT_DEBUG: bool = False
 """Enable debug output only if --debug is specified.
 
@@ -209,16 +215,33 @@ and the project has been installed in editable mode.
 
 To activate the project's development virtual environment, run:
 
-  {{activate}}
+{{activate}}
 
 To deactivate the virtual environment, run:
 
-  deactivate
+{{deactivate}}
 
 {TOOL_USAGE_INSTRUCTIONS}
 """
 
+
+
 # --- Confirmation prompt message ---
+
+if _is_windows():
+    PLATFORM_PROMPT_MESSAGE = """
+************************************************************
+If you are using PowerShell, the script will attempt to set
+the execution policy to allow running scripts in the virtual
+environment. This is required to activate the virtual
+environment in PowerShell.
+
+The execution policy will be set only for the current user.
+************************************************************
+
+"""
+else:
+    PLATFORM_PROMPT_MESSAGE = ''
 
 CONFIRMATION_PROMPT_MESSAGE = f"""
 This script will create a {VENV_DIR} directory in the root
@@ -228,7 +251,10 @@ It will install required tools into it for development,
 and install the project as an editable package into the
 virtual environment.
 
-No changes will be made to your system install of Python.
+It will also install a git pre-commit hook for the repository.
+
+{PLATFORM_PROMPT_MESSAGE}
+No other changes will be made to your system install of Python.
 
 Continue? [y/n] """
 
@@ -305,6 +331,8 @@ DETECTED_VCS: VCS = VCS(name='none', repo_root=Path('.'))
 """The detected version control system in use (git, hg, or none)."""
 
 
+_powershell_execution_policy_set: bool = False
+
 def run_post_install_steps(python_exe: Path, root_path: Path, bin_dir: Path) -> None:
     """Runs any post-installation steps required after installing tools.
 
@@ -337,10 +365,6 @@ class FatalBootstrapError(Exception):
         super().__init__(message)
         self.error_code = error_code
 
-
-def _is_windows() -> bool:
-    """Determines if the current platform is Windows."""
-    return sys.platform == 'win32'
 
 
 def _validate_string(value: str, name: str) -> None:
@@ -976,6 +1000,48 @@ def _build_install_command(base_command: list[str | Path], modules: list[Install
     return command
 
 
+def set_powershell_execution_policy() -> None:
+    """Sets the PowerShell execution policy to RemoteSigned for the current user if on Windows."""
+    if not _is_windows():
+        return
+
+    controlled_print('--> Configuring PowerShell execution policy...')
+    try:
+        global _powershell_execution_policy_set  # pylint: disable=global-statement
+
+        # Check current policy
+        check_command = ['powershell', '-Command', 'Get-ExecutionPolicy']
+        result = subprocess.run(check_command, capture_output=True, text=True, check=False)
+        current_policy = result.stdout.strip()
+
+        if current_policy == 'RemoteSigned':
+            controlled_print('PowerShell execution policy is already set to RemoteSigned.')
+            _powershell_execution_policy_set = True
+            return
+
+        controlled_print('Setting PowerShell execution policy to RemoteSigned for the current user.')
+        # This command requires user confirmation if run interactively in a PS prompt,
+        # but it should proceed without a prompt when called via subprocess from a non-interactive script.
+        # Using -Force to be certain.
+        set_command: list[str | Path] = [
+            'powershell',
+            '-Command',
+            'Set-ExecutionPolicy',
+            '-ExecutionPolicy',
+            'RemoteSigned',
+            '-Scope',
+            'CurrentUser',
+            '-Force',
+        ]
+        run_command(set_command)
+        controlled_print('PowerShell execution policy has been set to RemoteSigned.')
+        _powershell_execution_policy_set = True
+
+    except (subprocess.CalledProcessError, FileNotFoundError, FatalBootstrapError) as e:
+        controlled_print(f'Warning: Failed to set PowerShell execution policy: {e}')
+        controlled_print('You may need to run the following command in PowerShell manually:')
+        controlled_print('Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser')
+
 def print_instructions(template: str) -> None:
     """Prints instructions to the user on how to activate the virtual environment
     and use the installed tools.
@@ -998,19 +1064,36 @@ If you use fish:
         activate_script = f"""
 Windows Command Prompt:
 
-    {ACTIVATED_VENV_DIR}\\Scripts\\activate.bat
+    {ACTIVATED_VENV_DIR}\\Scripts\\activate
 
 PowerShell:
 
-    {ACTIVATED_VENV_DIR}\\Scripts\\Activate.ps1
+    .\\{ACTIVATED_VENV_DIR}\\Scripts\\Activate.ps1
 
 Note: For PowerShell, you may need to adjust your execution policy to run scripts.
 You can do this by running PowerShell and executing:
 
     Set-ExecutionPolicy -Scope CurrentUser RemoteSigned
 """
-    instructions = template.format(activate=activate_script)
+    deactivate_script: str = """
+To deactivate the virtual environment, run:
+
+Unix/macOS/Linux/fish/Windows Command Prompt/PowerShell:
+
+    deactivate
+
+"""
+    instructions = template.format(activate=activate_script, deactivate=deactivate_script)
     controlled_print(instructions)
+
+    if _is_windows() and not _powershell_execution_policy_set:
+        controlled_print('\n' + '*' * 60)
+        controlled_print('Warning: Failed to set PowerShell execution policy.')
+        controlled_print('This may prevent you from activating the virtual environment in PowerShell.')
+        controlled_print('To fix this, open PowerShell and run:')
+        controlled_print('    Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser')
+        controlled_print('For more information, see the Microsoft documentation on execution policies.')
+        controlled_print('*')
 
 
 def parse_arguments() -> argparse.Namespace:
@@ -1081,6 +1164,7 @@ def main() -> None:
         create_virtual_environment(venv_dir, python_exe)
         install_tools(python_exe, BOOTSTRAP_MODULES)
         install_vcs_hooks(repo_root, forced=args.force_hooks)
+        set_powershell_execution_policy()
 
         bin_dir = venv_dir / ('Scripts' if _is_windows() else 'bin')
         run_post_install_steps(python_exe=python_exe, root_path=repo_root, bin_dir=bin_dir)

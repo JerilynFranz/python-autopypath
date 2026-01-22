@@ -57,14 +57,14 @@ or on Windows use:
 .. code-block:: text
    :caption: Activating the virtual environment on Windows
 
-   .venv\Scripts\activate.bat
+   .venv\Scripts\activate
    
 or if using PowerShell:
 
 .. code-block:: text
    :caption: Activating the virtual environment on Windows PowerShell
 
-   .venv\Scripts\Activate.ps1
+   .\.venv\Scripts\Activate.ps1
 
 This will set up the development environment and install `autopypath` in
 editable mode.

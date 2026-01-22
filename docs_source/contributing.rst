@@ -69,12 +69,12 @@ To contribute code or documentation updates to `autopypath`, follow these steps:
    .. code-block:: text
      :caption: Activating the virtual environment on Windows
 
-       .venv\Scripts\activate.bat
+       .venv\Scripts\activate
 
    .. code-block:: text
      :caption: Activating the virtual environment on Windows PowerShell
 
-       .venv\Scripts\Activate.ps1
+       .\.venv\Scripts\Activate.ps1
 
 6. Make your changes and test them thoroughly using the existing test suite
    and by adding new tests if necessary. Our goal is to maintain high code quality
