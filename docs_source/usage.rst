@@ -11,12 +11,12 @@ from your code.
 
 It will automatically detect the project root and add relevant paths
 to :data:`sys.path` based on standard project structures or configuration files
-such as `pyproject.toml`.
+such as ``pyproject.toml``.
 
 It does not require any additional setup for standard project layouts
 as long as the project root can be detected using common repository markers
-(such as `.git`, `.hg`, or `.svn` directories, a `pyproject.toml` file,
-or a `autopypath` file) and the source and test directories are in standard locations.
+(such as ``.git``, ``.hg``, or ``.svn`` directories, a ``pyproject.toml`` file,
+or an ``autopypath.toml`` file) and the source and test directories are in standard locations.
 
 .. code-block:: python
     :caption: test_my_stuff.py
@@ -35,32 +35,32 @@ or a `autopypath` file) and the source and test directories are in standard loca
 
 The default repository markers it looks for are:
 
-- `.git` directory
-- `.hg` directory
-- `.svn` directory
-- `.bzr` directory
-- `.cvs` directory
-- `_darcs` directory
-- `.fossil` directory
-- `pyproject.toml` file
-- `autopypath.toml` file
+- ``.git``   directory
+- ``.hg`` directory
+- ``.svn`` directory
+- ``.bzr`` directory
+- ``.cvs`` directory
+- ``_darcs`` directory
+- ``.fossil`` directory
+- ``pyproject.toml`` file
+- ``autopypath.toml`` file
 
 If it finds one of these markers when searching upwards from the test script's
 directory, it considers that directory the project root. There is some
-special handling for `autopypath.toml` files to allow hierarchical configurations.
+special handling for ``autopypath.toml`` files to allow hierarchical configurations.
 
 See the :doc:`configuration` section of the documentation for details on
 that special behavior.
 
 The default paths it adds to :data:`sys.path` relative to the project root are:
 
-- `src`
-- `tests`
-- `lib`
-- `src/test`
+- ``src``
+- ``tests``
+- ``lib``
+- ``src/test``
 
 The default strategy is to prepend them to :data:`sys.path`
-in the following order: `src`, `tests`, `lib`, `src/test`.
+in the following order: ``src``, ``tests``, ``lib``, ``src/test``.
 
 The default paths are **ONLY** used if no other path configuration
 sources are found.
@@ -75,8 +75,8 @@ Customized Configuration
 ------------------------
 
 For non-standard project structures or simply to customize behavior,
-you can add a [tool.autopypath] section to your `pyproject.toml` file
-or create an `autopypath.toml` file in your project root directory or
+you can add a ``[tool.autopypath]`` section to your ``pyproject.toml`` file
+or create an ``autopypath.toml`` file in your project root directory or
 in subdirectories to specify which directories should be added
 to :data:`sys.path`, how to detect the project root, what precedence
 to give to different path configuration sources, and other options.
@@ -85,21 +85,33 @@ A detailed explanation of the configuration options can be found in the
 :doc:`configuration` section of the documentation.
 
 .. code-block:: toml
-    :caption: pyproject.toml or autopypath.toml
+    :caption: autopypath.toml
 
-      [tool.autopypath]
-      paths = ['lib', 'src/tests', '.']
-      repo_markers = {'.git' = 'dir', 'pyproject.toml' = 'file', '.env' = 'file'}
-      load_strategy = 'prepend'
-      path_resolution_order = ['autopypath', 'pyproject']
+    [tool.autopypath]
+    paths = ['lib', 'src/tests', '.']
+    repo_markers = {'.git' = 'dir', 'pyproject.toml' = 'file', '.env' = 'file'}
+    load_strategy = 'prepend'
+    path_resolution_order = ['autopypath', 'pyproject']
+
+The configuration in ``pyproject.toml`` is identical, but the ``repo_markers``
+setting has no effect. Since ``pyproject.toml`` itself defines the project root,
+the root has already been found by the time `autopypath` would read that setting.
+
+.. code-block:: toml
+    :caption: pyproject.toml
+
+    [tool.autopypath]
+    paths = ['lib', 'src/tests', '.']
+    load_strategy = 'prepend'
+    path_resolution_order = ['autopypath', 'pyproject']
 
 Debugging Mode
 --------------
 
 autopypath provides debug capabilities to help you debug path resolution issues.
 
-You can enable debug mode by importing the `autopypath.debug` module instead
-of the main `autopypath` module.
+You can enable debug mode by importing the ``autopypath.debug``  module instead
+of the main ``autopypath`` module.
 
 It works the same way as the basic usage but enables debug level logging output
 and converts what would be warnings into exceptions to help identify issues.
