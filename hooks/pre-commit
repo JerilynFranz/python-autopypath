@@ -1,12 +1,8 @@
-#!/bin/sh
-"true" '''\'
-if command -v python3 >/dev/null 2>&1; then
-    exec python3 "$0" "$@"
-else
-    exec python "$0" "$@"
-fi
-'''
+#!/usr/bin/python
 # -*- coding: utf-8 -*-
+"""Pre-commit hook to run tests via Tox or UV before allowing a commit."""
+
+import io
 import os
 import shutil
 import subprocess
@@ -16,6 +12,11 @@ from typing import Sequence, Union
 
 # Define types for compatibility with Python < 3.10
 ProcessResult = Union[subprocess.CompletedProcess, subprocess.CalledProcessError]
+
+# Force stdout to use UTF-8 encoding, regardless of the environment.
+# This prevents UnicodeEncodeError when printing emojis on Windows.
+if sys.stdout.encoding != 'utf-8':
+    sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
 
 def find_executable(name: str) -> Union[str, None]:
     """Find executable in .venv, PATH, or common user directories."""
