@@ -243,6 +243,8 @@ exclude = [
 exclude = [
     ".trunk/",
     ".git/",
+    ".vscode/",
+    "python-autopypath.code-workspace",
     "coverage/",
     "coverage_html_report/",
     "examples/",
