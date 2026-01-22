@@ -43,11 +43,11 @@ What is autopypath?
 -------------------
 
 **autopypath** is a library that simplifies the management of the Python module
-search path (:data:`sys.path`) for testing and development environments.
+search path (``sys.path``) for testing and development environments.
 
 It automatically detects your project root (via `.git <https://git-scm.com/>`_,
 `pyproject.toml <https://python-poetry.org/docs/pyproject/>`_, etc.)
-and intelligently adds source directories to :data:`sys.path` at runtime.
+and intelligently adds source directories to ``sys.path`` at runtime.
 
 It *does not* read ``.env`` files to derive
 `PYTHONPATH <https://docs.python.org/3/using/cmdline.html#envvar-PYTHONPATH>`_ because
@@ -125,10 +125,10 @@ Usage
 -----
 
 Simply import ``autopypath`` at the top of your test script. It will
-automatically detect the project root and adjust :data:`sys.path` accordingly
+automatically detect the project root and adjust ``sys.path`` accordingly
 (by default adding ``src``, ``lib``, ``src/tests``, and ``tests`` directories if they exist).
 
-It does not add ``.`` to :data:`sys.path` by default to avoid conflicts with subdirectories
+It does not add ``.`` to ``sys.path`` by default to avoid conflicts with subdirectories
 that are NOT intended to be packages, but if you want to include the repo root
 directory, you can configure it
 via `pyproject.toml <https://python-poetry.org/docs/pyproject/>`_ or ``autopypath.toml``.
@@ -168,7 +168,7 @@ You can configure it by adding a ``[tool.autopypath]`` section.
 If you do not use ``pyproject.toml``, you can create an ``autopypath.toml``  file
 either in your root directory or in subdirectories such as ``src`` or ``tests``
 and it will be detected automatically. This can be useful for monorepos or
-multi-package repositories and allows customization of :data:`sys.path` per sub-project
+multi-package repositories and allows customization of ``sys.path`` per sub-project
 or for detection of the project root in non-standard layouts.
 
 **Example `autopypath.toml`:**
