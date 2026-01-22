@@ -20,8 +20,8 @@ repository and install it manually. Here are the steps to do so:
 
 .. code-block:: shell
 
-   git clone https://github.com/JerilynFranz/autopypath.git
-   cd autopypath
+   git clone https://github.com/JerilynFranz/python-autopypath.git
+   cd python-autopypath
    pip install .
 
 .. _development-installation:
@@ -39,11 +39,32 @@ To make this easier, a bootstrap script is provided.
 You can run the following commands:
 
 .. code-block:: shell
+   :caption: Setting up the development environment
 
    git clone https://github.com/JerilynFranz/python-autopypath.git
    cd python-autopypath
-   python3 bootstrap.py
+   python bootstrap.py
+
+And then activate the virtual environment with:
+
+.. code-block:: shell
+   :caption: Activating the virtual environment on Linux/macOS
+
    source .venv/bin/activate
+
+or on Windows use:
+
+.. code-block:: text
+   :caption: Activating the virtual environment on Windows
+
+   .venv\Scripts\activate.bat
+   
+or if using PowerShell:
+
+.. code-block:: text
+   :caption: Activating the virtual environment on Windows PowerShell
+
+   .venv\Scripts\Activate.ps1
 
 This will set up the development environment and install `autopypath` in
 editable mode.

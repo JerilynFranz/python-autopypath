@@ -126,7 +126,7 @@ configure_pypath
 
     :param strict:
         If `True`, raises an error for conditions that would normally only log a warning.
-        Default is `False`. It also turns logged warnings into logged errors and raised
+        Default is `False`. It also turns logged warnings into logged errors and raises
         :class:`~autopypath.custom.AutopypathError` exceptions.
 
         Conditions that normally trigger logged warnings include:
@@ -165,7 +165,7 @@ pyproject.toml and autopypath.toml Configurations and Defaults
 
 For information on configuring `autopypath` using `pyproject.toml` or
 `autopypath.toml` files, and for the defaults used when no configurations
-are explicitly set, please refer to the :ref:`configuration section <configuration>`
+are explicitly set, please refer to the :doc:`configuration section <configuration>`
 of the documentation.
 
 Logging
